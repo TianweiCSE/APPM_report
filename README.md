@@ -13,4 +13,4 @@ This repo is just for writing the article on APPM project. The code is in [anoth
 This repo is linked to an Overleaf project ["APPM_report"](https://www.overleaf.com/read/gnwygnrkdgdr). To sync these two projects, go to `menu` -> `sync` -> `Github` in overleaf.
 
 - One can just push commit to this Github repo.
-- One can also work directly through overleaf. Remember to sync them each time you start and finish editing.   
+- One can also work directly through Overleaf. Remember to sync them each time you start and finish editing.   
