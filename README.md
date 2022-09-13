@@ -6,7 +6,7 @@ This repo is just for writing the article on APPM project. The code is in [anoth
 
 `master_thesis_version`: figures and tex file for [master thesis](https://github.com/TianweiCSE/APPM/files/9423681/Master_thesis_TianweiYu.pdf).
 
-`paper_version`: the folder where we work.
+`paper_version`: the folder where we work. The paper outline is also there.
 
 ## Interaction with [Overleaf](https://www.overleaf.com/project)
 
