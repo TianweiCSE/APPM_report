@@ -1,6 +1,6 @@
 # APPM_report 
 
-This repo is just for writing the article on APPM project. The code is in [another repo](https://github.com/TianweiCSE/APPM).
+This repo is just for writing the article on APPM project. The code is in [`github.com/TianweiCSE/APPM`](https://github.com/TianweiCSE/APPM).
 
 ## Subfolders
 
