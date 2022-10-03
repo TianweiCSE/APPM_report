@@ -263,23 +263,114 @@ where
 \end{equation*}
  The equation (\ref{equ:E}) implies the shift from the hyperbolic nature to the elliptic nature of the $\mathbf{E}$-field as $\lambda\rightarrow0$. 
 
-We would like to point out the proceeding argument about the derivation of limit model is merely formal and heuristic without mentioning the proof and to which sense the convergence holds. Deep mathematical tools from the perturbation theory is needed to rigorously prove the convergence of the limiting sequence. This topic is beyond this paper and thus omitted. Readers are referred to \cite{remi_2014} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995} for the general theory.
+We would like to point out the proceeding argument about the derivation of limit model is merely formal and heuristic without mentioning the proof and to which sense the convergence holds. Deep mathematical tools from the perturbation theory is needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper and thus omitted. Readers are referred to \cite{remi_2014} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995} for the general theory.
 
 \subsection{Boundary conditions}
 
+We consider a simply connected domain $\Omega$ that is decomposed into two sub-domains $\Omega_P$ and $\Omega_I$ representing plasma domain and insulating domain respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$, denoting the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_I$ for the insulating boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Gamma_I \cap \partial\Gamma_P$. This setting is visualized in Fig. . 
+
+The plasma fills $\Omega_I$ where the Euler system lies and thus the boundary of plasmas lies on $\partial\Omega_P$. We consider the physical scenario where plasmas are confined with the solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective walls where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by, for the sake of simplicity, open boundaries, namely they are free to flow through. \todo{Discussion the more realistic electrode model}
+
+The Maxwell system is defined on the whole domain $\Omega$. External voltages are enforced on the contact boundary $\Gamma_C$ to model electrodes. More specifically, $\Gamma_C$ is usually composed of disjoint connecting components $\Gamma_C^i$, $i \leq N$ where $N$ is total number of these boundary components. Constant potentials are enforced on each component in the sense that $\varphi|_{\Gamma_C^i} = \varphi_i$. The insulating boundary blocks the energy interchange and therefore only admits zero electric and magnetic flux, in the sense that $\text{curl}\mathbf{E}\cdot \mathbf{n} = 0$ and $\text{curl}\mathbf{H}\cdot \mathbf{n} = 0$ where $\mathbf{n}$ is the outer normal vector. 
+\begin{figure}
+\begin{minipage}{0.45\textwidth}
+    \resizebox{\textwidth}{!}{
+    \begin{tikzpicture}
+    \coordinate (O1) at (0,0);
+    \draw[very thick] (O1) circle (1) node[blue] {Electrode};
+    \fill[blue, opacity=0.2] (O1) circle (1);
+    \draw[very thick] (O1) circle (1.5);
+    \coordinate (O2) at (4.5,1);
+    \draw[gray] (O2) circle (1);
+    \node at (O2) {\textcolor{red}{Electrode}};
+    \node at (barycentric cs:O1=1,O2=1) {Plasma}; 
+    \fill[red, opacity=0.2] (O2) circle (1);
+    \coordinate (S1) at ([shift={(-0.196,0.98)}]O1);
+    \coordinate (S2) at ([shift={(-0.196,0.98)}]O2);
+    \coordinate (P1) at ([shift={(0.196,-0.98)}]O1);
+    \coordinate (P2) at ([shift={(0.196,-0.98)}]O2);
+    \draw[gray] (S1) -- (S2);
+    \draw[gray] (P1) -- (P2);
+    \coordinate (SS1) at ([shift={({-0.196*1.5},{0.98*1.5})}]O1);
+    \coordinate (SS2) at ([shift={({-0.196*1.5},{0.98*1.5})}]O2);
+    \coordinate (PP1) at ([shift={({0.196*1.5},{-0.98*1.5})}]O1);
+    \coordinate (PP2) at ([shift={({0.196*1.5},{-0.98*1.5})}]O2);
+    \draw[very thick] (SS1) -- (SS2);
+    \draw[very thick] (PP1) -- (PP2); 
+    \draw[gray] (SS2) arc (101.31:180+101.31:1.5);
+    \draw[very thick] (PP2) arc (101.31-180:101.31:1.5);
+    \draw[-to] (barycentric cs:SS1=1,SS2=1,S1=1,S2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:SS1=1,SS2=1,S1=1,S2=1) node[left, gray] {Insulator};
+    \begin{scope}[shift={(5.5,-1.4)}]
+    \draw[blue, -to] (0,0) -- (0.65,0.12) node[right]{\small $z$};
+    \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+    \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+    \end{scope}
+    \end{tikzpicture}}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+    \resizebox{1.1\textwidth}{!}{ \begin{tikzpicture}
+        \coordinate (A1) at (0,1.5);
+        \coordinate (A2) at (0,1);
+        \coordinate (A3) at (0,-1);
+        \coordinate (A4) at (0,-1.5);
+        \coordinate (B1) at (6,1.5);
+        \coordinate (B2) at (6,1);
+        \coordinate (B3) at (6,-1);
+        \coordinate (B4) at (6,-1.5);
+        \draw[gray] (A2) -- node[above]{\textbf{Insulator $\Omega_I$}} node[black, below]{$\Gamma_W$} (B2);
+        \draw[gray] (A3) -- node[below]{\textbf{Insulator $\Omega_I$}} node[black, above]{$\Gamma_W$} (B3);
+        \draw[very thick] (A2) -- (A1) -- node[above]{$\Gamma_I$}  (B1) -- (B2);
+        \draw[very thick] (A3) -- (A4) -- node[below]{$\Gamma_I$} (B4) -- (B3);
+        \draw[very thick, dashed, blue] (A2) -- node[left] {$\Gamma_C^1$} (A3);
+        \draw[very thick, dashed, red]  (B2) -- node[right] {$\Gamma_C^2$}  (B3);
+        \node at (3,0) {\textbf{Plasma $\Omega_P$}};
+        \begin{scope}[shift={(6.5,-1.6)}]
+        \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+        \draw[blue, -to] (0,0) -- (0.7,0) node[right]{\small $z$};
+        \end{scope}
+    \end{tikzpicture}}
+\end{minipage}
+\caption{Sketch of the domain. The right figure shows the cross section on the $x$-$z$ plane.}
+\end{figure}
 
 
-\todo{Give a sketch of an abstract domain, and assign BCs to each boundary for both Euler and Maxwell.}
+    To summarize the boundary conditions for both systems:
+    
+\vspace{10pt}
+\begin{minipage}[t]{0.49\textwidth}
+    \textbf{For the Euler equations:}
+    \begin{align*}
+    \mathbf{u_*}\cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W, \\
+    \text{grad}\mathbf{n_*} \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W. \\
+    \text{grad}\mathbf{e_*} \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W. \\
+    \text{grad}\mathbf{U_*} \cdot \mathbf{n} &= \mathbf{0} \ \ \text{on} \ \ \Gamma_C.
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.49\textwidth}
+    \textbf{For the Maxwell equations:}
+    \begin{align*}
+    \varphi &= \varphi^i(t)\ \ \text{on} \ \ \Gamma_C^i, \\
+    \text{curl} \mathbf{E} \cdot \mathbf{n} &= 0\ \ \text{on} \ \  \Gamma_I,  \\
+    \text{curl} \mathbf{H} \cdot \mathbf{n} &= 0\ \  \text{on} \ \  \Gamma_I.\
+    \end{align*}
+\end{minipage}
+
+\vspace{10pt}
+A small remark goes to the validity of assignment of electric potentials on $\Gamma_c^i$. Since the surface curl $\text{curl}_\gamma\mathbf{E} = \text{curl} \mathbf{E} \cdot \mathbf{n} = 0$, there exists a surface potential $\varphi$ such that the surface gradient $\nabla_\Gamma \varphi = \gamma_\tau \mathbf{E}$ where $\gamma_\tau $ is the tangential trace operator. 
+
+
+
 
 \subsection{Reformulation}
-In the insulating domain, no charges and currents are present and thus the Maxwell system in $\Omega_I$ is described by    
+In the insulating domain, the Euler system is not defined there and no charges or currents are present. Consequently, the Maxwell system in $\Omega_I$ is described by    
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins}\\ 
     \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= 0,  \label{equ:ampere_ins}\\
     \nabla \cdot \mathbf{B} &= 0, \label{equ:gauss_B_ins}\\
     \lambda^2 \nabla \cdot \mathbf{D} &= 0 \label{equ:gauss_D_ins}.
 \end{align}
-In non-neutral regime, namely $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_I$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial moment. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Due to limited precision of computers, schemes based on this set of PDEs would run into instability because the vanishing divergence would be broken down as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
+
+In non-neutral regime, namely $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_I$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial moment. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Due to limited precision of computers, schemes based on this set of PDEs would run into instability. The vanishing divergence would be broken down as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
 
 To see this issue from another perspective, we observe the limit Maxwell system in $\Omega_I$
 \begin{align}
@@ -290,7 +381,7 @@ To see this issue from another perspective, we observe the limit Maxwell system 
 \end{align}
 Again, Gauss's law for $\mathbf{B}$-field (\ref{equ:gauss_B_ins_limit}) is redundant while Gauss's law for $\mathbf{D}$-field (\ref{equ:gaus_D_ins_limit}) is no longer the consequence of the Amper\`{e}'s law and essential for the well-posedness of the problem \citep{ana_2010}. From this perspective, the degeneracy of Gauss's law for $\mathbf{D}$-field of the system (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) as $\lambda \rightarrow 0$ potentially poses some problem.
 
-In one word, the set of equations (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) ``approaches" an ill-posed situation as $\lambda \rightarrow 0$. This is totally fine in the continuous level while it could be problematic in the discrete level due to a limited precision. 
+In one word, the set of equations (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) ``approaches" an ill-posed situation as $\lambda \rightarrow 0$. This is totally fine in the continuous level while it could be problematic in the discrete level due to a limited floating-point precision. 
 
 We propose the following reformulation as a remedy, which introduces a Lagrange multiplier $p$ and removes the $\lambda^2$ prefactor in Gauss's law for $\mathbf{D}$-field:
 \begin{align}
