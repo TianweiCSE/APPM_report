@@ -3,6 +3,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{bm}
 \usepackage{hyperref}
 \usepackage{geometry}
 \geometry{a4paper,scale=0.8}
@@ -177,13 +178,13 @@ By abuse of notation, the dimensionless quantities have the same symbol with the
     &=
     \begin{bmatrix}
     0 \\
-    \eta \zea \varepsilon_*^{-2} q_* n_*\mathbf{E} + \eta \zeta^2 \beta \varepsilon_*^{-2} q_* n_* \mathbf{u}_* \times \mathbf{B} \\
+    \eta \zeta \varepsilon_*^{-2} q_* n_*\mathbf{E} + \eta \zeta^2 \beta \varepsilon_*^{-2} q_* n_* \mathbf{u}_* \times \mathbf{B} \\
     \zeta \eta \varepsilon_*^{-2} \mathbf{J}_* \cdot \mathbf{E}
     \end{bmatrix} +
     \begin{bmatrix}
     0 \\
     \varepsilon_*^{-2}\mathbf{R}_*^{\text{coll}} \\
-    \varepsilon_*^{-2}Q_*^{\text{coll}} 
+    \varepsilon_*^{-2}Q_*^{\text{coll}} \\
     \end{bmatrix}, \label{equ:euler_rescalling}
 \end{align}
 where the equation of state becomes $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + M^{-2}\frac{p_*}{\epsilon^2_* n_* (\gamma - 1)}$ and $h_* = e_* + M^{-2}\frac{p_*}{\epsilon^2_* n_*}$. For a fully-ionized gas, we have the original expression of $\mathbf{R}_*^{\text{coll}}$ in (\ref{equ:collision}), and its rescaled expression becomes
@@ -401,7 +402,7 @@ In this section we briefly discuss the underlying work \cite{degond_2012} on whi
 The 3D problem is projected onto the 1D axis by assuming vanishing traverse derivatives (see Fig. \ref{fig:1d-frame} for the definition of reference frame). Besides, $u_y, E_y, B_x, B_z$ are set zero for simplicity, which amounts to considering the TE mode. The collision between particles is omitted for the time being. 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.2]{1d_frame.png}
+    %\includegraphics[scale=0.2]{1d_frame.png}
     \caption{Projection of the 3D model onto $z$-axis. Let us consider a Cartesian mesh doublet. The reduction is accomplished by assigning the quantities defined on each cross-section, which is parallel to the $x$-$y$ plane, to its intersection point at $z$-axis. Since it is assumed that no variations occur in each cross-section, the quantities in 3D can be compressed by the ones that locate at each mesh point on the $z$-axis.}
     \label{fig:1d-frame}
 \end{figure}
