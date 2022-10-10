@@ -396,8 +396,38 @@ Supplemented with the boundary condition $p = 0$ on $\partial\Omega_I$, one can 
 
 \section{Discretization}
 
+\subsection{Asymptotic-Preserving schemes}
+As is mentioned in the proceeding chapter, the zero-Debye-length limit poses a singularly perturbed problem in the sense that the Maxwell-Euler equations changes its type from a hyperbolic to hyperbolic-elliptic one. To simulate a plasma, one usually first identifies which regime it lies in and designs the scheme according to its type. Nonetheless, there exist cases that covers both regimes and cannot be approximated by either of them. Due to the difference on their mathematical characters, naively applying classical schemes for $\lambda = \mathcal{O}(1)$ to problems with $\lambda \rightarrow 0$ would fail and vice versa. \emph{Asymptotic-preserving} (AP) schemes are such a class of schemes that provide a unified approach for both limit and non-limit problems. 
+
+To illustrate the general concept of AP schemes, we quote the celebrated commutative diagram Fig. \ref{fig:commutative_diagram_ap} in \cite{jin_1999} which sketches the property that an AP scheme should possess. We consider a parametrized problem $P^\lambda$ that converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$. To discretize $P^\lambda$, the scheme $P^\lambda_h$ is constructed whose numerical results depend on some discretization parameter $h$, e.g. mesh size. Beside the convergence of the scheme $P^\lambda_h$ to its analytic solution $P^\lambda$ as $h\rightarrow0$, the AP property additionally requires that the convergence of $P^\lambda_h$ to the limit discrete model $P^0_h$ as $\lambda\rightarrow0$. Such a limit scheme $P^0_h$ should in turn converge to the continuous solution $P^0$ as $h \rightarrow 0$. In short, an AP scheme $P^\lambda_h$ makes the diagram Fig. \ref{fig:commutative_diagram_ap} commutative. 
+
+The concept of AP schemes can be traced back to \cite{jin_1995} in which the authors approximate a conservation law by a hyperbolic system with relaxation, and manage to construct a scheme that is stable for an arbitrarily small relaxation parameter. The term ``asymptotic-preserving" was formally introduced in \cite{jin_1999} for handling the diffusive regime of kinetic models. This concept stemmed from and remains very active in kinetic models with stiff relaxations, see \cite{jin_2010} and the references therein. Nonetheless, considerable effort has been put into developing AP schemes for many other problems that admit asymptotic behavior. For instance, in fluid dynamics, the so-called \emph{all-speed} schemes are advantageous when dealing with both compressible and incompressible regimes simultaneously. \cite{degond_2007, haack_2010} devise all-speed schemes for the isentropic Euler equations through fast-slow decomposition of velocity fields. Concerning plasma physics, a number of papers are available dealing with the quasi-neutral limit of the Euler-Poisson (or Euler-Maxwell) system \citep{crispel_2005, degond_2008, degond_2011, degond_2012} and Vlasov-Poisson (or Vlasov-Maxwell) system \citep{degond_2017, degond2017b, zhu_2017}. Besides, \cite{caflisch_1997, berthon2011} concern AP schemes for generic hyperbolic systems with relaxation source terms. For a comprehensive review on AP schemes, readers are referred to \cite{jin_2010} for kinetic and hyperbolic equations, and \cite{degond_2017} for multiscale plasma simulations. 
+
+To devise an AP scheme, the dependence of the stability constraints of $h$ on $\lambda$ has to be removed. This is mainly achieved by utilizing implicit time-stepping for certain terms. As is summarized by \cite{degond_2017}, AP schemes aim to bridge several sets of equations describing the system in different regimes, rather than to alleviate the stability constraints of the numerical methods. In this sense, a fully-implicit scheme is likely to be overkill and thus a smart construction is necessary. The second consideration goes to the identification of a compatible boundary conditions for both regimes, which would be shown to be essential for the numerical stability.      
+
+In the following sections, we first briefly discuss the 1D scheme for the Maxwell-Euler system devised by \cite{degond_2012} on which our work us built. this section also serves as a preliminary case study such that readers can better understand the 3D scheme.
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+    \node (nw) {\Large $P^\lambda_h$};
+    \node (ne) [right=3cm of nw]{\Large $P^\lambda$};
+    \node (sw) [below=of nw]{\Large $P^0_h$};
+    \node (se) [right=3cm of sw]{\Large $P^0$};
+    \draw[->] (nw.east)  -- node [above,midway] {$h\rightarrow0$} (ne.west) ;
+    \draw[->] (nw.east)  --  (ne.west) ;
+    \draw[->] (nw.south) -- node [left,midway] {$\lambda\rightarrow0$} (sw.north);
+    \draw[->] (nw.south) -- node {} (sw.north);
+    \draw[->] (sw.east)  -- node [above,midway] {$h\rightarrow0$}(se.west);
+    \draw[->] (ne.south) -- node [left,midway] {$\lambda\rightarrow0$} (se.north);
+    \end{tikzpicture}
+    \caption{Commuting diagram of AP schemes}
+    \label{fig:commutative_diagram_ap}
+\end{figure}
+
+\colorbox{red}{Polish until here.}
+
 \subsection{1D Discretization}
-In this section we briefly discuss the underlying work \cite{degond_2012} on which our work is built. Meanwhile, this section also serves as a preliminary case study such that readers can better understand the 3D scheme that we present. 
 \subsubsection{1D plasma model}
 The 3D problem is projected onto the 1D axis by assuming vanishing traverse derivatives (see Fig. \ref{fig:1d-frame} for the definition of reference frame). Besides, $u_y, E_y, B_x, B_z$ are set zero for simplicity, which amounts to considering the TE mode. The collision between particles is omitted for the time being. 
 \begin{figure}
