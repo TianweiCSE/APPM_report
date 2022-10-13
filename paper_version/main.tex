@@ -7,8 +7,8 @@
 \usepackage{hyperref}
 \usepackage{geometry}
 \geometry{a4paper,scale=0.8}
-\usepackage{natbib}
-\bibliographystyle{apalike}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
 \usepackage{tikz}
 \usetikzlibrary{positioning, decorations.markings, arrows, intersections}
 \usepackage{nicematrix}
@@ -16,6 +16,8 @@
 \NiceMatrixOptions{cell-space-bottom-limit = 4pt}
 \usepackage{tcolorbox}
 \usepackage{subcaption}
+
+\newtheorem*{remark}{Remark}
 
 \newcommand{\todo}[1]{\textcolor{blue}{\fbox{\textbf{TODO: #1}}}}
 \newcommand{\todobox}[1]{
@@ -26,33 +28,79 @@
 
 
 \title{APPM report - Draft}
-\author{T.W. Yu, R. Fuchs, R. Hiptmair}
+\author{T.W. Yu\footnote{SAM, ETH Z\"{u}rich}, R. Hiptmair\footnote{SAM, ETH Z\"{u}rich}, R. Fuchs\footnote{IET Institut für Energietechnik, OST}} 
 
 \begin{document}
 \maketitle
-
-\todobox{
-    \begin{itemize}
-        \item For the time being, the contents are just clipped from master thesis. They could be very chaotic.
-        \item The figures are not added yet.
-        \item For sure some parts need rewriting.
-    \end{itemize}
-}
 
 \section*{Abstract}
 A key coefficient characterizing plasmas is the so-called Debye length $\lambda_D$, whose size indicates to what extent electric charges can deviate from the neutral case: If $\lambda_D = \mathcal{O}(1)$ we face the non-neutral regime, while for $\lambda_D\to 0$ the plasma becomes quasi-neutral. Plasma models have rather different properties in these two regimes due to the singular perturbation arising from the $\lambda_D\to 0$ limit.
 Since both regimes may coexist in some plasma phenomena, it is desired to design numerical schemes that are \emph{robust} for arbitrary $\lambda_D$. More precisely, they should be \emph{asymptotic-preserving} (AP), in the sense that the limit $\lambda_D\to 0$ of the scheme yields a viable discretization for the continuous limit model.
 
-An asymptotic preserving scheme for single- and multi-fluid Euler-Maxwell system was proposed by \cite{degond_2012} for one spatial dimension. We start from their dimensionless model and extend the scheme to three dimensions. The key ingredients are (i) a discretization of Maxwell's equations based on primal and dual meshes in the spirit of discrete exterior calculus (DEC)/the finite integration technique (FIT), (ii) finite volume method (FVM) for the fluid equations on the dual mesh, and (iii) mixed implicit-explicit timestepping. This scheme turns out to be AP for $\lambda_D\to 0$ both in terms of structure and empirically in numerical test. Special care is necessary for the boundary conditions which must be valid in both regimes. Additionally, if the electromagnetic fields have to be modeled in an insulating region beyond the plasma domain, additional stabilization is necessary to accommodate Gauss's law.
+An asymptotic preserving scheme for single- and multi-fluid Euler-Maxwell system was proposed by \cite{degond_2012} for one spatial dimension. We start from their dimensionless model and extend the scheme to three dimensions. The key ingredients are (i) a discretization of Maxwell's equations based on primal and dual meshes in the spirit of discrete exterior calculus (DEC)/the finite integration technique (FIT), (ii) finite volume method (FVM) for the fluid equations on the dual mesh, and (iii) mixed implicit-explicit timestepping. This scheme turns out to be AP for $\lambda_D\to 0$ both in terms of structure and empirically in numerical test. Special care is necessary for the boundary conditions which must be valid in both regimes. Additionally, if the electromagnetic fields have to be modelled in an insulating region beyond the plasma domain, additional stabilization is necessary to accommodate Gauss's law.
+
+\section{Introduction}
+We consider a hydrodynamic multi-species plasma model, which boils down to the Maxwell-Euler system. As in \cite{degond_2012}, our focus is an \emph{asymptotic-preserving} (AP) discretization in the quasi-neutral limit $\lambda_D \rightarrow 0$, where $\lambda_D$ is the rescaled Debye length, see Section \ref{sec:rescaling} for the underlying scaling arguments and \cite{degond_2012,degond_2017} for a discussion of the importance of the AP property in plasma codes.  
+
+Our approach is inspired by \cite{degond_2012}, but goes beyond that work in various directions:
+\begin{itemize}
+    \item we supplement the Maxwell-Euler system by inter-species friction, see Section ?;
+    \item we extend the spatially 1D scheme to three spatial dimensions;
+    \item we propose an essential stabilization in non-conducting regions;
+    \item we introduce suitable boundary conditions for the electromagnetic fields at a spatial truncateion boundary.
+\end{itemize}
+
+We stay close to \cite{degond_2012} in terms of discretization in time by semi-implicit time-stepping and by restricting to a cylindrical geometry shown in Fig. \ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical scheme proposed in this paper can in principle be adapted to geometric situations much more general than that of Fig. \ref{fig:domain_geometry}. However, one may then encounter subtle problems in defining proper mesh duality as we do in Section ?. Thus, for the sake of simplicity of presentation we forgo geometric generality.
+
+The content of this paper is organized as follows. In Section 2, we first give full details on the underlying equations of the Maxwell-Euler system and its rescaling procedure. Afterwards we introduce the ECE-type boundary conditions for our problem. A reformulation of the Maxwell equations in the insulating region is then presented. Section 3 is devoted to the discretization. \todo{outline}  
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+    \coordinate (O1) at (0,0);
+    \draw[violet] (O1) circle (1) node[blue] {Electrode};
+    \fill[blue, opacity=0.2] (O1) circle (1);
+    \draw[very thick] (O1) circle (1.5);
+    \coordinate (O2) at (4.5,1);
+    \draw[violet] (O2) circle (1);
+    \node at (O2) {\textcolor{red}{Electrode}};
+    \node at (barycentric cs:O1=1,O2=1) {Plasma}; 
+    \fill[red, opacity=0.2] (O2) circle (1);
+    \coordinate (S1) at ([shift={(-0.196,0.98)}]O1);
+    \coordinate (S2) at ([shift={(-0.196,0.98)}]O2);
+    \coordinate (P1) at ([shift={(0.196,-0.98)}]O1);
+    \coordinate (P2) at ([shift={(0.196,-0.98)}]O2);
+    \draw[violet] (S1) -- (S2);
+    \draw[violet] (P1) -- (P2);
+    \coordinate (SS1) at ([shift={({-0.196*1.5},{0.98*1.5})}]O1);
+    \coordinate (SS2) at ([shift={({-0.196*1.5},{0.98*1.5})}]O2);
+    \coordinate (PP1) at ([shift={({0.196*1.5},{-0.98*1.5})}]O1);
+    \coordinate (PP2) at ([shift={({0.196*1.5},{-0.98*1.5})}]O2);
+    \draw[very thick] (SS1) -- (SS2);
+    \draw[very thick] (PP1) -- (PP2); 
+    \draw[black, very thick] (SS2) arc (101.31:180+101.31:1.5);
+    \draw[very thick] (PP2) arc (101.31-180:101.31:1.5);
+    \draw[-to] (barycentric cs:SS1=1,SS2=1,S1=1,S2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:SS1=1,SS2=1,S1=1,S2=1) node[left, gray] {Insulator};
+    \begin{scope}[shift={(5.5,-1.4)}]
+    \draw[blue, -to] (0,0) -- (0.65,0.12) node[right]{\small $z$};
+    \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+    \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+    \end{scope}
+    \end{tikzpicture}
+\caption{The domain geometry}
+\label{fig:domain_geometry}
+\end{figure}
+
+
 
 \section{Plasma model}
+\begin{comment}
 Under moderate assumptions, plasmas, which are gases composed of charged particles (and possibly neutral particles), can be treated as fluid and described by hydrodynamic equations. The Maxwell equations are involved to describe their induction of and interaction with electromagnetic fields. 
 
-\todo{A bit more on the physical background}. 
+After rescalling all the variables with respect to the prescribed reference units, the Debye length $\lambda_D$, characterizing the charge screening ability of the plasma, would pop up and its zero limit, which is what we called \emph{quasi-neutral limit}, is of great interest, since the limit model largely simplifies the system and in many cases the accuracy of the assumption is satisfactory enough. 
 
-After rescalling all the variables with respect to the prescribed reference units, the Debye length $\lambda_D$, characterizing the charge screening ability of the plasma, would pop up and its zero limit, which is what we called \emph{quasineutral limit}, is of great interest, since the limit model largely simplifies the system and in many cases the accuracy of the assumption is satisfactory enough. 
-
-In this section, the multi-species Maxwell-Euler equations with collision term is introduced first, followed by detailed rescalling procedure. The quasi-neutral model will be make clear by letting the rescalled Debye length $\lambda$ go to zero. Afterwards, a set of boundary conditions are presented and its validity to both non-limit and limit model is discussed. Finally, we would like to present a reformulation of the system which would be crucial to the stability of the numerical scheme.  
+In this section, the multi-species Maxwell-Euler equations with collision term is introduced first, followed by detailed rescalling procedure. The quasi-neutral model will be make clear by letting the rescaled Debye length $\lambda$ go to zero. Afterwards, a set of boundary conditions are presented and its validity to both non-limit and limit model is discussed. Finally, we would like to present a reformulation of the system which would be crucial to the stability of the numerical scheme.
+\end{comment}
 
 \begin{comment}
 In this work, we discuss and implement the so-called \emph{Euler-Maxwell} system with a focus on its limiting behavior of quasi-neutrality, namely when the \emph{Debye length} goes to zero. The dimensionless form of the Euler-Maxwell equations is parameterized by the rescaled Debye length $\lambda$ whose vanishing limit alters the mathematical nature of the equations. To be more concrete, the non-limit model ($\lambda = \mathcal{O}(1)$) is hyperbolic where information spreads with a finite speed whereas the limit model ($\lambda \rightarrow 0$) becomes elliptic, and any changes immediately influence the whole domain. In other words, the perturbation of $\lambda$ in the Maxwell-Euler system poses a singular perturbation problem. Such switching makes it difficult to handle both models in a single implementation framework, which, however, is desired in many cases where both models coexist in the computational domain. Now comes the concept of \emph{asymptotic-preserving}(AP) scheme. We turn to the celebrated commuting diagram Fig. \ref{fig:commuting_diagram_ap} for illustration.\todo{add illustration of AP schemes}.
@@ -83,14 +131,18 @@ The content of this paper is organized as follows. In Section 2 we introduce the
 \end{comment}
 
 \subsection{The Maxwell-Euler System}
-The Maxwell system is described by Maxwell's equations whose expression in SI units read
+Under moderate assumptions, plasmas, which are gases composed of charged particles (and possibly neutral particles), can be treated as fluids governed by hydrodynamic equations. The Maxwell equations take charge of their interaction with electromagnetic fields. For more details on the fluid model of plasma, see \cite{chen2016, remi_2014}.
+
+The Maxwell's equations in SI units read
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday} \\ 
     \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= -\mathbf{J}, \label{equ:maxwell_ampere} \\
     \nabla \cdot \mathbf{B} &= 0,  \label{equ:maxwell_gauss_B}\\
     \nabla \cdot \mathbf{D} &= \rho, \label{equ:maxwell_gauss_D}
 \end{align}
-where the involved quantities are magnetic flux density $\mathbf{B}$, electric field intensity $\mathbf{E}$, electric induction $\mathbf{D}$, magnetic field intensity $\mathbf{H}$, electric current density $\mathbf{J}$ and electric charge density $\rho$. These equations are known as Faraday's law (\ref{equ:maxwell_faraday}), Amp\`{e}re's law (\ref{equ:maxwell_ampere}), Gauss's law for magnetism (\ref{equ:maxwell_gauss_B}) and Gauss's law for electric field (\ref{equ:maxwell_gauss_D}). For simplicity, we only consider isotropic and homogeneous mediums in vacuum. We consider the linear constitutive relations 
+\end{subequations}
+where the involved quantities are magnetic flux density $\mathbf{B}$, electric field intensity $\mathbf{E}$, electric induction $\mathbf{D}$, magnetic field intensity $\mathbf{H}$, electric current density $\mathbf{J}$ and electric charge density $\rho$. These equations are known as Faraday's law (\ref{equ:maxwell_faraday}), Amp\`{e}re's law (\ref{equ:maxwell_ampere}), Gauss's law for magnetism (\ref{equ:maxwell_gauss_B}) and Gauss's law for electric field (\ref{equ:maxwell_gauss_D}). For simplicity, we only consider isotropic and homogeneous media in vacuum. We consider the linear constitutive relations 
 \begin{equation*}
     \mathbf{D} = \varepsilon_0 \mathbf{E}, \ \ \ \mathbf{B} = \mu_0\mathbf{H}, 
 \end{equation*}
@@ -98,9 +150,9 @@ where $\varepsilon_0$ and $\mu_0$ are the vacuum permittivity and permeability o
 \begin{equation} \label{equ:charge_continuity}
     \partial_t\rho + \nabla \cdot \mathbf{J} = 0.
 \end{equation}
-Besides, on taking the divergence of equations (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) together with the relation (\ref{equ:charge_continuity}), it is possible to verify that Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are consequences of (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) provided that (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are satisfied at the initial time. In other words, Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) serve as initial conditions. Faraday's law (\ref{equ:maxwell_faraday}) and Amp\`{e}re's law (\ref{equ:maxwell_ampere}) suffice.
+Besides, on taking the divergence of equations (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) together with the relation (\ref{equ:charge_continuity}), it is possible to verify that Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are consequences of (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) provided that (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are satisfied at the initial time. In other words, Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) can be thought of as initial conditions. 
 
-In the Euler system, the motions of gas particles are accounted for through the \emph{Euler equations}. Specifically, we equip each species with one set of (compressible) Euler equations, taking into account the effect of electromagnetic fields as well as other processes like collisions and recombination. The generic expressions read
+Each species in plasmas are treated as a compressible flow and assocated to one set of Euler equations that includes electromagnetic forces as well as other processes, e.g. collisions and recombination. The generic expressions are
 \begin{align} \label{equ:euler_}
     \partial_t
     \begin{bmatrix}
@@ -127,37 +179,39 @@ In the Euler system, the motions of gas particles are accounted for through the 
     Q_*
     \end{bmatrix}.
 \end{align}
-The subscript $*$ represents the indices for different species, and by convention we assign $* = e$ to electrons, $* = i$ to ions, and $* = n$ to neutral atoms. The involved fluid quantities are: number density $n_*$, particle mass $m_*$,  charge number $q_*$, velocity $\mathbf{u}_*$, pressure $p_*$, specific total energy $e_* := \frac{1}{2}|\mathbf{u}_*|^2 + \frac{p_*}{m_*n_*(\gamma - 1)}$, specific total enthalpy $h_* := e_* + \frac{p_*}{m_*n_*}$ and current density $\mathbf{J}_* := q_*n_*\mathbf{u}_*$. All the species are assumed ideal gases with heat capacity ratio $\gamma=5/3$ for monatomic gases. The left-hand side of the equations describes the convection of plasma fluids. Note that the heat conduction is omitted in the energy equation. The first term at the right-hand side denotes Lorentz force in the momentum equation and Joule heating in the energy equation. $\Gamma_*, \mathbf{R}_*, Q_*$ are generic terms that include effects of inter-species collision, ionization, recombination, etc. 
+The subscript $*$ represents the indices for different species, and by convention we assign $* = e$ to electrons, $* = i$ to ions, and $* = n$ to neutral atoms. The involved fluid quantities are: number density $n_*$, particle mass $m_*$,  charge number $q_*$, velocity $\mathbf{u}_*$, pressure $p_*$, specific total energy $e_* := \frac{1}{2}|\mathbf{u}_*|^2 + \frac{p_*}{m_*n_*(\gamma - 1)}$, specific total enthalpy $h_* := e_* + \frac{p_*}{m_*n_*}$ and current density $\mathbf{J}_* := q_*n_*\mathbf{u}_*$. All the species are assumed ideal gases with heat capacity ratio $\gamma=5/3$ for monatomic gases. The left-hand side of the equations describes the convection of plasma fluids. The first term at the right-hand side denotes Lorentz force in the momentum equation and Joule heating in the energy equation. $\Gamma_*, \mathbf{R}_*, Q_*$ are generic terms due to effects of inter-species collision, ionization, recombination, etc. 
 
-For the sake of simplicity, we would only consider ion-electron collision in this work. Under moderate assumptions, such collisions can be well modelled by friction terms, and we simply present the expressions without derivation (see \citep[][sec. 5.6.2]{chen2016}):
+For the sake of simplicity for presentation, we only consider ion-electron collision in this work, but extension to more species is straightforward. Under moderate assumptions, such collisions can be well modelled by frictions, and we simply present the expressions without derivation (see \citep[][sec. 5.6.2]{chen2016}):
 \begin{equation} \label{equ:collision}
     \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\varepsilon_0)^2(k_BT_e)^{3/2}}\text{ln}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
 \end{equation}
-which models the collision force that is applied on the electrons. ln$\Lambda$ is called the \emph{Coulomb logarithm}, which typically takes a numerical value of order 10–20 . Because of the conservation of momentum, the collision term experienced by ions $\mathbf{R}_{i}^{\text{coll}}$ is nothing but the negation of $\mathbf{R}_{e}^{\text{coll}}$. For full details about the ionization and recombination, readers are referred to \cite{fuchs_2021}.  
+which models the collision force that is applied on the electrons. ln$\Lambda$ is called the \emph{Coulomb logarithm}, which typically takes a numerical value of order 10–20 . Because of the conservation of momentum, the collision term for ions $\mathbf{R}_{i}^{\text{coll}}$ is nothing but the negation of $\mathbf{R}_{e}^{\text{coll}}$. In this work, the other effects, e.g. ionization and recombination, are not considered. For full details about the modeling of these physical processes, readers are referred to \cite{fuchs_2021}.  
 
 
-Combination of the two sets of equations (\ref{equ:maxwell_faraday}) to (\ref{equ:maxwell_gauss_D}) and (\ref{equ:euler_}) leads to the governing equations for a multi-species plasma model. The coupling of the two subsystems takes effect through the following relations that connect the fluid and electromagnetic quantities
+Combination of the two sets of equations (\ref{equ:maxwell_faraday}) to (\ref{equ:maxwell_gauss_D}) and (\ref{equ:euler_}) leads to the governing equations for a multi-species plasma model. The coupling of the two subsystems is due to the following relations that connect the fluid and electromagnetic quantities
 \begin{equation*}
     \rho = \sum_* q_*n_*, \ \ \  \mathbf{J} = \sum_* q_*n_*\mathbf{u}_*. 
 \end{equation*}
 
-\subsection{Rescalling}
-In the rescalling, the variables in the equations are taken as the ratio of their original quantities and reference units, which transforms the system into a dimensionless form. The magnitudes of the dimensionless numbers are indications of the magnitude of corresponding terms. In this part, the rescalling procedure mostly sticks to that of \cite{degond_2017}.
+\subsection{Rescaling} \label{sec:rescaling}
+In the rescaling, the variables in the equations are taken as the ratio of their original quantities and reference units, which transforms the system into dimensionless form. In this part, the rescaling procedure mostly follows that of \cite{degond_2017}.
 
 First, reference units for each quantity, e.g. the characteristic length and time scale, are prescribed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of interest, by which the reference velocity $\overline{v}$ is defined as $\overline{x}/\overline{t}$. The typical magnitudes of electromagnetic fields are $\overline{E}$ and $\overline{B}$. The typical magnitudes of fluid quantities are denoted by $\overline{u}$ for plasma drift velocity, $\overline{n}$ for plasma number density, $\overline{T}$ for plasma temperature. On top of that, the typical pressure is set $\overline{n}k_B\overline{T}$ with $k_B$ being the Boltzmann constant; the typical value for the specific total energy and enthalpy is set $\overline{u}^2$. Together with the physical parameters, namely, permittivity $\varepsilon_0$, permeability $\mu_0$, light speed $c^2 = (\varepsilon_0\mu_0)^{-1}$, Boltzmann constant $k_B$, the elementary charge $e$, and ion mass $m_i$, the following dimensionless parameters are induced,
 \begin{align*} 
-    \xi &:= \frac{\overline{v}}{c} \text{ the velocity of interest to the light speed}, &\\
-    \zeta &:= \frac{\overline{u}}{\overline{v}} \text{ the plasma velocity to the speed of interest}, &\\
-    M &:= \frac{\overline{u}}{v_{th,i}} \text{ the plasma drift velocity to the thermal speed of ions, where } v_{th,i} := \left(\frac{k_B \overline{T}}{m_i}\right)^{1/2}, &\\
-    \eta &:= \frac{e\overline{E}\overline{x}}{m_i\overline{u}^2} \text{ the electric energy to the kinetic energy of ions}, &\\
-    \beta &:= \frac{\overline{v}\overline{B}}{\overline{E}} \text{ the induced electric field to the total electric field}, &\\
+    \xi &:= \frac{\overline{v}}{c} \text{ the velocity of interest \emph{w.r.t.}\footnotemark[1] the light speed}, &\\
+    \zeta &:= \frac{\overline{u}}{\overline{v}} \text{ the plasma velocity \emph{w.r.t.} the speed of interest}, &\\
+    M &:= \frac{\overline{u}}{v_{th,i}} \text{ the plasma drift velocity \emph{w.r.t.} the thermal speed of ions, where } v_{th,i} := \left(\frac{k_B \overline{T}}{m_i}\right)^{1/2}, &\\
+    \eta &:= \frac{e\overline{E}\overline{x}}{m_i\overline{u}^2} \text{ the electric energy \emph{w.r.t.} the kinetic energy of ions}, &\\
+    \beta &:= \frac{\overline{v}\overline{B}}{\overline{E}} \text{ the induced electric field \emph{w.r.t.} the total electric field}, &\\
     \lambda &:= \frac{\lambda_D}{\overline{x}} \text{ the dimensionless Debye length, where }\lambda_D := \left(\frac{\varepsilon_0k_B\overline{T}}{e^2\overline{n}}\right)^{1/2}, &\\
-    \varepsilon_*^2 &:= \frac{m_*}{m_i} \text{ the species mass ratio to the ion mass},\ \  * \in \{i,e,n,\cdots\}, &\\
-    g &:= \frac{1}{\overline{n}\lambda_D^3} \text{ the plasma parameter\footnotemark}.&
+    \varepsilon_*^2 &:= \frac{m_*}{m_i} \text{ the species mass \emph{w.r.t.} the ion mass},\ \  * \in \{i,e,n,\cdots\}, &\\
+    g &:= \frac{1}{\overline{n}\lambda_D^3} \text{ the plasma parameter\footnotemark[2]}.&
 \end{align*}
-\footnotetext{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][sec. 1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
+\footnotetext[1]{Abbreviation of \emph{with respect to}.}
+\footnotetext[2]{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][sec. 1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
 
 By abuse of notation, the dimensionless quantities have the same symbol with their original ones without incurring any ambiguity. For the sake of simplicity, we only consider the collision terms, namely $\Gamma_* = 0, \mathbf{R}_* = \mathbf{R}_*^\text{coll}, Q_* = Q_*^\text{coll}$ in (\ref{equ:euler_}), while neglecting other effects. The rescaled Euler-Maxwell system reads
+\begin{subequations}
 \begin{align}
     \beta \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescalling} \\ 
     \lambda^2 \partial_t \mathbf{E} - \frac{\beta \lambda^2}{\xi^2}\nabla \times \mathbf{B} &= - \frac{\zeta}{\eta M^2}\mathbf{J}, \label{equ:maxwell_ampere_rescalling} \\
@@ -187,6 +241,7 @@ By abuse of notation, the dimensionless quantities have the same symbol with the
     \varepsilon_*^{-2}Q_*^{\text{coll}} \\
     \end{bmatrix}, \label{equ:euler_rescalling}
 \end{align}
+\end{subequations}
 where the equation of state becomes $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + M^{-2}\frac{p_*}{\epsilon^2_* n_* (\gamma - 1)}$ and $h_* = e_* + M^{-2}\frac{p_*}{\epsilon^2_* n_*}$. For a fully-ionized gas, we have the original expression of $\mathbf{R}_*^{\text{coll}}$ in (\ref{equ:collision}), and its rescaled expression becomes
 \begin{equation*}
     \mathbf{R}_i^{\text{coll}} = \frac{Z\text{ln}\Lambda}{16\pi}g\lambda^{-1}M^{-1}\varepsilon_en_en_i(\mathbf{u}_i - \mathbf{u}_e). 
@@ -194,7 +249,11 @@ where the equation of state becomes $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + M^{-2}\
 
 Following the assumption in \cite{degond_2017}, the reference speed $\overline{v}$ is of the same scale with the plasma speed $\overline{u}$ and the thermal speed $v_{th,i}$ whereas it is much smaller than the light speed $c$. To study the quasi-neutral regime, the dimensionless Debye length $\lambda$ is an asymptotic parameter ranging in $[0,1]$. It is assumed that $\alpha$ has the same magnitude as $\lambda$, and $\eta$ and $\beta$ are of order one. 
 
-Special treatment is needed for the collision term. One would notice the inverse proportionality to $\lambda$, which would introduce a singular perturbation to the Euler system as $\lambda \rightarrow 0$. However, the validity of such a collision model is doubtful when $\lambda \rightarrow 0$. From the physical viewpoint, the shielding effect characterized by Debye length $\lambda$ makes the impact parameter no larger than $\lambda$. The $\lambda \rightarrow 0$ limit implies that the collisions happen in the atomic length scale, in which quantum-mechanical effects must be taken into effect \citep{frank_1972}. Therefore, for the sake of simplicity, we decide to assume $g \sim \lambda$ and keep the prefactor of collision term constant $\alpha^{\text{coll}}$ throughout the simulation\footnote{The reasonableness of this assumption is questionable.}.  
+Special treatment is needed for the collision term. One would notice the inverse proportionality to $\lambda$, which would introduce a singular perturbation to the Euler system as $\lambda \rightarrow 0$. However, the validity of such a collision model is doubtful when $\lambda \rightarrow 0$. From the physical viewpoint, the shielding effect characterized by Debye length $\lambda$ makes the impact parameter no larger than $\lambda$. The $\lambda \rightarrow 0$ limit implies that the collisions happen in the atomic length scale, in which quantum-mechanical effects must be taken into effect \citep{frank_1972}. Therefore, for the sake of simplicity, we eliminate the perturbation parameter in the friction term by assuming $g \sim \lambda$ and keep the prefactor of collision term constant $\alpha^{\text{coll}}$ throughout the simulation.
+
+\begin{remark}
+    It is also of research interest when there is an asymptotic parameter at the denominator of the friction term. Such problem is called relaxation limit, see \cite{peng_2011, wasiolek_2016, Li_2021, Chen_2000}.
+\end{remark}
 
 In summary, we make the following choices
 \begin{align*}
@@ -203,6 +262,7 @@ In summary, we make the following choices
 
 
 Under such assumptions on these dimensionless parameters, the rescaled Euler-Maxwell system is simplified into a parametrized system with the dimensionless Debye length $\lambda$ being the asymptotic parameter
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescaled} \\ 
     \lambda^2 \partial_t \mathbf{E} - \nabla \times \mathbf{B} &= - \mathbf{J}, \label{equ:maxwell_ampere_rescaled} \\
@@ -232,6 +292,7 @@ Under such assumptions on these dimensionless parameters, the rescaled Euler-Max
     \varepsilon_*^{-2}Q_*^{\text{coll}} 
     \end{bmatrix}, \label{equ:euler_rescaled}
 \end{align}
+\end{subequations}
 with the equation of state $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + \frac{p_*}{\varepsilon^2_* n_* (\gamma - 1)}$ and $h_* = e_* + \frac{p_*}{\varepsilon^2_* n_*}$. For a fully-ionized gas with only ions and electrons, 
 \begin{equation} \label{equ:collision_rescaled} 
     \mathbf{R}_i^{\text{coll}} = \alpha^{\text{coll}}n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_e^{\text{coll}},
@@ -245,14 +306,33 @@ and consequently, the rescaled friction heat for ions and electrons takes the ex
 We end up getting the rescaled Maxwell-Euler system parameterized by $\lambda$. The rescaling enables us to identify the magnitude of each term in the equations, which is revealed by the prefactor polynomial of $\lambda$.  
 
 \subsection{Quasi-neutral limit} \label{sec:quasi-neutral_limit}
-The Debye length $\lambda_D$ (see its definition at the proceeding section) is an characteristic length over which any net charge is screened due to the thermal diffusion of the particles. In many situations, it has a rather low value.\todo{Examples and typical values}. That justifies the quasi-neutral assumptions of vanishing $\lambda_D$ with respect to the interested length scale. Under this limit, the plasma keeps locally neutral in net charge, namely $\rho = \sum_* q_*n_* = 0$. Such behavior is explained through the rescaled Euler-Maxwell system (\ref{equ:maxwell_faraday_rescaled}) to (\ref{equ:euler_rescaled}). By formally taking dimensionless Debye length $\lambda$ to zero\footnote{The convergence of the solutions as $\lambda$ tending to zero is discussed in \cite[][chap. 2]{remi_2014}}, the Maxwell system becomes 
+The Debye length $\lambda_D$ (see its definition at the preceding section) is an characteristic length over which local concentrations of charge are shielded out. For the underlying physics, see \cite[Sec. 1.4]{chen2016}. In many situations, it has a rather low value compared to the interested length scale: the typical $\lambda_D$ for gas discharge and Tokamak is $10^{-4}$ m; for interstellar medium, the magnitude is about $1$ m \cite[ch. 20]{Blandford_2013}. That justifies the quasi-neutrality assumption that the plasma is locally neutral, namely $\rho = \sum_* q_*n_* = 0$. The limit model is obtained by formally taking the rescaled Debye length $\lambda$ to zero:
+\vspace{-\baselineskip}
+\begin{center}
+    \begin{minipage}{0.3\textwidth}
+\begin{subequations}
+\begin{align*}
+    \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0,\\ 
+    \lambda^2 \partial_t \mathbf{E} - \nabla \times \mathbf{B} &= - \mathbf{J}, \\
+    \nabla \cdot \mathbf{B} &= 0, \\
+    \lambda^2 \nabla \cdot \mathbf{E} &= \rho.
+\end{align*}
+\end{subequations}
+
+\end{minipage}
+$\xrightarrow[]{\lambda \rightarrow 0}$
+\begin{minipage}{0.3\textwidth}
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_limit} \\ 
     - \nabla \times \mathbf{B} &= - \mathbf{J}, \label{equ:maxwell_ampere_limit} \\
     \nabla \cdot \mathbf{B} &= 0,  \label{equ:maxwell_gauss_B_limit}\\
      0 &= \rho. \label{equ:maxwell_gauss_D_limit}
 \end{align}
-One can notice that the quasi-neutral condition (\ref{equ:maxwell_gauss_D_limit}) is the consequence of taking $\lambda = 0$ in Gauss's law for electric field (\ref{equ:maxwell_gauss_D_rescaled}). Like the non-neutral case, Gauss's laws (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are the consequence of (\ref{equ:maxwell_faraday_limit}) (\ref{equ:maxwell_ampere_limit}) provided (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are satisfied at the initial time. 
+\end{subequations}
+\end{minipage}
+\end{center}
+The quasi-neutral condition (\ref{equ:maxwell_gauss_D_limit}) is the consequence of taking $\lambda = 0$ in Gauss's law for electric field (\ref{equ:maxwell_gauss_D_rescaled}). Like the non-neutral case, Gauss's laws (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are the consequence of (\ref{equ:maxwell_faraday_limit}) (\ref{equ:maxwell_ampere_limit}) provided (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are satisfied at initial time. 
 
 
 This limit poses a \emph{singular perturbation problem} in the sense that vanishing $\lambda$ changes the character of the PDE system. To be more specific, in the non-limit model the $\mathbf{E}$-field evolves with time whereas in the quasi-neutral model it responds instantaneously to other quantities according to the constraint (\ref{equ:maxwell_ampere_limit}). To make it clear, we replace the equation (\ref{equ:maxwell_ampere_rescaled}) by the sum of the curl of (\ref{equ:maxwell_faraday_rescaled}) and the time-derivative of (\ref{equ:maxwell_ampere_rescaled}). Meanwhile exploiting the momentum equation in (\ref{equ:euler_rescaled}) to express $\partial_t\mathbf{J}$, we end up getting the equation that the $\mathbf{E}$-field satisfies
@@ -265,25 +345,31 @@ where
 \end{equation*}
  The equation (\ref{equ:E}) implies the shift from the hyperbolic nature to the elliptic nature of the $\mathbf{E}$-field as $\lambda\rightarrow0$. 
 
-We would like to point out the proceeding argument about the derivation of limit model is merely formal and heuristic without mentioning the proof and to which sense the convergence holds. Deep mathematical tools from the perturbation theory is needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper and thus omitted. Readers are referred to \cite{remi_2014} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995} for the general theory.
+\begin{remark}
+    The preceeding formal limit argument is rather heuristic. Deep mathematical tools from perturbation theory is needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper and thus omitted. Readers are referred to \cite[ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
+\end{remark} 
 
 \subsection{Boundary conditions}
 
-We consider a simply connected domain $\Omega$ that is decomposed into two sub-domains $\Omega_P$ and $\Omega_I$ representing plasma domain and insulating domain respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$, denoting the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_I$ for the insulating boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Gamma_I \cap \partial\Gamma_P$. This setting is visualized in Fig. . 
+We consider a simply connected domain $\Omega$ that is decomposed into two sub-domains $\Omega_P$ and $\Omega_I$ representing plasma domain and insulating domain respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$, denoting the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_I$ for the insulating boundary which an artificial cut-off boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Gamma_I \cap \partial\Gamma_P$. A geometric arrangement corresponding to his setting is visualized in Fig. \ref{fig:domain_sketch}. 
 
-The plasma fills $\Omega_I$ where the Euler system lies and thus the boundary of plasmas lies on $\partial\Omega_P$. We consider the physical scenario where plasmas are confined with the solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective walls where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by, for the sake of simplicity, open boundaries, namely they are free to flow through. \todo{Discussion the more realistic electrode model}
+The plasma fills $\Omega_P$ where the Euler system is defined and the boundary of plasmas lies on $\partial\Omega_P$. We consider the physical scenario where plasmas are confined with the solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective walls where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by open boundaries in the sense that they are free to flow through, namely, ions and electrons are emitted and absorbed by the electron. 
 
-The Maxwell system is defined on the whole domain $\Omega$. External voltages are enforced on the contact boundary $\Gamma_C$ to model electrodes. More specifically, $\Gamma_C$ is usually composed of disjoint connecting components $\Gamma_C^i$, $i \leq N$ where $N$ is total number of these boundary components. Constant potentials are enforced on each component in the sense that $\varphi|_{\Gamma_C^i} = \varphi_i$. The insulating boundary blocks the energy interchange and therefore only admits zero electric and magnetic flux, in the sense that $\text{curl}\mathbf{E}\cdot \mathbf{n} = 0$ and $\text{curl}\mathbf{H}\cdot \mathbf{n} = 0$ where $\mathbf{n}$ is the outer normal vector. 
+\begin{remark}
+    The treatment of electrodes as open boundary is a rather simplified approach. \todo{a realistic BC for electrodes.}
+\end{remark}
+
+The Maxwell system is defined on the whole domain $\Omega$. External voltages are enforced on the contact boundary $\Gamma_C$ to model electrodes. More specifically, $\Gamma_C$ is usually composed of disjoint connecting components $\Gamma_C^i$, $i \leq N$ where $N$ is total number of these boundary components. Constant potentials are enforced on each component in the sense that $\varphi|_{\Gamma_C^i} = \varphi_i$. The insulating boundary blocks the energy interchange and therefore only admits zero electric and magnetic flux, in the sense that $\text{curl}\mathbf{E}\cdot \mathbf{n} = 0$ and $\text{curl}\mathbf{H}\cdot \mathbf{n} = 0$ where $\mathbf{n}$ is the outer normal vector. \todo{A few works on ECE BC?} 
 \begin{figure}
 \begin{minipage}{0.45\textwidth}
     \resizebox{\textwidth}{!}{
     \begin{tikzpicture}
     \coordinate (O1) at (0,0);
-    \draw[very thick] (O1) circle (1) node[blue] {Electrode};
+    \draw[violet] (O1) circle (1) node[blue] {Electrode};
     \fill[blue, opacity=0.2] (O1) circle (1);
     \draw[very thick] (O1) circle (1.5);
     \coordinate (O2) at (4.5,1);
-    \draw[gray] (O2) circle (1);
+    \draw[violet] (O2) circle (1);
     \node at (O2) {\textcolor{red}{Electrode}};
     \node at (barycentric cs:O1=1,O2=1) {Plasma}; 
     \fill[red, opacity=0.2] (O2) circle (1);
@@ -291,15 +377,15 @@ The Maxwell system is defined on the whole domain $\Omega$. External voltages ar
     \coordinate (S2) at ([shift={(-0.196,0.98)}]O2);
     \coordinate (P1) at ([shift={(0.196,-0.98)}]O1);
     \coordinate (P2) at ([shift={(0.196,-0.98)}]O2);
-    \draw[gray] (S1) -- (S2);
-    \draw[gray] (P1) -- (P2);
+    \draw[violet] (S1) -- (S2);
+    \draw[violet] (P1) -- (P2);
     \coordinate (SS1) at ([shift={({-0.196*1.5},{0.98*1.5})}]O1);
     \coordinate (SS2) at ([shift={({-0.196*1.5},{0.98*1.5})}]O2);
     \coordinate (PP1) at ([shift={({0.196*1.5},{-0.98*1.5})}]O1);
     \coordinate (PP2) at ([shift={({0.196*1.5},{-0.98*1.5})}]O2);
     \draw[very thick] (SS1) -- (SS2);
     \draw[very thick] (PP1) -- (PP2); 
-    \draw[gray] (SS2) arc (101.31:180+101.31:1.5);
+    \draw[black, very thick] (SS2) arc (101.31:180+101.31:1.5);
     \draw[very thick] (PP2) arc (101.31-180:101.31:1.5);
     \draw[-to] (barycentric cs:SS1=1,SS2=1,S1=1,S2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:SS1=1,SS2=1,S1=1,S2=1) node[left, gray] {Insulator};
     \begin{scope}[shift={(5.5,-1.4)}]
@@ -319,13 +405,13 @@ The Maxwell system is defined on the whole domain $\Omega$. External voltages ar
         \coordinate (B2) at (6,1);
         \coordinate (B3) at (6,-1);
         \coordinate (B4) at (6,-1.5);
-        \draw[gray] (A2) -- node[above]{\textbf{Insulator $\Omega_I$}} node[black, below]{$\Gamma_W$} (B2);
-        \draw[gray] (A3) -- node[below]{\textbf{Insulator $\Omega_I$}} node[black, above]{$\Gamma_W$} (B3);
+        \draw[violet] (A2) -- node[above]{\color{gray}Insulating domain $\Omega_I$} node[black, below]{\textcolor{violet}{$\Gamma_W$}} (B2);
+        \draw[violet] (A3) -- node[below]{\color{gray}Insulating domain $\Omega_I$} node[black, above]{\textcolor{violet}{$\Gamma_W$}} (B3);
         \draw[very thick] (A2) -- (A1) -- node[above]{$\Gamma_I$}  (B1) -- (B2);
         \draw[very thick] (A3) -- (A4) -- node[below]{$\Gamma_I$} (B4) -- (B3);
         \draw[very thick, dashed, blue] (A2) -- node[left] {$\Gamma_C^1$} (A3);
         \draw[very thick, dashed, red]  (B2) -- node[right] {$\Gamma_C^2$}  (B3);
-        \node at (3,0) {\textbf{Plasma $\Omega_P$}};
+        \node at (3,0) {Plasma domain $\Omega_P$};
         \begin{scope}[shift={(6.5,-1.6)}]
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[right]{\small $z$};
@@ -333,6 +419,7 @@ The Maxwell system is defined on the whole domain $\Omega$. External voltages ar
     \end{tikzpicture}}
 \end{minipage}
 \caption{Sketch of the domain. The right figure shows the cross section on the $x$-$z$ plane.}
+\label{fig:domain_sketch}
 \end{figure}
 
 
@@ -358,7 +445,12 @@ The Maxwell system is defined on the whole domain $\Omega$. External voltages ar
 \end{minipage}
 
 \vspace{10pt}
-A small remark goes to the validity of assignment of electric potentials on $\Gamma_c^i$. Since the surface curl $\text{curl}_\gamma\mathbf{E} = \text{curl} \mathbf{E} \cdot \mathbf{n} = 0$, there exists a surface potential $\varphi$ such that the surface gradient $\nabla_\Gamma \varphi = \gamma_\tau \mathbf{E}$ where $\gamma_\tau $ is the tangential trace operator. 
+
+\begin{remark}
+    A small remark goes to the validity of assignment of electric potentials on $\Gamma_c^i$. Since the surface curl $\text{curl}_\gamma\mathbf{E} = \text{curl} \mathbf{E} \cdot \mathbf{n} = 0$, there exists a surface potential $\varphi$ such that the surface gradient $\nabla_\Gamma \varphi = \gamma_\tau \mathbf{E}$ where $\gamma_\tau $ is the tangential trace operator. However, for a geometric setting with non-trivial geometry, one needs to consider cohomology vector fields\cite{Hiptmair_2021}.
+\end{remark}
+
+
 
 
 
@@ -397,7 +489,7 @@ Supplemented with the boundary condition $p = 0$ on $\partial\Omega_I$, one can 
 \section{Discretization}
 
 \subsection{Asymptotic-Preserving schemes}
-As is mentioned in the proceeding chapter, the zero-Debye-length limit poses a singularly perturbed problem in the sense that the Maxwell-Euler equations changes its type from a hyperbolic to hyperbolic-elliptic one. To simulate a plasma, one usually first identifies which regime it lies in and designs the scheme according to its type. Nonetheless, there exist cases that covers both regimes and cannot be approximated by either of them. Due to the difference on their mathematical characters, naively applying classical schemes for $\lambda = \mathcal{O}(1)$ to problems with $\lambda \rightarrow 0$ would fail and vice versa. \emph{Asymptotic-preserving} (AP) schemes are such a class of schemes that provide a unified approach for both limit and non-limit problems. 
+As is mentioned in the preceeding chapter, the zero-Debye-length limit poses a singularly perturbed problem in the sense that the Maxwell-Euler equations changes its type from a hyperbolic to hyperbolic-elliptic one. To simulate a plasma, one usually first identifies which regime it lies in and designs the scheme according to its type. Nonetheless, there exist cases that covers both regimes and cannot be approximated by either of them. Due to the difference on their mathematical characters, naively applying classical schemes for $\lambda = \mathcal{O}(1)$ to problems with $\lambda \rightarrow 0$ would fail and vice versa. \emph{Asymptotic-preserving} (AP) schemes are such a class of schemes that provide a unified approach for both limit and non-limit problems. 
 
 To illustrate the general concept of AP schemes, we quote the celebrated commutative diagram Fig. \ref{fig:commutative_diagram_ap} in \cite{jin_1999} which sketches the property that an AP scheme should possess. We consider a parametrized problem $P^\lambda$ that converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$. To discretize $P^\lambda$, the scheme $P^\lambda_h$ is constructed whose numerical results depend on some discretization parameter $h$, e.g. mesh size. Beside the convergence of the scheme $P^\lambda_h$ to its analytic solution $P^\lambda$ as $h\rightarrow0$, the AP property additionally requires that the convergence of $P^\lambda_h$ to the limit discrete model $P^0_h$ as $\lambda\rightarrow0$. Such a limit scheme $P^0_h$ should in turn converge to the continuous solution $P^0$ as $h \rightarrow 0$. In short, an AP scheme $P^\lambda_h$ makes the diagram Fig. \ref{fig:commutative_diagram_ap} commutative. 
 
@@ -405,7 +497,7 @@ The concept of AP schemes can be traced back to \cite{jin_1995} in which the aut
 
 To devise an AP scheme, the dependence of the stability constraints of $h$ on $\lambda$ has to be removed. This is mainly achieved by utilizing implicit time-stepping for certain terms. As is summarized by \cite{degond_2017}, AP schemes aim to bridge several sets of equations describing the system in different regimes, rather than to alleviate the stability constraints of the numerical methods. In this sense, a fully-implicit scheme is likely to be overkill and thus a smart construction is necessary. The second consideration goes to the identification of a compatible boundary conditions for both regimes, which would be shown to be essential for the numerical stability.      
 
-In the following sections, we first briefly discuss the 1D scheme for the Maxwell-Euler system devised by \cite{degond_2012} on which our work us built. this section also serves as a preliminary case study such that readers can better understand the 3D scheme.
+In the following sections, we first briefly discuss the 1D scheme for the Maxwell-Euler system devised by \cite{degond_2012} on which our work us built. This section also serves as a preliminary case study such that readers can better understand the 3D scheme.
 
 \begin{figure}
     \centering
