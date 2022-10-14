@@ -16,6 +16,7 @@
 \NiceMatrixOptions{cell-space-bottom-limit = 4pt}
 \usepackage{tcolorbox}
 \usepackage{subcaption}
+\usepackage{authblk}
 
 \newtheorem*{remark}{Remark}
 
@@ -28,8 +29,12 @@
 
 
 \title{APPM report - Draft}
-\author{T.W. Yu\footnote{SAM, ETH Z\"{u}rich}, R. Hiptmair\footnote{SAM, ETH Z\"{u}rich}, R. Fuchs\footnote{IET Institut für Energietechnik, OST}} 
-
+\author[1]{R. Hiptmair}
+\author[1]{T.W. Yu}
+\author[2]{R. Fuchs}
+\affil[1]{Seminar for Applied Mathematics , ETH Z\"{u}rich}
+\affil[2]{IET Institut für Energietechnik, OST}
+\date{}
 \begin{document}
 \maketitle
 
@@ -51,6 +56,26 @@ Our approach is inspired by \cite{degond_2012}, but goes beyond that work in var
 \end{itemize}
 
 We stay close to \cite{degond_2012} in terms of discretization in time by semi-implicit time-stepping and by restricting to a cylindrical geometry shown in Fig. \ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical scheme proposed in this paper can in principle be adapted to geometric situations much more general than that of Fig. \ref{fig:domain_geometry}. However, one may then encounter subtle problems in defining proper mesh duality as we do in Section ?. Thus, for the sake of simplicity of presentation we forgo geometric generality.
+
+The quasi-neutral limit of the Maxwell system leads to a singularly perturbed problem in the sense that the system changes its type from hyperbolic to a mixture of hyperbolic, parabolic and elliptic, which poses challenge for simulations over different regimes. Such phenomena occur in many problems, e.g. vanishing viscosity in the Navier-Stokes equations\cite{Kato_1984}, zero-relaxation-limit of kinetic equations\cite{jin_2010} and zero-Mach-limit of compressible flows\cite{degond_2007, haack_2010}. Asymptotic-preserving schemes are the ones that perform uniformly well in such asymptotic limit. To briefly illustrate the concept, see the commutative diagram Fig. \ref{fig:commutative_diagram_ap} in \cite{jin_1999}. The parametrized problem $P^\lambda$, which converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$, is discretized by the scheme $P^\lambda_h$ where $h$ denotes some discretization parameter, e.g. mesh size. The AP property requires the uniform convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. In the other word, an AP scheme $P^\lambda_h$ makes the diagram Fig. \ref{fig:commutative_diagram_ap} commutative. For more details about AP schemes, see \cite{jin_2010, degond_2017} for comprehensive reviews. 
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+    \node (nw) {\Large $P^\lambda_h$};
+    \node (ne) [right=3cm of nw]{\Large $P^\lambda$};
+    \node (sw) [below=of nw]{\Large $P^0_h$};
+    \node (se) [right=3cm of sw]{\Large $P^0$};
+    \draw[->] (nw.east)  -- node [above,midway] {$h\rightarrow0$} (ne.west) ;
+    \draw[->] (nw.east)  --  (ne.west) ;
+    \draw[->] (nw.south) -- node [left,midway] {$\lambda\rightarrow0$} (sw.north);
+    \draw[->] (nw.south) -- node {} (sw.north);
+    \draw[->] (sw.east)  -- node [above,midway] {$h\rightarrow0$}(se.west);
+    \draw[->] (ne.south) -- node [left,midway] {$\lambda\rightarrow0$} (se.north);
+    \end{tikzpicture}
+    \caption{Commuting diagram of AP schemes}
+    \label{fig:commutative_diagram_ap}
+\end{figure}
 
 The content of this paper is organized as follows. In Section 2, we first give full details on the underlying equations of the Maxwell-Euler system and its rescaling procedure. Afterwards we introduce the ECE-type boundary conditions for our problem. A reformulation of the Maxwell equations in the insulating region is then presented. Section 3 is devoted to the discretization. \todo{outline}  
 
@@ -214,9 +239,9 @@ By abuse of notation, the dimensionless quantities have the same symbol with the
 \begin{subequations}
 \begin{align}
     \beta \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescalling} \\ 
-    \lambda^2 \partial_t \mathbf{E} - \frac{\beta \lambda^2}{\xi^2}\nabla \times \mathbf{B} &= - \frac{\zeta}{\eta M^2}\mathbf{J}, \label{equ:maxwell_ampere_rescalling} \\
+    \lambda^2 \partial_t \mathbf{D} - \frac{\beta \lambda^2}{\xi^2}\nabla \times \mathbf{H} &= - \frac{\zeta}{\eta M^2}\mathbf{J}, \label{equ:maxwell_ampere_rescalling} \\
     \nabla \cdot \mathbf{B} &= 0,  \label{equ:maxwell_gauss_B_rescalling}\\
-    \lambda^2 \eta M^2 \nabla \cdot \mathbf{E} &= \rho, \label{equ:maxwell_gauss_D_rescalling} \\
+    \lambda^2 \eta M^2 \nabla \cdot \mathbf{D} &= \rho, \label{equ:maxwell_gauss_D_rescalling} \\
     \partial_t
     \begin{bmatrix}
     n_* \\
@@ -265,9 +290,9 @@ Under such assumptions on these dimensionless parameters, the rescaled Euler-Max
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescaled} \\ 
-    \lambda^2 \partial_t \mathbf{E} - \nabla \times \mathbf{B} &= - \mathbf{J}, \label{equ:maxwell_ampere_rescaled} \\
+    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= - \mathbf{J}, \label{equ:maxwell_ampere_rescaled} \\
     \nabla \cdot \mathbf{B} &= 0,  \label{equ:maxwell_gauss_B_rescaled}\\
-    \lambda^2 \nabla \cdot \mathbf{E} &= \rho, \label{equ:maxwell_gauss_D_rescaled} \\
+    \lambda^2 \nabla \cdot \mathbf{D} &= \rho, \label{equ:maxwell_gauss_D_rescaled} \\
     \partial_t
     \begin{bmatrix}
     n_* \\
@@ -313,9 +338,9 @@ The Debye length $\lambda_D$ (see its definition at the preceding section) is an
 \begin{subequations}
 \begin{align*}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0,\\ 
-    \lambda^2 \partial_t \mathbf{E} - \nabla \times \mathbf{B} &= - \mathbf{J}, \\
+    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= - \mathbf{J}, \\
     \nabla \cdot \mathbf{B} &= 0, \\
-    \lambda^2 \nabla \cdot \mathbf{E} &= \rho.
+    \lambda^2 \nabla \cdot \mathbf{D} &= \rho.
 \end{align*}
 \end{subequations}
 
@@ -325,7 +350,7 @@ $\xrightarrow[]{\lambda \rightarrow 0}$
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_limit} \\ 
-    - \nabla \times \mathbf{B} &= - \mathbf{J}, \label{equ:maxwell_ampere_limit} \\
+    - \nabla \times \mathbf{H} &= - \mathbf{J}, \label{equ:maxwell_ampere_limit} \\
     \nabla \cdot \mathbf{B} &= 0,  \label{equ:maxwell_gauss_B_limit}\\
      0 &= \rho. \label{equ:maxwell_gauss_D_limit}
 \end{align}
@@ -447,75 +472,60 @@ The Maxwell system is defined on the whole domain $\Omega$. External voltages ar
 \vspace{10pt}
 
 \begin{remark}
-    A small remark goes to the validity of assignment of electric potentials on $\Gamma_c^i$. Since the surface curl $\text{curl}_\gamma\mathbf{E} = \text{curl} \mathbf{E} \cdot \mathbf{n} = 0$, there exists a surface potential $\varphi$ such that the surface gradient $\nabla_\Gamma \varphi = \gamma_\tau \mathbf{E}$ where $\gamma_\tau $ is the tangential trace operator. However, for a geometric setting with non-trivial geometry, one needs to consider cohomology vector fields\cite{Hiptmair_2021}.
+    A small remark goes to the validity of assignment of electric potentials on $\Gamma_c^i$. Since the surface curl $\text{curl}_\gamma\mathbf{E} = \text{curl} \mathbf{E} \cdot \mathbf{n} = 0$, there exists a surface potential $\varphi$ such that the surface gradient $\nabla_\Gamma \varphi = \gamma_\tau \mathbf{E}$ where $\gamma_\tau $ is the tangential trace operator. However, for a geometric setting with non-trivial geometry, one needs to consider co-homology vector fields\cite{Hiptmair_2021}.
 \end{remark}
 
 
 
-
-
-
 \subsection{Reformulation}
-In the insulating domain, the Euler system is not defined there and no charges or currents are present. Consequently, the Maxwell system in $\Omega_I$ is described by    
+In the insulating domain $\Omega_I$ (see Fig. \ref{fig:sketch_domain}), the Euler system is not defined there due to the absence of plasmas. Consequently, the Maxwell system in $\Omega_I$ is described by
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins}\\ 
     \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= 0,  \label{equ:ampere_ins}\\
     \nabla \cdot \mathbf{B} &= 0, \label{equ:gauss_B_ins}\\
     \lambda^2 \nabla \cdot \mathbf{D} &= 0 \label{equ:gauss_D_ins}.
 \end{align}
+\end{subequations}
 
-In non-neutral regime, namely $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_I$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial moment. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Due to limited precision of computers, schemes based on this set of PDEs would run into instability. The vanishing divergence would be broken down as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
+In non-neutral regime where $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_I$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial moment. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Due to limited precision of computers, schemes based on this set of PDEs would run into instability. The vanishing divergence would be broken down as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
 
 To see this issue from another perspective, we observe the limit Maxwell system in $\Omega_I$
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins_limit}\\ 
     - \nabla \times \mathbf{H} &= 0,  \label{equ:ampere_ins_limit}\\
     \nabla \cdot \mathbf{B} &= 0, \label{equ:gauss_B_ins_limit}\\
     \nabla \cdot \mathbf{D} &= 0 \label{equ:gaus_D_ins_limit}.
 \end{align}
+\end{subequations}
+
 Again, Gauss's law for $\mathbf{B}$-field (\ref{equ:gauss_B_ins_limit}) is redundant while Gauss's law for $\mathbf{D}$-field (\ref{equ:gaus_D_ins_limit}) is no longer the consequence of the Amper\`{e}'s law and essential for the well-posedness of the problem \citep{ana_2010}. From this perspective, the degeneracy of Gauss's law for $\mathbf{D}$-field of the system (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) as $\lambda \rightarrow 0$ potentially poses some problem.
 
 In one word, the set of equations (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) ``approaches" an ill-posed situation as $\lambda \rightarrow 0$. This is totally fine in the continuous level while it could be problematic in the discrete level due to a limited floating-point precision. 
 
 We propose the following reformulation as a remedy, which introduces a Lagrange multiplier $p$ and removes the $\lambda^2$ prefactor in Gauss's law for $\mathbf{D}$-field:
+\begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins_reform}\\ 
     \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} + \colorbox{orange!20}{$\nabla p$} &= 0,  \label{equ:ampere_ins_reform}\\
     \nabla \cdot \mathbf{B} &= 0, \label{equ:gauss_B_ins_reform}\\
     \nabla \cdot \mathbf{D} &= 0 \label{equ:gauss_D_ins_reform}.
 \end{align}
-Supplemented with the boundary condition $p = 0$ on $\partial\Omega_I$, one can check that (\ref{equ:faraday_ins_reform}) to (\ref{equ:gauss_D_ins_reform}) are equivalent to the original formulation (\ref{equ:faraday_ins})-(\ref{equ:gauss_D_ins}) by verifying that $p = 0$ in $\Omega_I$. This is done by taking the divergence of (\ref{equ:ampere_ins_reform}) such that the Laplace equation of $p$ with zero Dirichlet boundary condition gives vanishing $p$. The importance of this reformulation will be make clear in the numerical experiment.
+\end{subequations}
+
+Supplemented with the boundary condition $p = 0$ on $\partial\Omega_I$, one can check that (\ref{equ:faraday_ins_reform}) to (\ref{equ:gauss_D_ins_reform}) are equivalent to the original formulation (\ref{equ:faraday_ins})-(\ref{equ:gauss_D_ins}) by verifying that $p = 0$ in $\Omega_I$. This is done by taking the divergence of (\ref{equ:ampere_ins_reform}) such that the Laplace equation of $p$ with zero Dirichlet boundary condition gives vanishing $p$. The importance of this reformulation will be make clear in the numerical experiment. 
+
+We would like to point out that this reformulation is not needed in the plasma domain $\Omega_P$ since the Maxwell system is uniformly well-posed for $\lambda \in [0,1]$ thanks to the existence of electric current and its dependence on the $\mathbf{E}$-field. 
 
 \section{Discretization}
 
-\subsection{Asymptotic-Preserving schemes}
-As is mentioned in the preceeding chapter, the zero-Debye-length limit poses a singularly perturbed problem in the sense that the Maxwell-Euler equations changes its type from a hyperbolic to hyperbolic-elliptic one. To simulate a plasma, one usually first identifies which regime it lies in and designs the scheme according to its type. Nonetheless, there exist cases that covers both regimes and cannot be approximated by either of them. Due to the difference on their mathematical characters, naively applying classical schemes for $\lambda = \mathcal{O}(1)$ to problems with $\lambda \rightarrow 0$ would fail and vice versa. \emph{Asymptotic-preserving} (AP) schemes are such a class of schemes that provide a unified approach for both limit and non-limit problems. 
-
-To illustrate the general concept of AP schemes, we quote the celebrated commutative diagram Fig. \ref{fig:commutative_diagram_ap} in \cite{jin_1999} which sketches the property that an AP scheme should possess. We consider a parametrized problem $P^\lambda$ that converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$. To discretize $P^\lambda$, the scheme $P^\lambda_h$ is constructed whose numerical results depend on some discretization parameter $h$, e.g. mesh size. Beside the convergence of the scheme $P^\lambda_h$ to its analytic solution $P^\lambda$ as $h\rightarrow0$, the AP property additionally requires that the convergence of $P^\lambda_h$ to the limit discrete model $P^0_h$ as $\lambda\rightarrow0$. Such a limit scheme $P^0_h$ should in turn converge to the continuous solution $P^0$ as $h \rightarrow 0$. In short, an AP scheme $P^\lambda_h$ makes the diagram Fig. \ref{fig:commutative_diagram_ap} commutative. 
-
-The concept of AP schemes can be traced back to \cite{jin_1995} in which the authors approximate a conservation law by a hyperbolic system with relaxation, and manage to construct a scheme that is stable for an arbitrarily small relaxation parameter. The term ``asymptotic-preserving" was formally introduced in \cite{jin_1999} for handling the diffusive regime of kinetic models. This concept stemmed from and remains very active in kinetic models with stiff relaxations, see \cite{jin_2010} and the references therein. Nonetheless, considerable effort has been put into developing AP schemes for many other problems that admit asymptotic behavior. For instance, in fluid dynamics, the so-called \emph{all-speed} schemes are advantageous when dealing with both compressible and incompressible regimes simultaneously. \cite{degond_2007, haack_2010} devise all-speed schemes for the isentropic Euler equations through fast-slow decomposition of velocity fields. Concerning plasma physics, a number of papers are available dealing with the quasi-neutral limit of the Euler-Poisson (or Euler-Maxwell) system \citep{crispel_2005, degond_2008, degond_2011, degond_2012} and Vlasov-Poisson (or Vlasov-Maxwell) system \citep{degond_2017, degond2017b, zhu_2017}. Besides, \cite{caflisch_1997, berthon2011} concern AP schemes for generic hyperbolic systems with relaxation source terms. For a comprehensive review on AP schemes, readers are referred to \cite{jin_2010} for kinetic and hyperbolic equations, and \cite{degond_2017} for multiscale plasma simulations. 
-
+\begin{comment}
 To devise an AP scheme, the dependence of the stability constraints of $h$ on $\lambda$ has to be removed. This is mainly achieved by utilizing implicit time-stepping for certain terms. As is summarized by \cite{degond_2017}, AP schemes aim to bridge several sets of equations describing the system in different regimes, rather than to alleviate the stability constraints of the numerical methods. In this sense, a fully-implicit scheme is likely to be overkill and thus a smart construction is necessary. The second consideration goes to the identification of a compatible boundary conditions for both regimes, which would be shown to be essential for the numerical stability.      
 
 In the following sections, we first briefly discuss the 1D scheme for the Maxwell-Euler system devised by \cite{degond_2012} on which our work us built. This section also serves as a preliminary case study such that readers can better understand the 3D scheme.
+\end{comment}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-    \node (nw) {\Large $P^\lambda_h$};
-    \node (ne) [right=3cm of nw]{\Large $P^\lambda$};
-    \node (sw) [below=of nw]{\Large $P^0_h$};
-    \node (se) [right=3cm of sw]{\Large $P^0$};
-    \draw[->] (nw.east)  -- node [above,midway] {$h\rightarrow0$} (ne.west) ;
-    \draw[->] (nw.east)  --  (ne.west) ;
-    \draw[->] (nw.south) -- node [left,midway] {$\lambda\rightarrow0$} (sw.north);
-    \draw[->] (nw.south) -- node {} (sw.north);
-    \draw[->] (sw.east)  -- node [above,midway] {$h\rightarrow0$}(se.west);
-    \draw[->] (ne.south) -- node [left,midway] {$\lambda\rightarrow0$} (se.north);
-    \end{tikzpicture}
-    \caption{Commuting diagram of AP schemes}
-    \label{fig:commutative_diagram_ap}
-\end{figure}
 
 \colorbox{red}{Polish until here.}
 
