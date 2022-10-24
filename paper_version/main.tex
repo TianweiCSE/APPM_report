@@ -20,6 +20,7 @@
 \usepackage{authblk}
 
 \newtheorem*{remark}{Remark}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 \newcommand{\todo}[1]{\textcolor{blue}{\fbox{\textbf{TODO: #1}}}}
 \newcommand{\todobox}[1]{
@@ -36,6 +37,7 @@
 \affil[1]{Seminar for Applied Mathematics , ETH Z\"{u}rich}
 \affil[2]{IET Institut für Energietechnik, OST}
 \date{}
+
 \begin{document}
 \maketitle
 
@@ -528,15 +530,15 @@ In the following sections, we first briefly discuss the 1D scheme for the Maxwel
 \section{Spatial Discretization}
 \subsection{Primal-dual Staggered Meshes}
 \subsubsection{Geometric Property}
-Prior to the spatial discretization of the Maxwell-Euler system, we introduce primal-dual staggered meshes that are necessary in the discretization framework we use. The spatial domain is discretized by two meshes that interlace with each other, denoted by a mesh doublet $(\mathcal{M}, \Tilde{\mathcal{M}})$ for primal mesh and dual mesh respectively. The fundamental duality property requires that \emph{each edge of one mesh penetrates a face of the other mesh and that each vertex of one mesh lies at the center of a cell of the other mesh} \citep{weiland_2003}, which makes $(\mathcal{M}, \Tilde{\mathcal{M}})$ staggered. 
+Prior to the spatial discretization of the Maxwell-Euler system, we introduce primal-dual staggered meshes that are necessary in the discretization framework we use. The spatial domain is discretized by two meshes that interlace with each other, denoted by a mesh doublet $(\mathcal{M}, \Tilde{\mathcal{M}})$ for primal mesh and dual mesh respectively. The fundamental duality property requires that \emph{each edge of one mesh penetrates a face of the other mesh and that each vertex of one mesh lies at the center of a cell of the other mesh} \citep{weiland_2003}, which makes $(\mathcal{M}, \Tilde{\mathcal{M}})$ staggered. A simple example for Cartesian meshes is shown in Fig. \ref{fig:cartesian}.
 
 To clarify the notation, in three dimensions the primal mesh $\mathcal{M}$ is a cell complex defined by the set of elements $\{P, L, A, V\}$\footnote{The notation here is a bit floppy. $P, L, A, V$ can refer to a single element or a set of elements.} denoting \emph{vertices, edges, faces} and \emph{volume} respectively. In the same way, the dual mesh $\Tilde{\mathcal{M}}$ is defined by $\{\Tilde{P}, \Tilde{L}, \Tilde{A}, \Tilde{V}\}$. Elements of two meshes are associated with bijective mappings $P \leftrightarrow \Tilde{V}$, $L \leftrightarrow \Tilde{A}$, $A \leftrightarrow \Tilde{L}$ and $V \leftrightarrow \Tilde{P}$ which arise in a very natural way: $P(\Tilde{P} \text{ resp.})$ corresponds to $\Tilde{V}(V \text{ resp.})$ where it lies and $L(\Tilde{L} \text{ resp.})$ penetrates its corresponding $\Tilde{A}(A \text{ resp.})$. According to their dimensions, vertices, edges, faces and volumes are also termed 0-dim, 1-dim, 2-dim and 3-dim elements respectively. Meanwhile, we denote by $N_\ast, \ast \in \{P, \Tilde{P}, L, \Tilde{L},A, \Tilde{A},V, \Tilde{V}\}$ the total number of elements in $\mathcal{M}, \Tilde{\mathcal{M}}$. 
 
 First, we illustrate the 2D case and construct the meshes based on the Delaunay-Voronoi approach: we start with a Delaunay triangulation $\mathcal{M}$ of the domain and construct $\Tilde{\mathcal{M}}$ by connecting \emph{circumcenters} of any two adjacent triangles, see Fig. \ref{fig:2d-mesh}.
 
-In three dimensions, the meshes are constructed by extruding the 2D meshes vertically along one axis in a staggered manner \cite{Marrone_2001}. See an example in Fig. \ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This particular choice is compatible with the cylindrical geometric setting that we are in, see Fig. \ref{fig:sketch_domain}. For a general setting, one directly decomposes the domain into tetrahedrons and constructs the Voronoi grid in the same manner as before, but the procedure is more complicated and time-consuming. The full discretization of the cylindrical domain is given in Fig. \ref{fig:primal_dual_meshes}.
+In three dimensions, the meshes are constructed by extruding the 2D meshes vertically along one axis in a staggered manner \cite{Marrone_2001}. See an example in Fig. \ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This particular choice is compatible with the cylindrical geometric setting that we are in, see Fig. \ref{fig:sketch_domain}. For a general setting, one directly decomposes the domain into tetrahedrons and constructs the Voronoi grid in the same manner as before, but the procedure is more complicated and time-consuming. The full discretization of the cylindrical domain is given in Fig. \ref{fig:primal_dual_meshes}. 
 
-The orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \Tilde{L}$ is satisfied and would be a crucial property for approximating the material laws shown in the following section. 
+The geometrical orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \Tilde{L}$ is satisfied and would be a crucial property for approximating the material laws shown in the following section. 
 
 \begin{remark}
     The use of the Delaunay-Voronoi based primal-dual meshes may lead to bad performance in simulations if there are obtuse-angle triangles in $\mathcal{M}$. In this case their circumcenters lie outside the triangles and the intersection between edges and faces is violated. An alternative approach is barycenter-based dual mesh, which is not constraint to an acute-angle triangulation \cite{Marrone_2001}. 
@@ -545,7 +547,7 @@ The orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \
 
 
 \begin{figure}
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \resizebox{0.45\textwidth}{!}{\begin{tikzpicture}
     \def\primalstyle{thick}
@@ -572,7 +574,7 @@ The orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \
     \caption{2D case}
     \label{fig:2d-mesh}
     \end{subfigure}
-    \begin{subfigure}[b]{0.45\textwidth}
+    \begin{subfigure}[b]{0.35\textwidth}
     \centering
     \resizebox{0.8\textwidth}{!}{\begin{tikzpicture}
     \def\primalstyle{thick}
@@ -640,15 +642,50 @@ The orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \
     \draw[blue] (D4) -- (DDD4);
     \draw[blue] (D5) -- (DDD5);
     \draw[blue, ultra thick] (D6) -- (DDD6);
-    
     \fill[blue!50, opacity=0.2] (D1) -- (D2) -- (D3) -- (D4) -- (D5) -- (D6);
-    
     \end{tikzpicture}}
     \caption{3D case (2D extrusion)}
     \label{fig:2d-extrusion}
     \end{subfigure}
+    \begin{subfigure}[b]{0.35\textwidth}
+    \centering
+    \begin{tikzpicture}[scale = 0.2]
+            \def\style{thick}
+            \draw[\style] (0,0) -- (1.5,0);
+            \draw[\style] (0,0) -- (0,5) -- (5,5) -- (5,2.5);
+            \draw[\style] (0,5) -- (2,7) node[left]{$\mathcal{M}$} -- (7,7) -- (5,5);
+            \draw[\style] (7,7) -- (7,3.5);
+            \draw[dashed, very thin] (1.5, 0) -- (5,0);
+            \draw[dashed, very thin] (5,0) -- (5,2.5);
+            \draw[dashed, very thin] (5,0) -- (7,2);
+            \draw[dashed, very thin] (7,2) -- (7,3.5);
+            
+            \draw[fill = gray!60,\style] (5,2.5) -- (6,3.5) -- (7,3.5) -- (7,7) -- (5,5) -- cycle;
+            \draw[fill = gray!10,\style] (0,5) -- (5,5) -- (7,7) -- (2,7) -- cycle;
+            \draw[dashed, very thin] (5,0) -- (6.5,1.5) -- (5,1.5) -- cycle;
+            
+            \begin{scope}[shift={(1.5,-3.5)}]
+            \draw[blue,\style] (0,0) -- (5,0)  node[right]{$\Tilde{\mathcal{M}}$};
+            \draw[blue,\style] (5,0) -- (5,5);
+            \draw[blue,\style] (5,5) -- (0,5);
+            \draw[blue,\style] (0,5) -- (0,0);
+            \draw[blue,\style] (0,5) -- (1,6);
+            \draw[blue,\style] (4.5,7) -- (7,7);
+            \draw[blue,\style] (7,7) -- (5,5);
+            \draw[blue,\style] (7,7) -- (7,2);
+            \draw[blue,\style] (7,2) -- (5,0);
+            \draw[dashed, very thin] (1,6) -- (2,7);
+            \draw[dashed, very thin] (2,7) -- (4.5,7);
+            \draw[fill = blue!10,\style] (0,5) -- (5,5) -- (7,7) -- (4.5,7) -- (3.5, 6) -- (1,6) -- cycle;
+            \draw[fill = blue!40,\style] (5,0) -- (7,2) -- (7,7) -- (5,5) -- cycle;
+            \draw[dashed, very thin] (1,6) -- (2,7) -- (3.5,7) -- (3.5,6) -- cycle;
+            \end{scope}
+        \end{tikzpicture}
+        \caption{3D case (Cartesian)}
+        \label{fig:cartesian}
+    \end{subfigure}
     \hfill
-    \caption{Illustration of primal and dual meshes. (a) A Delaunay-Voronoi grid in 2D (b) The extrusion of 2D mesh. Six triangle prisms are primal cells (depicted by black and gray edges). One dual cell, which is a hexagon prism, is depicted by blue edges. The dashed hexagon represents the intersection of the dual cell and primal cells.}
+    \caption{Illustration of primal and dual meshes. (a) A Delaunay-Voronoi grid in 2D (b) The extrusion of 2D mesh. Six triangle prisms are primal cells (depicted by black and gray edges). One dual cell, which is a hexagon prism, is depicted by blue edges. The dashed hexagon represents the intersection of the dual cell and primal cells. (c) A Cartesian case.}
     \label{fig:illustration_primal_dual}
 \end{figure}
 
@@ -765,7 +802,7 @@ These matrices are topological and thus invariant under smooth deformation of th
 \end{figure}
 
 \subsubsection{Cut-off Boundary}
-In simulations, the meshes are confined by a definite boundary. To make them aligned at boundary, we have to cut off the \emph{dual} elements near the boundary due to the staggered character. In the meantime, extra elements are needed to close $\Tilde{\mathcal{M}}$. These issues are illustrated in Fig. \ref{fig:illustraion_dual_boundary}.
+We can only solve problems on a bounded domain and thus the meshes are confined by a definite boundary. To make them aligned at boundary, we have to cut off the \emph{dual} elements near the boundary due to the staggered character. In the meantime, extra elements are needed to close $\Tilde{\mathcal{M}}$. These issues are illustrated in Fig. \ref{fig:illustraion_dual_boundary}.
 
 Note that the auxiliary edges might not be straight and the auxiliary faces might not be flat, which necessitates a versatile data structure to include such situations. In the following, the auxiliary elements would be treated as dual elements, which limits the validity of the relations in Tab. \ref{tab:incidence_relation} only for interior part of $\Tilde{\mathcal{M}}$.
 
@@ -998,7 +1035,7 @@ With the aid of incidence matrices defined in the preceding section and given th
 \end{subequations}
 \end{minipage}
 \end{center}
-where the topping dot $\cdot$ stands for time derivative.
+where the topping dot $\cdot$ stands for taking time derivative.
 
 At this point, we would like to emphasis the importance of the primal-dual staggered meshes: the material laws can be included in a rather simple way. For magnetic Gauss's law $\mathbf{D} = \varepsilon \mathbf{E}$, for instance, the $\mathbf{D}$-field is represented by a collection of face integrals $ (d_i)_{i}$ while $\mathbf{E}$-field is represented by a collection of edge integrals $ (e_i)_{i}$. The primal-dual meshes allow us to arrange them in a staggered way -- edges penetrate faces -- such that $\mathbf{D} = \varepsilon \mathbf{E}$ can be approximated by $\mathbf{d} = \mathbb{M}_{\varepsilon}\mathbf{e}$ in a local fashion, namely $\mathbb{M}_{\varepsilon}$ is diagonal. A more schematic illustration involves the language of differential forms and discrete Hodge operator, see \cite{bossavit1999, teixeira_1999, hip_1999}. 
 
@@ -1043,7 +1080,7 @@ In Section \ref{sec:reform_continuous}, we propose the stabilization of the Maxw
     \end{align} 
 \end{subequations}
 
-where $\mathbf{p} = (p_i)_i$ denotes the scalar $p$ assigned to each primal vertex in $\Omega_I$ and the matrix $(\mathbb{H})_{i,i} = \frac{|\Tilde{A}_i|}{|L_i|}$ transforms primal edge integrals to dual face fluxes\footnote{$\mathbb{H}$ functions as a discrete Hodge operator.}. To incorporate the zero Dirichlet BC, we limit the unknowns $(p_i)_{i=1}^{N^{\Omega^\circ_I}_P}$ to primal vertices in the interior of $\Omega_I$.
+where $\mathbf{p} = (p_i)_i$ denotes the scalar $p$ assigned to each primal vertex in $\Omega_I$ and the matrix $\mathbb{H}_{i,i} = \frac{|\Tilde{A}_i|}{|L_i|}$ transforms primal edge integrals to dual face fluxes\footnote{$\mathbb{H}$ functions as a discrete Hodge operator.}. To incorporate the zero Dirichlet BC, we limit the unknowns $(p_i)_{i=1}^{N^{\Omega^\circ_I}_P}$ to primal vertices in the interior of $\Omega_I$.
 
 \subsubsection{An algebraic check on the well-posedness}
 
@@ -1101,169 +1138,173 @@ We employ the finite volume method (FVM) to discretize the Euler system. As a cl
 
 The Euler equations (\ref{equ:euler_}) can be generalized into the form of conservation law with source terms:
 \begin{equation} \label{equ:euler_conservation}
-    \partial_t \mathbf{U} + \nabla \cdot \mathbf{F}(\mathbf{U}) = \mathbf{RHS},
+    \partial_t \mathbf{U} + \nabla \cdot \mathbf{f}(\mathbf{U}) = \mathbf{RHS},
 \end{equation}
-where $\mathbf{U} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ stands for $m$ conservative variable, $\mathbf{F}(\mathbf{U}) \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the flux density, and $\mathbf{RHS} \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the source term. 
+where $\mathbf{U} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ stands for $m$ conservative variable, $\mathbf{f}(\mathbf{U}) \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the flux density, and $\mathbf{RHS} \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the source term. 
 
 To obtain the semi-discretization, we first integrate (\ref{equ:euler_conservation}) over a cell $V_i$ 
 \begin{equation} \label{equ:euler_grid} 
-    \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j|\underbrace{\frac{1}{|A_j|}\iint_{A_j}\mathbf{F}(\mathbf{U})\cdot \mathbf{n}_j \text{d}A}_{\overline{\mathbf{F}}_j} = \underbrace{\frac{1}{|V_i|}\iiint_{V_i} \mathbf{RHS} \text{d}V}_{\overline{\mathbf{RHS}}_i}
+    \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j|\underbrace{\frac{1}{|A_j|}\iint_{A_j}\mathbf{f}(\mathbf{U})\cdot \mathbf{n}_j \text{d}A}_{\overline{\mathbf{f}}_j \approx \mathbf{f}^\text{num}_j} = \underbrace{\frac{1}{|V_i|}\iiint_{V_i} \mathbf{RHS} \text{d}V}_{\overline{\mathbf{RHS}}_i}
 \end{equation}
-where $\overline{\mathbf{U}}_i := \iiint_{V_i} \mathbf{U} \text{d}V / |V_i| \in L^2([0,T],\mathbb{R}^m)$ calculates the cell average, $\mathbf{n}_j$ is the outer normal vector of face $A_j$ with respect to the cell $V_i$. We approximate the analytic flux $\overline{\mathbf{F}}_j$ in (\ref{equ:euler_grid}) by the numerical flux $\overline{\mathbf{F}}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right)$, where $k(i,j)$ returns the index of the adjacent cell that shares $A_j$ with cell $V_i$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, Engquist-Osher flux, see \cite[][p. 44-46]{mishra_2019}. Finally, we end up with the semi-discretized equation:
+where $\overline{\mathbf{U}}_i := \iiint_{V_i} \mathbf{U} \text{d}V / |V_i| \in L^2([0,T],\mathbb{R}^m)$ calculates the cell average, $\mathbf{n}_j$ is the outer normal vector of face $A_j$ with respect to the cell $V_i$. We approximate the flux $\overline{\mathbf{f}}_j$ in (\ref{equ:euler_grid}) by a numerical flux $\mathbf{f}^\text{num}_j := \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right)$, where $k(i,j)$ returns the index of the adjacent cell that shares $A_j$ with cell $V_i$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, Engquist-Osher flux, see \cite[][p. 44-46]{mishra_2019}. Finally, we end up with the semi-discretized equation:
 \begin{equation}
-    \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j| \overline{\mathbf{F}}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right) = \overline{\mathbf{RHS}}_i.
+    \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j| \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right) = \overline{\mathbf{RHS}}_i.
     \label{equ:fvm}
 \end{equation}
 The Rusanov flux in multi-dimensions on face $A_j$ writes
 \begin{equation} \label{equ:rusanov-flux-3d}
-    \overline{\mathbf{F}}\left(\overline{\mathbf{U}}_L, \overline{\mathbf{U}}_R, \mathbf{n}\right) = \frac{1}{2}\left[\mathbf{F}(\overline{\mathbf{U}}_L)\cdot\mathbf{n} + \mathbf{F}(\overline{\mathbf{U}}_R)\cdot\mathbf{n}\right] - \frac{1}{2}\overline{s}\left(\overline{\mathbf{U}}_R - \overline{\mathbf{U}}_L\right),  
+    \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_L, \overline{\mathbf{U}}_R, \mathbf{n}\right) = \frac{1}{2}\left[\mathbf{f}(\overline{\mathbf{U}}_L)\cdot\mathbf{n} + \mathbf{f}(\overline{\mathbf{U}}_R)\cdot\mathbf{n}\right] - \frac{1}{2}\overline{s}\left(\overline{\mathbf{U}}_R - \overline{\mathbf{U}}_L\right),  
 \end{equation}
 where $\overline{s} = \text{max}(s(\overline{\mathbf{U}}_L), s(\overline{\mathbf{U}}_R))$ with $s(\mathbf{U}) := |\mathbf{u}\cdot\mathbf{n}| + \sqrt{\gamma p/\rho}$ representing the largest wave speed. 
 
-We would like to emphasis that the Euler system is discretized on $\mathcal{M}'$ due to the fact that 1) the electric current is strongly connected to the momenta of charged particles by (\ref{equ:maxwell_euler_coupling}); 2) the electric current is discretized on dual faces by (\ref{equ:maxwell_grid_ampere}).
+We would like to emphasis that the Euler system is discretized on $\mathcal{M}'$ due to the fact that 1) the electric current is connected to the momenta of charged particles by (\ref{equ:maxwell_euler_coupling}); 2) the electric current is discretized on dual faces by (\ref{equ:maxwell_grid_ampere}).
 
-To rewrite (\ref{equ:fvm}) into a matrix form, by abuse of notation we stack all the cell average $(\overline{\mathbf{U}}_i)_i$ into a matrix $\mathbf{U} \in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ with $\mathbf{U}_{i,:} = \overline{\mathbf{U}}_i$. Meanwhile, we denote by $\mathbf{F} \in \mathbb{R}^{N_{\Tilde{A}}^P \times m}$ the collection of the (total) numerical fluxes $|A_i|\overline{\mathbf{F}}_i$, namely $\mathbf{f}_{i,:} = |A_i|\overline{\mathbf{F}}_i$, whose directions are determined by the internal direction of faces where they are defined. In the same way, we denote by $\mathbf{RHS}\in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ the collection of $\overline{\mathbf{RHS}}_i$. Besides, we define the diagonal matrix $\mathbb{\Tilde{V}} \in \mathbb{R}^{N_{\Tilde{V}}^P}$ with $\mathbb{\Tilde{V}}_{i,i} = |\Tilde{V}_i|$. Making use of the incidence matrices, we end up with
+To rewrite (\ref{equ:fvm}) into a matrix form, by abuse of notation we stack all the cell average $(\overline{\mathbf{U}}_i)_i$ into a matrix $\mathbf{U} \in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ with $\mathbf{U}_{i,:} = \overline{\mathbf{U}}_i$. Meanwhile, we denote by $\mathbf{F} \in \mathbb{R}^{N_{\Tilde{A}}^P \times m}$ the collection of the (total) numerical fluxes, namely $\mathbf{F}_{i,:} = |A_i|\mathbf{f}^\text{num}_i$. In the same way, we denote by $\mathbf{RHS}\in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ the collection of $\overline{\mathbf{RHS}}_i$. Besides, we define the diagonal matrix $\mathbb{\Tilde{V}} \in \mathbb{R}^{N_{\Tilde{V}}^P}$ with $\mathbb{\Tilde{V}}_{i,i} = |\Tilde{V}_i|$. Making use of the incidence matrices, we end up with
 \begin{equation*}
-    \dot{\mathbf{U}} + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbf{F}(\mathbf{U})  = \mathbf{RHS}(\mathbf{U},\mathbf{b},\mathbf{e}),
+    \dot{\mathbf{U}} + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbf{F}(\mathbf{U})  = \mathbf{RHS}(\mathbf{U},\mathbf{d},\mathbf{b}),
 \end{equation*}
-where the dependence of $\mathbf{RHS}$ on $\mathbf{U}, \mathbf{b}, \mathbf{e}$ is implied by (\ref{equ:euler_rescaled}) and will be elaborated below.
+where the dependence of $\mathbf{RHS}$ on $\mathbf{U}, \mathbf{d}, \mathbf{b}$ is implied by (\ref{equ:euler_rescaled}) and will be elaborated below.
+
 \subsubsection{Reconstruction of Lorentz Force}
+Since the electromagnetic fields are represented by integrals on edges and faces, we need to reconstruct their vector components for the computation of Lorentz force (and Joule heating) inside each dual volume.    
+
+The problem is twofold:
+\begin{itemize}
+    \item[-] given the fluxes at faces of a volume, reconstruct the vector field inside the volume;
+    \item[-] given the integrals along edges of a volume, reconstruct the vector field inside the volume. 
+\end{itemize}
+We adopt the principle of least square fitting, and reconstruct a \emph{constant} vector field inside each volume. For a volume $\Tilde{V}$ with $k$ faces with areas $\{A_i\}_{i=1}^k$, normal vectors $\{\mathbf{n}_i\}_{i=1}^k$ and fluxes $\{f_i\}_{i=1}^k$, a constant vector field $\mathbf{v}$ satisfying 
+\begin{equation*}
+    \mathbf{v} = \argmin_{v\in \mathbb{R}^3} \sum_{i=1}^k(A_i\mathbf{v} \cdot \mathbf{n}_i - f_i)^2.   
+\end{equation*} can be computed through
+\begin{equation*}
+    \mathbf{v} = (\mathbb{K}^T\mathbb{K})^{-1}\mathbb{K}^T\mathbf{f},
+\end{equation*}
+where
+\begin{equation*}
+    \mathbb{K} = [A_1\mathbf{n}_1, A_2\mathbf{n}_2, \cdots, A_k\mathbf{n}_k]^T,\ \ \ \mathbf{f} = [f_1, f_2, \cdots, f_k]^T,
+\end{equation*}
+and each vector in $\mathbb{R}^3$ is treated as a column vector. The construction based on the integral quantities on edges can be done similarly. Assembling the local constructions for each dual volume, the global construction can be written as 
+\begin{equation}
+    \mathbf{E} = \Tilde{\mathbb{R}}_E\mathbf{d},
+    \ \ \ \ 
+    \mathbf{B} = \Tilde{\mathbb{R}}_B\mathbf{b},
+\end{equation}
+where $\mathbf{d}, \mathbf{b}$ are stacked unknowns, see Tab. \ref{tab:def_size_var}; $\mathbf{E} := (\mathbf{E}_i)_{i=1}^{N_{\Tilde{V}}}$ and $\mathbf{B} := (\mathbf{B}_i)_{i=1}^{N_{\Tilde{V}}}$ are $N_{\Tilde{V}} \times 3$ matrices stacking the reconstructed $\mathbf{E}$-fields and $\mathbf{B}$-fields at each $\Tilde{V}$; $\Tilde{\mathbb{R}}_E$ and $\Tilde{\mathbb{R}}_B$ are thus rank-3 tensors.
+
+The problem of the reconstruction of vector fields on unstructured meshes is a widely studied topic. Apart from the least-square method, other methods include Perot's method \citep{perot_2000}, finite-element-based methods, etc., which potentially can achieve higher-order accuracy. See \cite[][sec. 3.4.4]{fuchs_2021} and the references therein.  
 
 \subsubsection{Discrete Boundary Conditions}
+The BCs for the Euler system (see Section \ref{sec:BC}) are implemented by the approach of ghost cells \cite[][Chapt. 7]{leveque_2007}, namely thinking of extending the domain by a few additional cells and prescribing the variables. In our case, the ghost cells at the open boundary at $\Gamma_C$ are set to have the equal values as the interior ones that are adjacent. It is equivalent to enforce the numerical fluxes
+\begin{equation*}
+    \mathbf{F}_i = |\Tilde{A}_i|{\mathbf{f}^\text{num}}(\mathbf{U}_j, \mathbf{U}_j, \mathbf{n}_i), \ \ \forall i: \Tilde{A}_i \subset \Gamma_C,
+\end{equation*}
+where $j$ refers to the index of the volume adjacent to the boundary face $\Tilde{A}_i$ and is unique. For the reflective wall $\Gamma_W$, the momentum of a ghost cell are reversed with respect to its adjacent one while keeping the other quantities unchanged. Therefore, the numerical fluxes are 
+\begin{equation*}
+    \mathbf{F}_i = |\Tilde{A}_i|\mathbf{f}^\text{num}(\mathbf{U}_j, \hat{\mathbf{U}}_j, \mathbf{n}_i), \ \ \forall i: \Tilde{A}_i \subset \Gamma_W,
+\end{equation*}
+where the value of the ghost cell $\hat{\mathbf{U}} = [n, n\mathbf{u} - 2(\mathbf{n}\cdot\mathbf{u})\mathbf{n}, ne]^T$ for $\mathbf{U} = [n, n\mathbf{u}, ne]^T$. 
 
 
 \subsection{Summary: Spatially Semi-discrete Model}
 We collect all the equations and BCs presented above and make a summary for the spatially semi-discrete Maxwell-Euler system:
 \begin{subequations}
-    \begin{align*}
+    \begin{align}
         [\dot{\mathbf{b}} + \mathbb{C}\mathbf{e} = \mathbf{0}]_i, \ \ &\forall i: A_i \subset \Omega, \\
         [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} = - \mathbf{j}]_i, \ \ &\forall i: \Tilde{A}_i \subset \Omega_P,\\
-        [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \mathbb{H} \mathbb{G} \mathbf{p} = - \mathbf{j}]_i, \ \ &\forall i: A_i \subset \Omega_I,\\
+        [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \mathbb{H} \mathbb{G} \mathbf{p} = - \mathbf{j}]_i, \ \ &\forall i: \Tilde{A}_i \subset \Omega_I,\\
         [\Tilde{\mathbb{D}}\mathbf{d} = \mathbf{0}]_i,\ \ &\forall i: \Tilde{V}_i \subset \Omega_I, \\
-        [\dot{\mathbf{U}} + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbf{F} = \mathbf{RHS}]_i,\ \ &\forall i: \Tilde{V}_i \subset \Omega_P,
-    \end{align*}
-with boundary conditions:
-    \begin{align*}
+        [\dot{\mathbf{U}}_\ast + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbf{F}_\ast = \mathbf{RHS}_\ast]_i,\ \ &\forall i: \Tilde{V}_i \subset \Omega_P, 
+    \end{align}
+    \vspace{-1cm}
+    \begin{align}
+        \hspace{1.6cm}\mathbf{j}_i =
+        \begin{cases}
+         \Sigma_{\ast} q_*\mathbf{F}_{\ast,i}^\text{n},&\forall i: \Tilde{A}_i \subset \Omega_P, \\
+        0,&\forall i: \Tilde{A}_i \subset \Omega_I,
+        \end{cases}
+    \end{align}
+where $\ast$ stands for indices for multiple species and $\mathbf{F}^\text{n}$ denotes the mass flux. We have the following BCs:
+    \begin{align}
     \varphi_i = \Phi^\pm(t), \ \ &\forall i : P_i \subset \Gamma_C^\pm, \\
     e_i = (\mathbb{G}\bm{\varphi})_i,\ \ &\forall i : L_i \subset \partial\Omega, \\
     (\Tilde{\mathbb{C}} \bm{h})_i = 0,\ \ &\forall i : \Tilde{A}_i \subset \Gamma_I,\\
-    \mathbf{F}_i = |\Tilde{A}_i|\overline{\mathbf{F}}(\mathbf{U}_j, \mathbf{U}_j, \mathbf{n}_i), \ \ &\forall i: \Tilde{A}_i \subset \Gamma_C, \\
-    \mathbf{F}_i = |\Tilde{A}_i|\overline{\mathbf{F}}(\mathbf{U}_j, \hat{\mathbf{U}}_j, \mathbf{n}_i), \ \ &\forall i: \Tilde{A}_i \subset \Gamma_W.
-    \end{align*}
+    \mathbf{F}_{\ast,i} = |\Tilde{A}_i|\mathbf{f}^\text{num}(\mathbf{U}_{\ast,j}, \mathbf{U}_{\ast,j}, \mathbf{n}_i), \ \ &\forall i: \Tilde{A}_i \subset \Gamma_C, \\
+    \mathbf{F}_{\ast,i} = |\Tilde{A}_i|\mathbf{f}^\text{num}(\mathbf{U}_{\ast,j}, \hat{\mathbf{U}}_{\ast,j}, \mathbf{n}_i), \ \ &\forall i: \Tilde{A}_i \subset \Gamma_W.
+    \end{align}
 \end{subequations}
+We would like to stress again that in our FIT-FVM framework Faraday's law is discretized on $\mathcal{M}$ while Amp\`{e}re's law is discretized on $\mathcal{M}'$ for a simple approximation of material laws. By arranging the Euler system on $\mathcal{M}'$, the connection between electric currents and fluid momenta is naturally established in the discrete level since they are defined on the same locations.    
 
 
-\section{Discretization in time}
-\subsection{Motivation: 1D Discretization}
-\subsubsection{1D plasma model}
-The 3D problem is projected onto the 1D axis by assuming vanishing traverse derivatives (see Fig. \ref{fig:1d-frame} for the definition of reference frame). Besides, $u_y, E_y, B_x, B_z$ are set zero for simplicity, which amounts to considering the TE mode. The collision between particles is omitted for the time being. 
+\section{Full Discretization}
+On discussing the discretization in space, inthis section we discuss the time-stepping which is strongly related to the AP property since it directly influences the stability of the scheme. 
+\subsection{Motivation: Reduction to 1D Discretization}
+Our work is an extension of the 1D scheme proposed in \cite{degond_2012} towards a scheme in three dimensions. Therefore, it is compatible with the original 1D scheme when one considers its reduction to one dimension. This mental experiment aims to help readers understand how the new 3D scheme originates from the 1D one. 
+\subsubsection{Projection to one dimension}
+Consider a mesh pair $(\mathcal{M}, \mathcal{M}')$ that are constructed by 2D extrusion along $z$-axis and are unbounded along transverse directions on $x$-$y$ plane. On assuming the transverse invariance and rotational symmetry, one can reduce the 3D problem to a 1D one along $z$-axis. All the D.o.F. are now defined at the locations that are the projections of their original locations. For instance, an edge that is orthogonal to $z$-axis projects to a vertex while an edge parallel to $z$-axis projects to an edge. The procedure is sketched in Fig. \ref{}.
 
-Take all the traverse derivatives $\partial_x, \partial_y$ and $u_y, E_y, B_x, B_z$ to be zero, we get the one-fluid Euler-Maxwell system in 1D:
+\begin{remark}
+    The 1D reduction of the FVM-FIT discretization can be interpreted in the sense of finite difference. 
+\end{remark}
+
+In \cite{degond_2012}, the authors consider a 1D Maxwell-Euler system by assuming vanishing traverse derivatives. Besides, $u_y, E_y, B_x, B_z$ are set zero for simplicity, which amounts to considering the TE mode. The 1D reduced Maxwell-Euler system and its quasi-neutral limit are 
+
+\vspace{-0.3cm}
+\begin{minipage}{0.6\textwidth}
+    \begin{align*}
+        \partial_t n + \partial_z(nu_z) &= 0, \\
+        \varepsilon^2[\partial_t(nu_x) + \partial_z(nu_zu_x)] &= - n(E_x - u_zB_y), \\
+        \varepsilon^2[\partial_t(nu_z) + \partial_z(nu_z^2)] + \partial_z(p(n)) &= -n(E_z + u_xB_y), \\
+        \partial_t B_y + \partial_z E_x &= 0, \\
+        \lambda^2 \partial_t E_x + \partial_z B_y &= nu_x, \\
+        \lambda^2 \partial_t E_z &= nu_z, \\
+        \lambda^2 \partial_z E_z &= 1 - n.
+    \end{align*}
+\end{minipage}
+$\xrightarrow[]{\lambda \rightarrow 0}$
+\begin{minipage}{0.3\textwidth}
+    \begin{align*}
+        n &= 1,\\
+        \varepsilon^2 \partial_t(u_x) &= - E_x, \\
+        E_z + u_xB_y &= 0, \\
+        u_z &= 0, \\
+        \partial_t B_y + \partial_z E_x &= 0, \\
+        \partial_z B_y &= nu_x.
+    \end{align*}
+\end{minipage}
+where the subscript indicates the direction of the component.
+
+\subsubsection{1D plasma fully-discrete model}
+The following fully-discrete scheme is proposed in \cite{degond_2012}. The spatial discretization can be interpreted by the 1D projection procedure illustrated above. Here we want to discuss the time discretization with a focus on its semi-implicitness. The scheme is built on a uniform 1D mesh with cell size $h$ and evolves the system with time step $\delta^m$:  
 \begin{align*}
-    \partial_t n + \partial_z(nu_z) &= 0, \\
-    \varepsilon^2[\partial_t(nu_x) + \partial_z(nu_zu_x)] &= - n(E_x - u_zB_y), \\
-    \varepsilon^2[\partial_t(nu_z) + \partial_z(nu_z^2)] + \partial_z(p(n)) &= -n(E_z + u_xB_y), \\
-    \partial_t B_y + \partial_z E_x &= 0, \\
-    \lambda^2 \partial_t E_x + \partial_z B_y &= nu_x, \\
-    \lambda^2 \partial_t E_z &= nu_z, \\
-    \lambda^2 \partial_z E_z &= 1 - n,
+    \frac{n^{m+1}_k - n^m_k}{\delta^m} + \frac{\textcolor{blue}{f^{m+1/2}_{n,k+1/2} - f^{m+1/2}_{n,k-1/2}}}{h} &= 0, \\
+    \frac{(nu_x)^{m+1}_k - (nu_x)^m_k}{\delta^m} + \frac{f^{m}_{u_x,k+1/2} - f^{m}_{u_x,k-1/2}}{h} &= -\frac{n^m_k \textcolor{blue}{E^{m+1}_{x,k}}}{\varepsilon^2} + \frac{n^m_k u^m_{z,k}\Tilde{B}^m_{y,k}}{\varepsilon^2},\\
+    \frac{(nu_z)^{m+1}_k - (nu_z)^m_k}{\delta^m} + \frac{f^{m}_{u_z,k+1/2} - f^{m}_{u_z,k-1/2}}{h} &= - \frac{n^m_k \textcolor{blue}{\Tilde{E}^{m+1}_{z,k}}}{\varepsilon^2} - \frac{n^m_k u^m_{x,k}\Tilde{B}^m_{y,k}}{\varepsilon^2}, \\ 
+    \frac{B^{m+1}_{y,k+1/2} - B^{m}_{y,k+1/2}}{\delta^m} + \frac{\textcolor{blue}{E^{m+1}_{x,k+1} - E^{m+1}_{x,k}}}{h} &= 0, \\
+    \lambda^2 \frac{E^{m+1}_{x,k} - E^{m}_{x,k}}{\delta^m} + \frac{\textcolor{blue}{B^{m+1}_{y,k+1/2} - B^{m+1}_{y,k-1/2}}}{h} &= \textcolor{blue}{(nu_x)^{m+1}_k}, \\
+    \lambda^2 \frac{E^{m+1}_{z,k+1/2} - E^{m}_{z,k+1/2}}{\delta^m} &= \textcolor{blue}{f^{m+1}_{n,k+1/2}}, 
 \end{align*}
-as well as the quasi-neutral limit by taking $\lambda \rightarrow 0$:
-\begin{align*}
-    n &= 1\\
-    \varepsilon^2 \partial_t(u_x) &= - E_x, \\
-    E_z + u_xB_y &= 0, \\
-    u_z &= 0 \\
-    \partial_t B_y + \partial_z E_x &= 0, \\
-    \partial_z B_y &= nu_x
-\end{align*}
-\subsubsection{Finite difference on staggered grid}
-\todo{Add illustration about 1D FDTD}
-\subsubsection{Semi-implicit AP time-stepping}
-Adapt the AP scheme (\ref{equ:maxwell_faraday_ap}) to (\ref{equ:euler_ap}) to this case, and we end up with
-\begin{align}
-    \frac{n^{m+1}_k - n^m_k}{\delta^m} + \frac{\textcolor{blue}{f^{m+1/2}_{n,k+1/2} - f^{m+1/2}_{n,k-1/2}}}{h} &= 0, \label{equ:1f1d-n}\\
-    \frac{(nu_x)^{m+1}_k - (nu_x)^m_k}{\delta^m} + \frac{f^{m}_{u_x,k+1/2} - f^{m}_{u_x,k-1/2}}{h} &= -\frac{n^m_k \textcolor{blue}{E^{m+1}_{x,k}}}{\varepsilon^2} + \frac{n^m_k u^m_{z,k}\Tilde{B}^m_{y,k}}{\varepsilon^2}, \label{equ:1f1d-nux}\\
-    \frac{(nu_z)^{m+1}_k - (nu_z)^m_k}{\delta^m} + \frac{f^{m}_{u_z,k+1/2} - f^{m}_{u_z,k-1/2}}{h} &= - \frac{n^m_k \textcolor{blue}{\Tilde{E}^{m+1}_{z,k}}}{\varepsilon^2} - \frac{n^m_k u^m_{x,k}\Tilde{B}^m_{y,k}}{\varepsilon^2}, \label{equ:1f1d-nuz}\\ 
-    \frac{B^{m+1}_{y,k+1/2} - B^{m}_{y,k+1/2}}{\delta^m} + \frac{\textcolor{blue}{E^{m+1}_{x,k+1} - E^{m+1}_{x,k}}}{h} &= 0, \label{equ:1f1d-By}\\
-    \lambda^2 \frac{E^{m+1}_{x,k} - E^{m}_{x,k}}{\delta^m} + \frac{\textcolor{blue}{B^{m+1}_{y,k+1/2} - B^{m+1}_{y,k-1/2}}}{h} &= \textcolor{blue}{(nu_x)^{m+1}_k}, \label{equ:1f1d-Ex}\\
-    \lambda^2 \frac{E^{m+1}_{z,k+1/2} - E^{m}_{z,k+1/2}}{\delta^m} &= \textcolor{blue}{f^{m+1}_{n,k+1/2}}, \label{equ:1f1d-Ez}
-\end{align}
 where 
 \begin{equation*}
     \Tilde{E}^m_{z,k} = \frac{1}{2}(E^m_{z,k+1/2} + E^m_{z,k-1/2}), \ \ \ \Tilde{B}^m_{y,k} = \frac{1}{2}(B^m_{y,k+1/2} + B^m_{y,k-1/2}),
 \end{equation*}
-is the consequence of interpolation of electromagnetic field, 
-and the fluxes read
+are the averaged electromagnetic fields, and the fluxes read
 \begin{align*}
     f^{m+1/2}_{n,k+1/2} & = \frac{1}{2}[\textcolor{blue}{(nu_z)^{m+1}_k + (nu_z)^{m+1}_{k+1}} + \mu^m_{k+1/2}(n^m_k - n^m_{k+1})], \\
     f^{m}_{u_x,k+1/2} & = \frac{1}{2}[(nu_zu_x)^{m}_k + (nu_zu_x)^{m}_{k+1} + \mu^m_{k+1/2}((nu_x)^m_k - (nu_x)^m_{k+1})], \\
     f^{m}_{u_z,k+1/2} & = \frac{1}{2}[(nu_z^2 + p(n)/\varepsilon^2)^{m}_k + (nu_z^2 + p(n)/\varepsilon^2)^{m}_{k+1} + \mu^m_{k+1/2}((nu_z)^m_k - (nu_z)^m_{k+1})]. \\
 \end{align*}
+According to the linearized stability analysis in \cite{degond_2012}, the implicitness of the Lorentz force and the Maxwell equations is essential to the stability in the quasi-neutral limit. Besides, the mass flux in the mass conservation equation and the current in Amp\`{e}re's law have the same degree of implicitness in order to guarantee the consistency with the Gauss law. The implicit terms are highlighted in blue color. 
 
-\subsection{Discretization in 3D}
-\subsubsection{Primal-dual staggered mesh}
+\subsection{Semi-implicit Fully-discrete AP Scheme in 3D}
 
-\subsubsection{Discrete Maxwell equations: DEC}
-\todo{Reformulate this section in the spirit of DEC. Now it is a bit tedious.}
-
-
-\subsubsection{Discrete boundary conditions}
-Dirichlet BCs lead to setting corresponding DoFs at boundary to zero. Vanishing tangential curl is treated by introducing a boundary potential. 
-\todo{More details.}
-\subsubsection{Stabilization in insulating domain}
-We repeat the dilemma again: the scheme fails for $\lambda \rightarrow 0$. The Maxwell system in $\Omega_I$ is    
-\begin{align}
-    \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:ex_1}\\ 
-    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= 0,  \label{equ:ex_2}\\
-    \nabla \cdot \mathbf{B} &= 0, \label{equ:ex_3}\\
-    \lambda^2 \nabla \cdot \mathbf{D} &= 0 \label{equ:ex_4}.
-\end{align}
-In non-neutral regime, namely $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_I$ is well-posed and Gauss's laws (\ref{equ:ex_3}) (\ref{equ:ex_4}) are redundant. Therefore, they are \emph{implicitly} satisfied (up to numerical errors) in the scheme. Nonetheless, the quasi-neutral limit $\lambda \rightarrow 0$ dismisses the implicit fulfillment of Gauss's law for electric field (\ref{equ:ex_4}) through Amper\`{e}'s law (\ref{equ:ex_2}). A crucial observation is that formally letting $\lambda \rightarrow 0$ makes (\ref{equ:ex_4}) degenerate, but the divergence-free condition of $\mathbf{D}$-field is always satisfied since the system is divergent as $\lambda \rightarrow 0$ [cite something]. 
-
-The remedy is to \emph{explicitly} include the divergence-free constraint in the scheme for any value of $\lambda$:  
-\begin{align}
-    \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:ex_5}\\ 
-    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= 0,  \label{equ:ex_6}\\
-    \nabla \cdot \mathbf{D} &= 0 \label{equ:ex_7}.
-\end{align}
-
-With the divergence-free constraint (\ref{equ:ex_7}), we have more equations than unknowns, which can be resolved by introducing a Lagrange multiplier $p$ as follows:
-\begin{align}
-    \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:ex_8}\\ 
-    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} + \colorbox{orange!20}{$\nabla p$} &= 0,  \label{equ:ex_9}\\
-    \nabla \cdot \mathbf{D} &= 0 \label{equ:ex_10},
-\end{align}
-supplemented with the boundary condition $p = 0$ on $\partial\Omega_I$. One can check that (\ref{equ:ex_8})-(\ref{equ:ex_10}) are equivalent to (\ref{equ:ex_5})-(\ref{equ:ex_7}) by verifying that $p = 0$ in $\Omega_I$. This is done by taking the divergence of (\ref{equ:ex_9}) such that the Laplace equation of $p$ with zero Dirichlet boundary condition gives vanishing $p$. 
-
-\todo{The following part should be put after the full discretization is presented.}
-
-The discretization of the Maxwell system in the insulating domain then becomes
-\begin{align*}
-    \delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^m) + \mathbb{C}\mathbf{e}^{m+1} &= 0, \\
-    \lambda^2\delta_m^{-1} (\Tilde{\mathbf{d}}^{m+1} - \Tilde{\mathbf{d}}^m) - \Tilde{\mathbb{C}}\Tilde{\mathbf{h}}^{m+1} + \colorbox{orange!20}{$\mathbb{H} \mathbb{G} \mathbf{p}^{m+1}$} &= 0 \\
-    \Tilde{\mathbb{D}} \Tilde{\mathbf{d}}^{m+1} &= 0.
-\end{align*}
-where $\mathbb{H}$ is the discrete Hodge operator (matrix\footnote{In our case where the orthogonal mesh pair is used, it is diagonal.}) responsible for transforming any primal-edge-integrated variables to dual-face-integrated ones; the vector $\mathbf{p}$ is the discrete representation of $p$ and is defined on primal vertices lying in $\Omega_I$.
-
-\subsubsection{Semi-implicit AP schemes}
-In this section, we present the full discretization with AP property. The general approach for spatial discretizations of both the Euler and Maxwell's equations has been introduced in chapter \ref{chap:discretization_euler_maxwell}. As stability is a central issue for the AP property, this section is mostly devoted to the time discretization of the Euler-Maxwell system.
-
-We want to first recall the objective of AP schemes and make clear the direction to proceed towards. By definition \ref{def:ap}, the stability condition that does not depend on $\lambda$ and the consistency of the limit scheme with the quasi-neutral system have to be fulfilled. Furthermore, what is desired for the numerical treatment of Maxwell's equations is that Gauss's law is satisfied at the discrete level. To sum up, the following properties of the constructed scheme are to be realized:
-
-\begin{itemize}
-    \item[I] stable regardless of the value of $\lambda$;
-    \item[II] the limit scheme by taking $\lambda = 0$ is valid\footnote{By ``valid" we mean the scheme is a valid recursion such that the state at $t^{m+1}$ can be \emph{uniquely} computed by that at $t^m$.} and consistent to its continuous counterpart (\ref{equ:maxwell_faraday_limit}) to (\ref{equ:maxwell_gauss_D_limit});
-    \item[III] Gauss's law (\ref{equ:maxwell_gauss_D_rescaled}) is fulfilled at the discrete level for any $\lambda$. \label{condition3}
-\end{itemize}
-
-Given the mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$, Maxwell's equations are handled by the FIT framework while FVM is applied to Euler equations on the dual mesh 
-$\Tilde{\mathcal{M}}$. Naturally extending the AP scheme for 1D two-fluid plasma proposed in \cite{degond_2012} to which the detailed constructing procedure should be referred, we straightforwardly present the full-discretization scheme for 3D multi-species plasma:
 
 \begin{align}
-    \delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^{m}) \hspace{0.4cm}&\;+\; \hspace{1.5cm}\mathbb{C}\textcolor{blue}{\mathbf{e}^{m+1}}\hspace{1.25cm}=\; 0, \label{equ:maxwell_faraday_ap}\\
-    \lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m) \hspace{0.4cm}&\;-\; \hspace{1.5cm}\Tilde{\mathbb{C}}\textcolor{blue}{\mathbf{h}^{m+1}} \hspace{1.22cm}=\; - \textcolor{blue}{\mathbf{j}^{m+1}}, \label{equ:maxwell_ampere_ap}\\
-    \delta_m^{-1}(\mathbf{U}_{*,k}^{m+1} - \mathbf{U}_{*,k}^{m}) \hspace{0.10cm}&\;+\;  \frac{1}{|\Tilde{V}_k|}\sum_{j:\Tilde{A}_j\in\partial\Tilde{V}_k}|\Tilde{A}_j|\textcolor{blue}{\overline{\mathbf{F}}_{*,j}^{m+1/2}} \hspace{0.05cm}=\; \textcolor{blue}{\mathbf{RHS}_{*,k}^{m+1/2}}, \label{equ:euler_ap}
+    \left[\delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^{m}) + \mathbb{C}\textcolor{blue}{\mathbf{e}^{m+1}} = \mathbf{0} \right]_i,\ \ &\forall i:A_i \subset \Omega, \label{equ:maxwell_faraday_ap}\\
+    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\textcolor{blue}{\mathbf{h}^{m+1}} = - \textcolor{blue}{\Sigma_\ast q_\ast \mathbf{F}^{n,m+1}_{\ast}}\right]_i,\ \ &\forall i:\Tilde{A}\subset\Omega_P, \\
+    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\textcolor{blue}{\mathbf{h}^{m+1}} + \mathbb{H}\mathbb{G}\textcolor{blue}{\mathbf{p}^{m+1}} = \mathbf{0} \right]_i,\ \ &\forall i:\Tilde{A}\subset\Omega_I, \label{equ:maxwell_ampere_ap}\\
+    \left[\mathbb{D}\textcolor{blue}{\mathbf{d}^{m+1}} = \mathbf{0}\right]_i, \ \ &\forall i : \Tilde{V}_i \subset \Omega_I, \\
+    \left[\delta_m^{-1}(\mathbf{U}_{*}^{m+1} - \mathbf{U}_{*}^{m}) + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\textcolor{blue}{\mathbf{F}_\ast^{m+1/2}} = \textcolor{blue}{\mathbf{RHS}_\ast^{m+1/2}} \right]_i,\ \ &\forall i : \Tilde{V}_i \subset \Omega_P, \label{equ:euler_ap}
 \end{align}
 where 
 \begin{align}
