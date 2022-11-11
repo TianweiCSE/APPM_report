@@ -1244,9 +1244,10 @@ We would like to stress again that in our FIT-FVM framework Faraday's law is dis
 
 \section{Full Discretization}
 \subsection{Motivation: Reduction to 1D Discretization}
-Our work is an extension of the 1D scheme proposed in \cite{degond_2012} towards a scheme in three dimensions. Therefore, it is compatible with the original 1D scheme when one considers its reduction to one dimension. This mental experiment aims to help readers understand how the new 3D scheme originates from the 1D one. 
+Our work is an extension of the 1D scheme proposed in \cite{degond_2012} towards three dimensions. Therefore, it is supposed to be compatible with the original 1D scheme when reduced to one dimension. This perspective helps to understand how the 3D scheme stems from the 1D one, which is not trivial. For the sake of presentation, we discuss their one-fluid model where ions are assumed immobile and only the motion of electrons is considered.  
+
 \subsubsection{Projection to One Dimension} \label{sec:projection_to_1d}
-Consider a mesh pair $(\mathcal{M}, \mathcal{M}')$ that are constructed by 2D extrusion along $z$-axis and are unbounded along transverse directions on $x$-$y$ plane. On assuming the transverse invariance and rotational symmetry, one can reduce the 3D problem to a 1D one along the $z$-axis. All the D.o.F. are now defined at the locations that are the projections of their original locations. For instance, an edge that is orthogonal to the $z$-axis projects to a vertex while a parallel edge to the $z$-axis is projected to an edge. The procedure is sketched in Fig. \ref{fig:1d_reduction}.
+Consider a mesh pair $(\mathcal{M}, \mathcal{M}')$ that are constructed by 2D extrusion along $z$-axis and are unbounded along transverse directions. On assuming the transverse invariance and rotational symmetry, we can ``project'' all the D.o.F. onto the $z$-axis. The idea is sketched in in Fig. \ref{fig:1d_reduction}.
 
 \begin{figure}
     \centering
@@ -1347,7 +1348,7 @@ Consider a mesh pair $(\mathcal{M}, \mathcal{M}')$ that are constructed by 2D ex
             \node[below] (n) at (3,-5) {\textcolor{black}{$z_{k-1/2}$}};
         \end{scope}
     \end{tikzpicture}
-    \caption{3D discretization to 1D. On the assumption of transverse invariance, we can reduce all the D.o.F. lying in the plane $z=z_k$ to the vertex at $z=z_k$. }
+    \caption{3D discretization to 1D. On the assumption of transverse invariance, we can reduce all the D.o.F. lying in the perpendicular plane $z=z_k$ to the vertex at $z=z_k$. For instance, an edge orthogonal to the $z$-axis is projected to a vertex while a parallel edge to the $z$-axis is projected to an edge.}
     \label{fig:1d_reduction}
 \end{figure}
 
@@ -1355,7 +1356,7 @@ Consider a mesh pair $(\mathcal{M}, \mathcal{M}')$ that are constructed by 2D ex
     The 1D reduction of FIT-FVM discretization can be interpreted in the sense of finite difference. 
 \end{remark}
 
-In \cite{degond_2012}, the authors consider a 1D Maxwell-Euler system by assuming vanishing traverse derivatives. Besides, $u_y, E_y, B_x$, and $B_z$ are set to zero for simplicity, which amounts to considering the TE mode. The 1D reduced Maxwell-Euler system and its quasi-neutral limit are 
+In \cite{degond_2012}, the author investigates a 1D Maxwell-Euler system by assuming vanishing traverse derivatives. For further simplicity, a transverse mode is considered, i.e. $u_y, E_y, B_x$, and $B_z$ are set to zero.  The 1D reduced one-fluid Maxwell-Euler system and its quasi-neutral limit are 
 
 \vspace{-0.3cm}
 \begin{minipage}{0.6\textwidth}
@@ -1380,10 +1381,10 @@ $\xrightarrow[]{\lambda \rightarrow 0}$
         \partial_z B_y &= nu_x,
     \end{align*}
 \end{minipage}
-where the subscript indicates the direction of the component. Here they consider an isentropic process with the equation of state $p(n) = n^\gamma$. 
+where the subscript indicates the direction of the component. An isentropic process with the equation of state $p(n) = n^\gamma$ is assumed. 
 
 \subsubsection{1D Fully-discrete Plasma Model} \label{sec:1d_fully_discrete_model}
-The following fully-discrete scheme is proposed in \cite{degond_2012}. The spatial discretization can be interpreted by the 1D projection procedure illustrated above. Here we want to discuss time discretization with a focus on its semi-implicitness. From now on, we attach to variables a superscript involving $m$ to indicate the time step. The scheme is built on a uniform 1D mesh with cell size $h$ and evolves the system with time step $\delta^m := t^{m+1} - t^m$:  
+The fully-discrete scheme proposed in \cite{degond_2012} is given below. From now on, the superscript of variables involving $m$ indicates the time step. The scheme is built on a uniform 1D mesh with cell size $h$ and evolves the system with time step $\delta^m := t^{m+1} - t^m$:  
 \begin{align*}
     \frac{n^{m+1}_k - n^m_k}{\delta^m} + \frac{\mycolorbox{orange!30}{f^{n,m+1/2}_{k+1/2} - f^{n,m+1/2}_{k-1/2}}}{h} &= 0, \\
     \frac{(nu_x)^{m+1}_k - (nu_x)^m_k}{\delta^m} + \frac{f^{u_x,m}_{k+1/2} - f^{u_x,m}_{k-1/2}}{h} &= -\frac{n^m_k \mycolorbox{orange!30}{E^{m+1}_{x,k}}}{\varepsilon^2} + \frac{n^m_k u^m_{z,k}\Tilde{B}^m_{y,k}}{\varepsilon^2},\\
@@ -1402,10 +1403,10 @@ are the averaged electromagnetic fields, and the fluxes read
     f^{u_x,m}_{k+1/2} & = \frac{1}{2}[(nu_zu_x)^{m}_k + (nu_zu_x)^{m}_{k+1} + \mu^m_{k+1/2}((nu_x)^m_k - (nu_x)^m_{k+1})], \\
     f^{u_z,m}_{k+1/2} & = \frac{1}{2}[(nu_z^2 + p(n)/\varepsilon^2)^{m}_k + (nu_z^2 + p(n)/\varepsilon^2)^{m}_{k+1} + \mu^m_{k+1/2}((nu_z)^m_k - (nu_z)^m_{k+1})].
 \end{align*}
-The implicit terms are highlighted. The implicitness of the electric field in the Lorentz force is shown to be necessary in \cite{fabre_1992} for the Euler-Poisson system. In \cite{degond_2012}, based on the linearized stability analysis, the author shows that the full-implicit treatment of the Maxwell equations is essential to the stability in the quasi-neutral limit. Besides, the mass flux in the mass conservation equation and the current in Amp\`{e}re's law has the same level of implicitness to guarantee consistency with Gauss's law.  
+The implicit terms are highlighted and are all essential to achieve the AP property. The implicitness of the electric field in the Lorentz force is shown to be necessary in \cite{fabre_1992} for the Euler-Poisson system. In \cite{degond_2012}, based on the linearized stability analysis, the author shows that the full-implicit treatment of the Maxwell equations is essential to the stability in the quasi-neutral limit. Besides, the mass flux in the mass conservation equation and the current in Amp\`{e}re's law has the same level of implicitness to guarantee consistency with Gauss's law.  
 
 \subsection{Semi-implicit Fully-discrete AP Scheme in 3D} \label{sec:3d_ap_scheme}
-Combining the 3D FIT-FVM framework presented in Section \ref{sec:spatial_discretization} and the time-stepping scheme shown below, we end up getting the following semi-implicit fully-discrete AP scheme in 3D:
+Combining the 3D FIT-FVM framework presented in Section \ref{sec:spatial_discretization} and the time-stepping scheme shown below, we propose the following semi-implicit fully-discrete AP scheme in 3D:
 \begin{subequations}
 \begin{align}
     \left[\delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^{m}) + \mathbb{C}\mycolorbox{orange!30}{\mathbf{e}^{m+1}} = \mathbf{0} \right]_i,\ \ &\forall i:A_i \subset \Omega, \label{equ:maxwell_faraday_ap}\\
@@ -1456,20 +1457,20 @@ where
     Q_{*,i}^{\text{coll},m+1} &= \mycolorbox{orange!30}{\mathbf{R}_{*,i}^{\text{coll},m+1} \cdot \mathbf{u}_{\ast,i}^{m+1}} \label{equ:Q_coll_ap}
 .\end{align}
 \end{subequations}
-The quantities with superscript $m+1/2$ indicate their dependency on the quantities at both $m$-th and $(m+1)$-th iterations. In the Rusanov flux (\ref{equ:flux_ap}), we denote by $u_\perp$ the normal component velocity with respect to the dual face $\Tilde{A}_j$. We restrain the illustration of the collision term (\ref{equ:R_coll_ap}) (\ref{equ:Q_coll_ap}) to the two-species case for the sake of simplicity. 
+The quantities with superscript $m+1/2$ indicate their dependency on the quantities at both $m$-th and $(m+1)$-th iterations. In Rusanov flux (\ref{equ:flux_ap}), we denote by $u_\perp$ the normal component velocity with respect to the dual face $\Tilde{A}_j$. We restrain the illustration of the collision term (\ref{equ:R_coll_ap}) (\ref{equ:Q_coll_ap}) to the two-species case for the sake of simplicity. 
 
 The time-stepping scheme mimics the 1D scheme shown in the previous section. The implicitness of the friction term is owing to the stiffness incurred from a potentially large value of the prefactor $\varepsilon^{-2}_*\alpha^\text{coll}$.
 
 \subsubsection{Inappropriate Boundary Condition} \label{sec:inapp_bc}
-We notice that the boundary condition (\ref{equ:bc_zero_curl_h}) is not valid in the quasi-neutral limit, which is revealed by taking the limit of Amp\`{e}re's law in the non-conducting region (\ref{equ:maxwell_ampere_nonconducting_ap}). Since $\bm{\psi}^{m+1}$ can be shown to be zero by multiplying (\ref{equ:gauss_nonconducting_ap}) by $\mathbb{D}$, we obtain that
+We would like to point out that the boundary condition (\ref{equ:bc_zero_curl_h}) is not valid in the quasi-neutral limit, which is revealed by taking the limit of Amp\`{e}re's law in the non-conducting region (\ref{equ:maxwell_ampere_nonconducting_ap}). Since $\bm{\psi}^{m+1}$ can be shown to be zero by multiplying (\ref{equ:gauss_nonconducting_ap}) by $\mathbb{D}$, we obtain that
 \begin{equation*}
     [\Tilde{\mathbb{C}}\mathbf{h}^{m+1} = 0]_i, \ \ \forall i : \Tilde{A}_i \subset \Omega_N,
 \end{equation*}
 which makes the boundary condition (\ref{equ:bc_zero_curl_h}) an over-determined condition. We propose to replace (\ref{equ:bc_zero_curl_h}) by 
 \begin{equation*}
-    [\mathbf{d}^{m+1} = 0]_i, \ \ \forall i : \Tilde{A}_i \subset \Omega_N,
+    [\mathbf{d}^{m+1} = 0]_i, \ \ \forall i : \Tilde{A}_i \subset \Omega_N.
 \end{equation*}
-since one can easily check that it is equivalent to (\ref{equ:bc_zero_curl_h}) for $\lambda = \mathcal{O}(1)$. In the meantime, it makes the Maxwell system in the non-conducting region well-posed in the quasi-neutral limit, which amounts to the eddy current model \cite{alfredo_2003}. 
+One can easily check its equivalence to (\ref{equ:bc_zero_curl_h}) when $\lambda = \mathcal{O}(1)$. In fact, without this condition the Maxwell system in the non-conducting region is not well-posed when $\lambda = 0$ \cite{alfredo_2003}. 
 
 \subsubsection{CFL Condition}
 It has been shown in \cite{degond_2012} that the stability-induced constraint on the time-step size does not depend on the value of $\lambda$ thanks to the implicitness in the discrete Maxwell system. However, the Euler system is discretized by an explicit scheme and thus is still subject to a CFL condition.
@@ -1490,7 +1491,7 @@ On noticing the source term $\varepsilon_*^{-2}q_*(n\mathbf{u})^m_*\times\mathbf
 \begin{equation*}
     \delta_t^m \leq \min_*\bigg\{\left[\frac{s^m_*}{\delta_x} + \frac{\varepsilon^{-2}_*|q_*||\mathbf{B}^m|}{2}\right]^{-1}\bigg\},
 \end{equation*}
-which is proven necessary by numerical experiments.
+which is proved to be necessary by numerical experiments.
 
 \subsubsection{Procedure of Time-stepping}
 The semi-implicit scheme (\ref{equ:maxwell_faraday_ap})-(\ref{equ:Q_coll_ap}) entails solving a linear system for each time step. We would like to provide a brief guide on how to build such a linear system and evolve the system. 
@@ -1499,13 +1500,13 @@ The main step is to establish the connection between the mass fluxes $\mathbf{f}
 \begin{equation*}
     (n\mathbf{u})_*^{m+1} = \hat{\mathbb{M}}^m_* \mathbf{d}^{m+1} + \bm{\eta}_*^m. 
 \end{equation*}
-Next, by the formula for the mass fluxes in (\ref{equ:flux_ap}), the expression for the currents in $\Omega_P$ (see (\ref{equ:maxwell_ampere_plasma_ap})) is written  
+Next, by the formula for the mass fluxes in (\ref{equ:flux_ap}), the expression for the currents in $\Omega_P$ (see (\ref{equ:maxwell_ampere_plasma_ap})) is written by 
 \begin{equation} \label{equ:discrete_ohm}
     \mathbf{j}^{m+1} := \Sigma_\ast q_\ast \bm{f}^{n,m+1}_\ast = \mathbb{M}_\sigma^{m} \mathbf{d}^{m+1} + \mathbf{j}^m_{\text{aux}}.
 \end{equation}
 The calculation of $\hat{\mathbb{M}}_*^m, \bm{\eta}_*^m, \mathbb{M}_\sigma^m, \mathbf{j}^m_{\text{aux}}$ is slightly lengthy but straightforward, so we omit the details. 
 
-The discrete Maxwell system (\ref{equ:maxwell_faraday_ap})-(\ref{equ:gauss_nonconducting_ap}) is closed provided (\ref{equ:discrete_ohm}) and can be evolved by solving a linear system. The Euler system (\ref{equ:euler_ap}) can afterward be evolved explicitly. 
+The discrete Maxwell system (\ref{equ:maxwell_faraday_ap})-(\ref{equ:gauss_nonconducting_ap}) is closed provided (\ref{equ:discrete_ohm}) and can be evolved by solving a linear system. The Euler system (\ref{equ:euler_ap}) afterward evolves explicitly. 
 
 \begin{remark}
     The formula (\ref{equ:discrete_ohm}) functions as Ohm's law in the discrete level and $\mathbb{M}_\sigma^m$ can be treated as a "conductivity" matrix. Since in the quasi-neutral limit $\lambda \rightarrow 0$ we lose control of the $\mathbf{E}$-field through its time derivative, $\mathbb{M}_\sigma^m$ is crucial to the stability of the scheme. Since $\mathbf{j}$ and $\mathbf{d}$ are both defined on dual faces, it is reasonable to adopt a local relation between them. Therefore, we perform the \emph{diagonal lumping} trick on (\ref{equ:discrete_ohm}), i.e. rendering it diagonal by accumulating the row sum. We observe enhanced stability in the numerical experiments with very minor changes in the results.
@@ -1543,15 +1544,15 @@ We stick to the setting in Section \ref{sec:BC} and use the following initial co
 \begin{equation*}
     n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{\text{electron}, \text{ion}\}.
 \end{equation*}
-All the other quantities are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and want to see how the system is driven. 
+All the other quantities are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and excites the system. 
 
-The cylindrical domain is 5.0 in length and 1.5 in radius. The plasma domain $\Omega_P$ has 1.0 in radius, i.e. the non-conducting domain $\Omega_N$ has an inner radius of 1.0 and an outer radius of 1.5. 
+The cylindrical domain is 5.0 in length and 1.5 in radius. The plasma domain $\Omega_P$ is 1.0 in radius, i.e. the non-conducting domain $\Omega_N$ has an inner radius of 1.0 and an outer radius of 1.5. 
 
 \begin{remark}
-    Such an initial state is compatible with the BCs and the quasi-neutral condition $\rho = 0$, which means no initial layer and boundary layer will arise when $\lambda \rightarrow 0$. 
+    Such an initial state is compatible with the BCs and the quasi-neutral condition $\rho = 0$, which means no initial layer and boundary layer in the sense of perturbation theory will arise when $\lambda \rightarrow 0$. 
 \end{remark}
 
-In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$ and $0$ are shown and the 3D structure of the electromagnetic field is visualized. Qualitative verification can be done in many aspects. First, the rotational symmetry of the problem is preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a relatively uniform value of approximately 0.2 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the curl-free property of the $\mathbf{E}$-field in the steady state according to Faraday's law. This is also confirmed in Fig. \ref{fig:zaxis-data_vs_z-T_10}. Note that it does not hold for $\lambda = 1$ since the system has a large characteristic time and takes a long time to reach an equilibrium, which will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the $\mathbf{B}$-field is spiral-shaped and orthogonal to the $\mathbf{E}$-field. Also, under the driven force by the $\mathbf{E}$-field, the electrons move towards the anode $\Gamma^+_C$ as expected.
+In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$ and $0$ are shown to visualize the 3D structure of the electromagnetic field. Qualitative verification can be done in many aspects. First, the rotational symmetry of the problem is preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a relatively uniform value of approximately 0.2 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the curl-free property of the $\mathbf{E}$-field in the steady state according to Faraday's law. This is also confirmed in Fig. \ref{fig:zaxis-data_vs_z-T_10}. Note that it does not hold for $\lambda = 1$ since the system has a large characteristic time and takes a long time to reach an equilibrium, which will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the $\mathbf{B}$-field is spiral-shaped and orthogonal to the $\mathbf{E}$-field. Also, under the driven force by the $\mathbf{E}$-field, the electrons move towards the anode $\Gamma^+_C$ as expected.
 \begin{figure}
     \centering
     \begin{subfigure}[b]{\textwidth}
@@ -1596,7 +1597,7 @@ In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.
     \label{fig:3d_vec_field_E_B_ue}
 \end{figure}
 
-Next, we perform a grid study. The norms of the solutions under mesh refinement are shown in Fig. \ref{fig:grid_study_3d}. Due to the high computational cost in 3D simulations, reference solutions produced by a highly-refined mesh are not accessible. That is why we compute the norms and display results only generated by relatively coarse meshes. Fig. \ref{fig:grid_study_3d} indicates that the solutions are stable under mesh refinement. To reveal more features of the solutions, in Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0}, we plot quantities at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$. Qualitatively the same solutions are produced under different meshes.
+Next, we perform a grid study. The norms of the solutions under mesh refinement are shown in Fig. \ref{fig:grid_study_3d}. Due to the high computational cost in 3D simulations, reference solutions produced by a highly-refined mesh are not trivially accessible. That is why we demonstrate results generated by relatively coarse meshes. Fig. \ref{fig:grid_study_3d} indicates that the solutions are stable under mesh refinement. To reveal more features of the solutions, in Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0}, we plot some quantities at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$. Qualitatively the same solutions are produced under different meshes.
 
 \begin{figure}
     \centering
@@ -1645,7 +1646,7 @@ Next, we perform a grid study. The norms of the solutions under mesh refinement 
     \label{fig:grid_study_3d_clip_lambda-0}
 \end{figure}
 
-To inspect how the system evolves, the time histories of some quantities are displayed in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that dampen over time. A larger value of $\lambda$ leads to stronger oscillations with larger amplitude whereas smaller $\lambda$ incurs more damping and the system rapidly reaches a steady state, which is consistent with the fact that $\lambda$ characterizes the time scale of the electromagnetic field. From a different perspective, it is a reflection of the shielding effect of plasma which is characterized by the Debye length. Besides, the electrons move much faster and oscillate more than ions as a consequence of the large difference in inertia. Furthermore, the structure-preserving property of our scheme is revealed by the exact balance of the currents at $\Gamma^+_C$ and $\Gamma^-_C$ \cite{Hiptmair_2021}, as is shown in the last figure in Fig. \ref{fig:origin-data_vs_time}.
+To inspect how the system evolves, the time histories of some quantities are displayed in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that dampen over time. A larger value of $\lambda$ leads to oscillations with larger amplitude and slower damping whereas with a smaller $\lambda$ the system quickly reaches a steady state. It is consistent with the fact that $\lambda$ characterizes the time scale of the electromagnetic field. From a different perspective, it is a reflection of the shielding effect of plasma which is characterized by the Debye length. Besides, the electrons move much faster and oscillate more than ions as a consequence of the large difference in inertia. Furthermore, the structure-preserving property of our scheme is revealed by the exact balance of the currents at $\Gamma^+_C$ and $\Gamma^-_C$ \cite{Hiptmair_2021}, as is shown in the last figure in Fig. \ref{fig:origin-data_vs_time}.
 
 \begin{figure}
     \centering
@@ -1654,7 +1655,7 @@ To inspect how the system evolves, the time histories of some quantities are dis
     \label{fig:origin-data_vs_time}
 \end{figure}
 
-The stabilization proposed in Section \ref{sec:reform_discrete} is essential to achieve a stable result when $\lambda$ tends to zero. As is shown in Fig. \ref{fig:stabilization_comparison}, the scheme without stabilization produces blow-up when $\lambda$ is close to zero while the one with stabilization remains stable. 
+The stabilization proposed in Section \ref{sec:reform_discrete} is essential to achieve a stable result when $\lambda$ tends to zero. As is shown in Fig. \ref{fig:stabilization_comparison}, the scheme without stabilization tends to blow up when $\lambda$ is close to zero while the one with stabilization remains stable. 
 \begin{figure}
     \centering
     \includegraphics{stabilizationComparision_stepVoltage.eps}
@@ -1662,7 +1663,7 @@ The stabilization proposed in Section \ref{sec:reform_discrete} is essential to 
     \label{fig:stabilization_comparison}
 \end{figure}
 
-The capability of our approach to addressing the non-neutral ($\lambda = \mathcal{O}(1)$) and quasi-neutral ($\lambda = 0$) regimes has been demonstrated in the aforementioned results in the sense that it is stable under different values of $\lambda$. Another important check goes to the quasi-neutral condition, i.e. $\rho = 0$ (\ref{equ:maxwell_gauss_D_limit}) when $\lambda = 0$. We display the $\mathbf{E}$-field and particle densities on the $z$-axis in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The lower figure demonstrates the matching of the density profiles of the electrons and ions.
+The capability of our approach to addressing the non-neutral ($\lambda = \mathcal{O}(1)$) and quasi-neutral ($\lambda = 0$) regimes has been demonstrated in the aforementioned results in the sense that it is stable under different values of $\lambda$. Another important check goes to the quasi-neutral condition, i.e. $\rho = 0$ (\ref{equ:maxwell_gauss_D_limit}) when $\lambda = 0$. We display the $\mathbf{E}$-field and particle densities on the $z$-axis in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The lower figure demonstrates the matching of the density profiles of the electrons and ions, namely, the quasi-neutrality holds in the discrete level.
 
 \begin{figure}
     \centering
