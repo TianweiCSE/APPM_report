@@ -19,6 +19,7 @@
 \usepackage{caption, subcaption}
 \captionsetup[figure]{labelfont={bf},name={Fig.},labelsep=period}
 \captionsetup[table]{labelfont={bf},name={Tab.},labelsep=period}
+\setlength\arrayrulewidth{0.7pt}
 \usepackage{authblk}
 \usepackage{soul}
 
@@ -556,7 +557,7 @@ The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftri
     {
     \draw[blue,\dualstyle] (D\i) -- (DD\i);
     }
-    \fill[blue!50, opacity=0.2] (D1) -- (D2) -- (D3) -- (D4) -- (D5) -- (D6) -- cycle;
+    \fill[blue!50, opacity=0.5] (D1) -- (D2) -- (D3) -- (D4) -- (D5) -- (D6) -- cycle;
     \end{tikzpicture}}
     \caption{2D case}
     \label{fig:2d-mesh}
@@ -629,7 +630,7 @@ The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftri
     \draw[blue] (D4) -- (DDD4);
     \draw[blue] (D5) -- (DDD5);
     \draw[blue, ultra thick] (D6) -- (DDD6);
-    \fill[blue!50, opacity=0.2] (D1) -- (D2) -- (D3) -- (D4) -- (D5) -- (D6);
+    \fill[blue!50, opacity=0.5] (D1) -- (D2) -- (D3) -- (D4) -- (D5) -- (D6);
     \end{tikzpicture}}
     \caption{3D case (2D extrusion)}
     \label{fig:2d-extrusion}
