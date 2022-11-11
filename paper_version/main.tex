@@ -1148,7 +1148,7 @@ To obtain the semi-discretization, we first integrate (\ref{equ:euler_conservati
 \begin{equation} \label{equ:euler_grid} 
     \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j|\underbrace{\frac{1}{|A_j|}\iint_{A_j}\mathbf{f}(\mathbf{U})\cdot \mathbf{n}_j \text{d}A}_{:= \overline{\mathbf{f}}_j \approx \mathbf{f}^\text{num}_j} = \underbrace{\frac{1}{|V_i|}\iiint_{V_i} \mathbf{RHS} \text{d}V}_{:= \overline{\mathbf{RHS}}_i}
 \end{equation}
-where $\overline{\mathbf{U}}_i := \iiint_{V_i} \mathbf{U} \text{d}V / |V_i| \in L^2([0,T],\mathbb{R}^m)$ is the cell average of $\mathbf{U}$ and $\mathbf{n}_j$ is the outer normal vector of face $A_j$ with respect to the cell $V_i$. We approximate the flux $\overline{\mathbf{f}}_j$ in (\ref{equ:euler_grid}) by a numerical flux $\mathbf{f}^\text{num}_j := \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right)$, where $k(i,j)$ returns the index of the adjacent cell that shares $A_j$ with cell $V_i$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, Engquist-Osher flux, see \cite[][p. 44-46]{mishra_2019}. Finally, we end up with the semi-discretized equation:
+where $\overline{\mathbf{U}}_i := \iiint_{V_i} \mathbf{U} \text{d}V / |V_i| \in L^2([0,T],\mathbb{R}^m)$ is the cell average of $\mathbf{U}$ and $\mathbf{n}_j$ is the outer normal vector of face $A_j$ with respect to the cell $V_i$. We approximate the flux $\overline{\mathbf{f}}_j$ in (\ref{equ:euler_grid}) by a numerical flux $\mathbf{f}^\text{num}_j := \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right)$, where $k(i,j)$ returns the index of the adjacent cell that shares $A_j$ with cell $V_i$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, and Engquist-Osher flux, see \cite[][p. 44-46]{mishra_2019}. Finally, we end up with the semi-discretized equation:
 \begin{equation}
     \dot{\overline{\mathbf{U}}}_i + \frac{1}{|V_i|}\sum_{j:A_j\in\partial V_i} |A_j| \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_i, \overline{\mathbf{U}}_{k(i,j)}, \mathbf{n}_j\right) = \overline{\mathbf{RHS}}_i.
     \label{equ:fvm}
@@ -1159,7 +1159,7 @@ The Rusanov flux in multi-dimensions on face $A_j$ writes
 \end{equation}
 where $\overline{s} = \text{max}(s(\overline{\mathbf{U}}_L), s(\overline{\mathbf{U}}_R))$ with $s(\mathbf{U}) := |\mathbf{u}\cdot\mathbf{n}| + \sqrt{\gamma p/\rho}$ representing the largest wave speed. 
 
-We would like to emphasis that the Euler system is discretized on $\mathcal{M}'$ due to the fact that 1) the electric current is connected to the momenta of charged particles by (\ref{equ:maxwell_euler_coupling}); 2) the electric current is discretized on dual faces by (\ref{equ:maxwell_grid_ampere}).
+We would like to emphasize that the Euler system is discretized on $\mathcal{M}'$ due to the fact that 1) the electric current is connected to the momenta of charged particles by (\ref{equ:maxwell_euler_coupling}); 2) the electric current is discretized on dual faces by (\ref{equ:maxwell_grid_ampere}).
 
 To rewrite (\ref{equ:fvm}) into a matrix form, by abuse of notation we stack all the cell average $(\overline{\mathbf{U}}_i)_i$ into a matrix $\mathbf{U} \in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ with $\mathbf{U}_{i,:} = \overline{\mathbf{U}}_i$. Meanwhile, we denote by $\mathbf{F} \in \mathbb{R}^{N_{\Tilde{A}}^P \times m}$ the collection of the (total) numerical fluxes, i.e. $\mathbf{F}_{i,:} = \mathbf{f}^\text{num}_i$. In the same way, we denote by $\mathbf{RHS}\in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ the collection of $\overline{\mathbf{RHS}}_i$. Besides, we define the diagonal matrix $\mathbb{\Tilde{V}} \in \mathbb{R}^{N_{\Tilde{V}}^P \times N_{\Tilde{V}}^P}$ and $\mathbb{\Tilde{A}}\in \mathbb{R}^{N_{\Tilde{A}}^P \times N_{\Tilde{A}}^P}$ with $\mathbb{\Tilde{A}}_{i,i} = |\Tilde{A}_i|$. Making use of the incidence matrices, we end up with
 \begin{equation*}
@@ -1173,9 +1173,9 @@ Since the electromagnetic fields are represented by integrals on edges and faces
 The problem is twofold:
 \begin{itemize}
     \item[-] given the fluxes at faces of a cell, reconstruct the vector field inside the cell;
-    \item[-] given the integrals along edges of a cell, reconstruct the vector field inside the cell. 
+    \item[-] given the integrals along the edges of a cell, reconstruct the vector field inside the cell. 
 \end{itemize}
-We adopt the principle of least square fitting, and reconstruct a \emph{constant} vector field inside each cell. For a cell $\Tilde{V}$ with $k$ faces with areas $\{A_i\}_{i=1}^k$, normal vectors $\{\mathbf{n}_i\}_{i=1}^k$ and fluxes $\{f_i\}_{i=1}^k$, a constant vector field $\mathbf{v}$ satisfying 
+We adopt the principle of least square fitting and reconstruct a \emph{constant} vector field inside each cell. For a cell $\Tilde{V}$ with $k$ faces with areas $\{A_i\}_{i=1}^k$, normal vectors $\{\mathbf{n}_i\}_{i=1}^k$ and fluxes $\{f_i\}_{i=1}^k$, a constant vector field $\mathbf{v}$ satisfying 
 \begin{equation*}
     \mathbf{v} = \argmin_{v\in \mathbb{R}^3} \sum_{i=1}^k(A_i\mathbf{v} \cdot \mathbf{n}_i - f_i)^2.   
 \end{equation*} can be computed through
@@ -1197,11 +1197,11 @@ where $\mathbf{d}, \mathbf{b}$ are stacked unknowns, see Tab. \ref{tab:def_size_
 The problem of the reconstruction of vector fields on unstructured meshes is a widely studied topic. Apart from the least-square method, other methods include Perot's method \citep{perot_2000}, finite-element-based methods, etc., which potentially can achieve higher-order accuracy. See \cite[][sec. 3.4.4]{fuchs_2021} and the references therein.  
 
 \subsubsection{Discrete Boundary Conditions}
-The BCs for the Euler system (see Section \ref{sec:BC}) are implemented by the approach of ghost cells \cite[][ch. 7]{leveque_2007}, i.e. thinking of extending the domain by a few additional cells and prescribing the variables. In our case, the ghost cells at the open boundary at $\Gamma_C$ are set to have the equal values as the interior ones that are adjacent. It is equivalent to enforce the numerical fluxes
+The BCs for the Euler system (see Section \ref{sec:BC}) are implemented by the approach of ghost cells \cite[][ch. 7]{leveque_2007}, i.e. thinking of extending the domain by a few additional cells and prescribing the variables. In our case, the ghost cells at the open boundary at $\Gamma_C$ are set to have equal values as the interior ones that are adjacent. It is equivalent to enforcing the numerical fluxes
 \begin{equation*}
     \mathbf{F}_i = {\mathbf{f}^\text{num}}(\mathbf{U}_j, \mathbf{U}_j, \mathbf{n}_i), \ \ \forall i: \Tilde{A}_i \subset \Gamma_C,
 \end{equation*}
-where $j$ refers to the index of the cell adjacent to the boundary face $\Tilde{A}_i$ and is unique. For the reflective wall $\Gamma_W$, the momentum of a ghost cell are reversed with respect to its adjacent one while keeping the other quantities unchanged. Therefore, the numerical fluxes are 
+where $j$ refers to the index of the cell adjacent to the boundary face $\Tilde{A}_i$ and is unique. For the reflective wall $\Gamma_W$, the momentum of a ghost cell is reversed with respect to its adjacent one while keeping the other quantities unchanged. Therefore, the numerical fluxes are 
 \begin{equation*}
     \mathbf{F}_i = \mathbf{f}^\text{num}(\mathbf{U}_j, \hat{\mathbf{U}}_j, \mathbf{n}_i), \ \ \forall i: \Tilde{A}_i \subset \Gamma_W,
 \end{equation*}
