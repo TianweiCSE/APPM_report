@@ -17,6 +17,8 @@
 \NiceMatrixOptions{cell-space-bottom-limit = 4pt}
 \usepackage{tcolorbox}
 \usepackage{caption, subcaption}
+\captionsetup[figure]{labelfont={bf},name={Fig.},labelsep=period}
+\captionsetup[table]{labelfont={bf},name={Tab.},labelsep=period}
 \usepackage{authblk}
 \usepackage{soul}
 
@@ -1516,7 +1518,7 @@ We conduct numerical experiments based on the geometric setting and boundary con
     \includegraphics[scale=0.3]{primal_mesh.png}
     \hspace{1cm}
     \includegraphics[scale=0.3]{dual_mesh.png}
-    \caption{Primal mesh (left) and dual mesh(right).}
+    \caption{Primal mesh (left) and dual mesh (right).}
     \label{fig:primal_dual_meshes}
 \end{figure}
 \subsection{Case 1: Quasi-1D Problem}
@@ -1537,57 +1539,75 @@ which is similar to the 1D model in Section \ref{sec:projection_to_1d}. Therefor
 
 \subsection{Case 2: 3D Cylindrical Problem}
 
-\todo{demonstration instability without stabilization}
-
-\todo{redo the mesh study}
-
-\todo{supplement results for sin voltage}
-
-\todo{visualize in a better way}
-
 We stick to the setting in Section \ref{sec:BC} and use the following initial conditions
 \begin{equation*}
     n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{\text{electron}, \text{ion}\}.
 \end{equation*}
-All the other quantities are set zero initially. The electrode at $\Gamma_C^-$(cathode) is grounded, and the one at $\Gamma_C^+$ (anode) has potential 1.0 throughout the simulation, i.e. $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$. The experiment is intended to investigate how a stationary system is driven by an applied voltage. 
+All the other quantities are set zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and want to see how the system is driven. 
+
+The cylindrical domain is 5.0 in length and 1.5 in radius. The plasma domain $\Omega_P$ has 1.0 in radius, i.e. the non-conducting domain $\Omega_N$ has an inner radius 1.0 and an outer radius 1.5. 
 
 \begin{remark}
     Such an initial state is compatible with the BCs and the quasi-neutral condition $\rho = 0$, which means no initial layer and boundary layer will arise when $\lambda \rightarrow 0$. 
 \end{remark}
 
-In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.01, 0$ at $t = 0.1$ are visualized. The expected rotational symmetry of the problem is preserved. In terms of the 3D structure of the electromagnetic fields, the electric field points from the anode to the cathode, and the magnetic field is spiral-shaped and orthogonal to the electric field. Regarding the asymptotic behavior of the AP scheme, the scheme does not incur any instability when we set $\lambda = 0$. Besides, smooth transition of the numerical solutions for different values of $\lambda$ is observed, as is the case for the continuous solutions as $\lambda \rightarrow 0$.
+In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$ and $0$ are shown and the 3D structure of the electromagnetic field is visualized. A qualitative verification can be done in many aspects. First, the rotational symmetry of the problem is preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a relatively uniform value of approximately 0.2 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the curl-free property of the $\mathbf{E}$-field in steady state according to Faraday's law. This is also confirmed in Fig. \ref{fig:zaxis-data_vs_z-T_10}. Note that it does not hold for $\lambda = 1$ since the system has a large characteristic time and takes a long time to reach a equilibrium, which will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the $\mathbf{B}$-field is spiral-shaped and orthogonal to the $\mathbf{E}$-field. Also, under the driven force by the $\mathbf{E}$-field, the electrons move towards the anode $\Gamma^+_C$ as expected.
 \begin{figure}
     \centering
-    \includegraphics[scale=0.35]{E_lambda_1.png}
-    \includegraphics[scale=0.35]{B_lambda_1.png}
-    \includegraphics[scale=0.35]{ue_lambda_1.png} \\
-    (a) $\lambda = 1.0$ \\
-    \includegraphics[scale=0.35]{E_lambda_1e-2.png}
-    \includegraphics[scale=0.35]{B_lambda_1e-2.png}
-    \includegraphics[scale=0.35]{ue_lambda_1e-2.png} \\
-    (b) $\lambda = 0.01$ \\
-    \includegraphics[scale=0.35]{E_lambda_0.png}
-    \includegraphics[scale=0.35]{B_lambda_0.png}
-    \includegraphics[scale=0.35]{ue_lambda_0.png} \\
-    (c) $\lambda = 0$
-    \caption{Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 10$ based on a primal mesh with 1920 cells (8 cells along $z$-axis). } 
+    \begin{subfigure}[b]{\textwidth}
+        \hspace{-1cm}
+        \begin{tikzpicture}
+        \draw[blue, -to] (0,0) -- (20:0.7) node[right]{\small $z$};
+        \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+        \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+        \end{tikzpicture}
+        \includegraphics[scale=0.25]{E-field_lambda-1.png}
+        \includegraphics[scale=0.25]{B-field_lambda-1.png}
+        \includegraphics[scale=0.25]{electronVel_lambda-1.png}
+        \caption{$\lambda = 1.0$}
+    \end{subfigure}
+     \begin{subfigure}[b]{\textwidth}
+        \hspace{-1cm}
+        \begin{tikzpicture}
+        \draw[blue, -to] (0,0) -- (20:0.7) node[right]{\small $z$};
+        \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+        \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+        \end{tikzpicture}
+        \includegraphics[scale=0.25]{E-field_lambda-1e-1.png}
+        \hspace{0.3cm}
+        \includegraphics[scale=0.25]{B-field_lambda-1e-1.png}
+        \includegraphics[scale=0.25]{electronVel_lambda-1e-1.png}
+        \caption{$\lambda = 1.0$}
+    \end{subfigure}
+    \begin{subfigure}[b]{\textwidth}
+        \hspace{-1cm}
+        \begin{tikzpicture}
+        \draw[blue, -to] (0,0) -- (20:0.7) node[right]{\small $z$};
+        \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+        \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+        \end{tikzpicture}
+        \includegraphics[scale=0.25]{E-field_lambda-0.png}
+        \hspace{0.3cm}
+        \includegraphics[scale=0.25]{B-field_lambda-0.png}
+        \includegraphics[scale=0.25]{electronVel_lambda-0.png}
+        \caption{$\lambda = 1.0$}
+    \end{subfigure}
+    \caption{Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 10$ based on a primal mesh with 1920 cells (16 cells along $z$-axis). } 
     \label{fig:3d_vec_field_E_B_ue}
 \end{figure}
 
-We perform the grid study and show the result in Fig. \ref{fig:grid_study_3d}. Meshes with different refinement levels are tested for $\lambda = 1$ and $0.1$ at $t = 1$, and the norms of the quantities are calculated. Due to the high computational cost incurred by the curse of dimensionality, only meshes with limited size are tested and the asymptotic regime of the grid study might be not reached. Particularly, the divergence of the norm of $\mathbf{E}$-field may come from the singularity arising at the interface of the contacting and insulating surfaces, as is shown below.
-
-In Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0}, we plot quantities at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$ at $t = 1$. Qualitatively the same solutions are produced under different meshes. We would like to point out that singularity arises in the $\mathbf{E}$-field at the interface of contacting and insulating surfaces (two points at the left end and two at the right end), that is, an increasing magnitude of the $\mathbf{E}$-field at these points as the mesh is refined. Furthermore, as is shown in the last two rows of Fig. \ref{fig:grid_study_3d_clip_lambda-0}, when $\lambda = 0$ the charges carried by ions and electrons cancel out everywhere as is indicated by the quasi-neutral condition $\rho = 0$.
+Next, we perform a grid study. The norms of the solutions under mesh refinement is shown in Fig. \ref{fig:grid_study_3d}. Due to the high computational cost in 3D simulations, a reference solutions produced by a highly-refined mesh is not accessible. That is why we compute the norms and display results only generated by relatively coarse meshes. Fig. \ref{fig:grid_study_3d} gives an indication that the solutions are stable under mesh refinement. To reveal more features of the solutions, in Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0}, we plot quantities at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$. Qualitatively the same solutions are produced under different meshes.
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.9]{norm_vs_nCell-T_1.eps}
+    \includegraphics[scale=0.8]{norm-vs-mesh.eps}
     \caption{1-norms of quantities with respect to different mesh size: The results are computed for $\lambda = 1$ and $0.1$ at $t = 1$.}.
     \label{fig:grid_study_3d}
 \end{figure}
 
 \begin{figure}
     \centering
-    Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}
+    \textit{\textsf{Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}}}
     
     \includegraphics[scale=0.27]{clip_E_T-1_lambda-1e-1_8-2-2.png}
     \includegraphics[scale=0.27]{clip_E_T-1_lambda-1e-1_16-3-3.png}
@@ -1601,13 +1621,13 @@ In Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_8-2-2.png}
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_16-3-3.png}
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_32-3-4.png}
-    \caption{Quantities at the cross-section generated by meshes with different refinement level. Refinement 1: 1920 primal cells; Refinement 2: 14592 primal cells; Refinement 3: 30720 primal cells. The snapshots are computed for $\lambda = 0.1$ at $t = 1$.}
+    \caption{Quantities at the cross-section generated by meshes with different refinement level: 1920 primal cells in Refinement 1; 14592 primal cells in Refinement 2; 30720 primal cells in refinement 3. The snapshots are computed for $\lambda = 0.1$ at $t = 1$.}
     \label{fig:grid_study_3d_clip_lambda-1e-1}
 \end{figure}
 
 \begin{figure}
     \centering
-    Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}
+    \textit{\textsf{Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}}}
     
     \includegraphics[scale=0.27]{slice_E_T-1_lambda-0_8-2-2.png}
     \includegraphics[scale=0.27]{slice_E_T-1_lambda-0_16-3-3.png}
@@ -1625,20 +1645,28 @@ In Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip
     \label{fig:grid_study_3d_clip_lambda-0}
 \end{figure}
 
-To inspect how the system evolves, we extract the time histories of certain quantities at the origin (the center of the tube) up to $t = 10$ and display them in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that dampen over time. In general, a large value of $\lambda$ leads to stronger oscillations with larger amplitude whereas smaller $\lambda$ incurs more damping and the system rapidly reaches a steady state. It is a reflection of the shielding effect of plasma which is characterized by the Debye length. It can also be noticed that the electron velocity becomes steady much sooner than ion velocity, which is a consequence of their large difference in inertia. 
+To inspect how the system evolves, the time histories of some quantities are displayed in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that dampen over time. A larger value of $\lambda$ leads to stronger oscillations with larger amplitude whereas smaller $\lambda$ incurs more damping and the system rapidly reaches a steady state, which is consistent to the fact that $\lambda$ characterizes the time scale of the electromagnetic field. From a different perspective, it is a reflection of the shielding effect of plasma which is characterized by the Debye length. Besides, the electrons move much faster and oscillate more than ions as a consequence of large difference in inertia. Furthermore, the structure-preserving property of our scheme is revealed by the exact balance of the currents at $\Gamma^+_C$ and $\Gamma^-_C$ \cite{Hiptmair_2021}, as is shown in the last figure in Fig. \ref{fig:origin-data_vs_time}.
+
 \begin{figure}
     \centering
-    \includegraphics[scale=0.9]{origin_data-vs-time_withInsulator.eps}
-    \caption{Time histories of quantities at the origin for different $\lambda$. The simulation is done on a mesh with 1920 primal cells with 8 layers along $z$-axis.}
+    \includegraphics[scale=0.9]{data-vs-time_stepVoltage.eps}
+    \caption{Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different value of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along $z$-axis.}
     \label{fig:origin-data_vs_time}
 \end{figure}
 
-To examine the quasi-neutrality, we plot the quantities at the $z$-axis over different $\lambda$ in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The right figure demonstrates the shielding effect of the charges as $\lambda \rightarrow 0$. 
+The stabilization proposed in Section \ref{sec:reform_discrete} is essential to achieve a stable result when $\lambda$ tends to zero. As is shown in Fig. \ref{fig:stabilization_comparison}, the scheme without stabilization produces blow-up when $\lambda$ is close to zero while the the one with stabilization remains stable. 
+\begin{figure}
+    \centering
+    \includegraphics{stabilizationComparision_stepVoltage.eps}
+    \caption{Stabilization in the non-conducting domain $\Omega_N$. The $\mathbf{E}$-field z-component in a boundary cell in $\Omega_N$ is displayed over time. }
+    \label{fig:stabilization_comparison}
+\end{figure}
 
+The capability of our approach to address the non-neutral ($\lambda = \mathcal{O}(1)$) and quasi-neutral ($\lambda = 0$) regimes has been demonstrated in the aformentioned results in the sense that it is stable under different values of $\lambda$. Another important check goes to the quasi-neutral condition, i.e. $\rho = 0$ (\ref{equ:maxwell_gauss_D_limit}) when $\lambda = 0$. We display the $\mathbf{E}$-field and particle densities on $z$-axis in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The lower figure clearly demonstrates the matching of the density profiles of the electrons and ions.
 
 \begin{figure}
     \centering
-    \includegraphics{zaxis-data_vs_z-T_10.eps}
+    \includegraphics{data-vs-z_stepVoltage.eps}
     \caption{Quantities along $z$-axis for different $\lambda$: The results are computed at $t = 10$ on a mesh with 1920 primal cells with 8 layers along $z$-axis.}.
     \label{fig:zaxis-data_vs_z-T_10}
 \end{figure}
