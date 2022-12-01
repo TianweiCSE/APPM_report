@@ -22,6 +22,8 @@
 \setlength\arrayrulewidth{0.7pt}
 \usepackage{authblk}
 \usepackage{soul}
+%\usepackage{showlabels}
+\usepackage{multirow}
 
 \newtheorem*{remark}{Remark}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -60,17 +62,16 @@ We consider a hydrodynamic multi-species plasma model, which boils down to the M
 
 Our approach is inspired by \cite{degond_2012}, but goes beyond that work in various directions:
 \begin{itemize}
-    \item we supplement the Maxwell-Euler system by inter-species friction;
-    \item we extend the spatially 1D scheme of \cite{degond_2012} to three spatial dimensions using discrete exterior calculus (DEC) for Maxwell's equations combined with a low-order finite volume method for Euler's equations;
-    \item we propose an essential stabilization in non-conducting regions;
-    \item we introduce suitable boundary conditions for the electromagnetic fields at a spatial truncation boundary.
+    \item We supplement the Maxwell-Euler system by inter-species friction terms.
+    \item We extend the spatially one-dimensional scheme of \cite{degond_2012} to three spatial dimensions using discrete exterior calculus (DEC) to discretize Maxwell's equations combined with a low-order finite volume method for Euler's equations.
+    \item We propose a stabilization in non-conducting regions which is essential for the efficacy of our method.
 \end{itemize}
 
-We stay close to \cite{degond_2012} in terms of discretization in time by semi-implicit time-stepping and by restricting to a cylindrical geometry shown in Fig. \ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical scheme proposed in this paper can in principle be adapted to geometric situations much more general than that of Fig. \ref{fig:domain_geometry}. However, one may encounter subtle problems in defining proper mesh duality as we need it in Section \ref{sec:mesh-duality}. Thus, for the sake of simplicity of presentation we forgo geometric generality.
+We stay close to \cite{degond_2012} in terms of discretization in time employing semi-implicit time-stepping. We also base our considerations on the model geometry shown in Fig. \ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical scheme proposed in this paper can in principle be adapted to geometric situations much more general than that of Fig. \ref{fig:domain_geometry}. However, one may encounter subtle problems in defining proper dual meshes as we need it in Section \ref{sec:mesh-duality}. Thus, for the sake of simplicity of presentation we forgo geometric generality.
 
-The quasi-neutral limit of the Maxwell-Euler system leads to a singularly perturbed problem, that is, the PDE system changes its type \footnote{from hyperbolic to a mixed type}. This poses a challenge for simulations in settings encompassing different regimes. Singularly perturbed problems occur in many physical models, e.g. vanishing viscosity in the Navier-Stokes equations\cite{Kato_1984}, zero-relaxation-limit of kinetic equations\cite{jin_2010} and zero-Mach-limit of compressible flows\cite{degond_2007, haack_2010}. It is desirable that numerical schemes are valid for all ranges of scaled parameters. These schemes are then said to be \emph{asymptotic-preserving} (AP). The concept is sketched by the commutative diagram in \cite{jin_1999}. We discretize a parametric problem $P^\lambda$, which converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$ by the scheme $P^\lambda_h$ where $h$ denotes some discretization parameter, e.g. mesh size. The AP property requires the uniform convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. For more details about AP schemes, see \cite{jin_2010, degond_2017} for comprehensive reviews.
+The quasi-neutral limit of the Maxwell-Euler system leads to a singularly perturbed problem, that is, the PDE system changes its type\footnote{from hyperbolic to a mixed type}. This poses a challenge for simulations in settings encompassing different regimes. Singularly perturbed problems occur in many physical models, e.g. vanishing viscosity in the Navier-Stokes equations\cite{Kato_1984}, zero-relaxation-limit of kinetic equations\cite{jin_2010} and zero-Mach-limit of compressible flows\cite{degond_2007, haack_2010}. It is desirable that numerical schemes are valid for all ranges of scaled parameters. These schemes are then said to be \emph{asymptotic-preserving} (AP). We discretize a parametric problem $P^\lambda$, which converges to its limit $P^0$ as the perturbed parameter $\lambda \rightarrow 0$, by the scheme $P^\lambda_h$ where $h$ denotes some discretization parameter, e.g. the mesh size, see also the illustration by a commuting diagram in \cite[][fig. 1]{jin_2010}. The AP property requires the uniform convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. Readers are referred to the comprehensive reviews in \cite{jin_2010, degond_2017} for more details about AP schemes.
 
-The content of this paper is organized as follows. In Section 2, we give a full description of the underlying equations of the Maxwell-Euler system and its rescaling procedure. Meanwhile, the boundary conditions in our setting is elaborated. A reformulation of Maxwell's equations in the insulating region is then presented. Section 3 is devoted to the spatial discretization. The concept of primal-dual meshes is introduced based on which FIT and FVM are applied. We discuss the fully-discretized AP scheme in Section 4 and do numerical experiments in Section 5.  
+The content of this paper is organized as follows: In Section 2, we give a full description of the underlying equations of the Maxwell-Euler system and its rescaling procedure. Meanwhile, the boundary conditions in our setting is elaborated. A reformulation of Maxwell's equations in the insulating region is then presented. Section 3 is devoted to the spatial discretization. The concept of primal-dual meshes is introduced based on which FIT and FVM are applied. We discuss the fully-discretized AP scheme in Section 4 and do numerical experiments in Section 5.  
 
 \begin{figure}
     \centering
@@ -112,46 +113,11 @@ The content of this paper is organized as follows. In Section 2, we give a full 
 
 
 \section{Plasma model}
-\begin{comment}
-Under moderate assumptions, plasmas, which are gases composed of charged particles (and possibly neutral particles), can be treated as fluid and described by hydrodynamic equations. Maxwell's equations are involved to describe their induction of and interaction with electromagnetic fields. 
-
-After rescalling all the variables with respect to the prescribed reference units, the Debye length $\lambda_D$, characterizing the charge screening ability of the plasma, would pop up and its zero limit, which is what we called \emph{quasi-neutral limit}, is of great interest, since the limit model largely simplifies the system and in many cases the accuracy of the assumption is satisfactory enough. 
-
-In this section, the multi-species Maxwell-Euler equations with collision term is introduced first, followed by detailed rescalling procedure. The quasi-neutral model will be make clear by letting the rescaled Debye length $\lambda$ go to zero. Afterwards, a set of boundary conditions are presented and its validity to both non-limit and limit model is discussed. Finally, we would like to present a reformulation of the system which would be crucial to the stability of the numerical scheme.
-\end{comment}
-
-\begin{comment}
-In this work, we discuss and implement the so-called \emph{Euler-Maxwell} system with a focus on its limiting behavior of quasi-neutrality, i.e. when the \emph{Debye length} goes to zero. The dimensionless form of the Euler-Maxwell equations is parameterized by the rescaled Debye length $\lambda$ whose vanishing limit alters the mathematical nature of the equations. To be more concrete, the non-limit model ($\lambda = \mathcal{O}(1)$) is hyperbolic where information spreads with a finite speed whereas the limit model ($\lambda \rightarrow 0$) becomes elliptic, and any changes immediately influence the whole domain. In other words, the perturbation of $\lambda$ in the Maxwell-Euler system poses a singular perturbation problem. Such switching makes it difficult to handle both models in a single implementation framework, which, however, is desired in many cases where both models coexist in the computational domain. Now comes the concept of \emph{asymptotic-preserving}(AP) scheme. We turn to the celebrated commuting diagram Fig. \ref{fig:commuting_diagram_ap} for illustration.\todo{add illustration of AP schemes}.
-
-The other emphasis of this work is the development of a 3D discretization framework for the Maxwell-Euler system. The key ingredient is the combination of the finite volume Method (FVM) for the Euler equations and the Finite Integration Technique (FIT) for Maxwell's equations. The latter one is usually treated as a generalization to Yee's scheme \citep{yee_1966} or FDTD. The advantage of the FVM-FIT framework lie in the \emph{discrete exterior calculus} (DEC) nature of FIT and straightforward coupling of both systems through the primal-dual mesh pair. These would be made clear in the corresponding sections. 
-
-\todo{add previous work on AP schemes, FIT, plasma simulation}.
-
-The content of this paper is organized as follows. In Section 2 we introduce the full Maxwell-Euler model for plasmas, followed by the rescaling procedure which is crucial to define the rescaled Debye length $\lambda$ and to identify its limiting behavior. In the meantime, it is essential to discuss what boundary conditions are appropriate for this singular perturbation problem. Section 3 is then dedicated to a brief introduction about \cite{degond_2012} based on which our work is extended. In Section 4, we first discuss our FVM-FIT framework in details, especially how the unknowns are assigned on the staggered meshes and the boundary treatment in 3D case. Afterwards, the full discretization scheme is presented. Special care shall be taken to the treatment of boundary conditions and insulator part of the domain as $\lambda \rightarrow 0$, which is crucial to make the scheme AP. A numerical experiment for a 3D cylindrical domain is presented in Section 5 where we want to demonstrate the capability of our scheme in dealing with both non-neutral and quasi-neutral regimes of plasmas.    
-
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-    \node (nw) {\Large $P^\lambda_h$};
-    \node (ne) [right=3cm of nw]{\Large $P^\lambda$};
-    \node (sw) [below=of nw]{\Large $P^0_h$};
-    \node (se) [right=3cm of sw]{\Large $P^0$};
-    \draw[->] (nw.east)  -- node [above,midway] {$h\rightarrow0$} (ne.west) ;
-    \draw[->] (nw.east)  --  (ne.west) ;
-    \draw[->] (nw.south) -- node [left,midway] {$\lambda\rightarrow0$} (sw.north);
-    \draw[->] (nw.south) -- node {} (sw.north);
-    \draw[->] (sw.east)  -- node [above,midway] {$h\rightarrow0$}(se.west);
-    \draw[->] (ne.south) -- node [left,midway] {$\lambda\rightarrow0$} (se.north);
-    \end{tikzpicture}
-    \caption{Commuting diagram of AP schemes}
-    \label{fig:commuting_diagram_ap}
-\end{figure}
-\end{comment}
 
 \subsection{The Maxwell-Euler System}
-Plasmas consist of electrically charged and neutral species that may be treated as gases. That is, they may be described by the Navier-Stokes equations augmented with source terms for species generation (ionization, recombination), forces (Lorentz force and interspecies friction), and energy (thermal relaxation among species, radiative heat transfer, Ohmic heating). For more details on the fluid model of plasma, see \cite{chen2016, remi_2014}.
+Plasmas consist of electrically charged and neutral particle species that can be treated as fluids. That is, they may be described by the Navier-Stokes equations augmented with source terms for species generation (ionization, recombination), forces (Lorentz force and interspecies friction), and energy (thermal relaxation among species, radiative heat transfer, Ohmic heating). For more details on fluid models of plasmas, see \cite{chen2016, remi_2014}.
 
-The Maxwell's equations in SI units read
+The electromagnetic effects in plasmas are governed by Maxwell's equations, which Maxwell's equations in SI units read
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday} \\ 
@@ -160,17 +126,17 @@ The Maxwell's equations in SI units read
     \nabla \cdot \mathbf{D} &= \rho, \label{equ:maxwell_gauss_D}
 \end{align}
 \end{subequations}
-where the involved quantities are magnetic flux density $\mathbf{B}[\frac{\text{Wb}}{\text{m}^2}]$, electric field intensity $\mathbf{E}[\frac{\text{V}}{\text{m}}]$, electric induction $\mathbf{D}[\frac{\text{C}}{\text{m}^2}]$, magnetic field intensity $\mathbf{H}[\frac{\text{A}}{\text{m}}]$, electric current density $\mathbf{J}[\frac{\text{A}}{\text{m}^2}]$ and electric charge density $\rho[\frac{\text{C}}{\text{m}^3}]$. These equations are known as Faraday's law (\ref{equ:maxwell_faraday}), Amp\`{e}re's law (\ref{equ:maxwell_ampere}), Gauss's law for magnetism (\ref{equ:maxwell_gauss_B}) and Gauss's law for electric field (\ref{equ:maxwell_gauss_D}). For simplicity, we only consider isotropic and homogeneous media in vacuum. We consider the linear constitutive relations 
+where the involved quantities\footnote{SI units in square brackets.} are the magnetic flux density $\mathbf{B}[\frac{\text{Wb}}{\text{m}^2}]$, the electric field $\mathbf{E}[\frac{\text{V}}{\text{m}}]$, the electric displacement field $\mathbf{D}[\frac{\text{C}}{\text{m}^2}]$, the magnetic field $\mathbf{H}[\frac{\text{A}}{\text{m}}]$, the electric current density $\mathbf{J}[\frac{\text{A}}{\text{m}^2}]$ and the electric charge density $\rho[\frac{\text{C}}{\text{m}^3}]$. These equations are known as Faraday's law (\ref{equ:maxwell_faraday}), Amp\`{e}re's law (\ref{equ:maxwell_ampere}), Gauss's law for magnetism (\ref{equ:maxwell_gauss_B}) and Gauss's law for electric field (\ref{equ:maxwell_gauss_D}). For simplicity, we only consider isotropic and homogeneous media in vacuum, which amounts to relying on the linear constitutive relations (namely, material laws):
 \begin{equation} \label{equ:material_law}
-    \mathbf{D} = \varepsilon_0 \mathbf{E}, \ \ \ \mathbf{B} = \mu_0\mathbf{H}, 
+    \mathbf{D} = \epsilon \mathbf{E}, \ \ \ \mathbf{B} = \mu\mathbf{H}, 
 \end{equation}
-where $\varepsilon_0[\frac{\text{F}}{\text{m}}]$ and $\mu_0[\frac{\text{N}}{\text{A}^{2}}]$ are vacuum permittivity and permeability of medium. By taking the time derivative of (\ref{equ:maxwell_gauss_D}) and the divergence of (\ref{equ:maxwell_ampere}), it is easy to see that the well-posedness requires the charge conservation equation
+where $\epsilon[\frac{\text{F}}{\text{m}}]$ and $\mu[\frac{\text{N}}{\text{A}^{2}}]$ are the permittivity and permeability and assumed to be constant in this paper. By taking the time derivative of (\ref{equ:maxwell_gauss_D}) and the divergence of (\ref{equ:maxwell_ampere}), it is easy to see that (\ref{equ:maxwell_ampere}) and (\ref{equ:maxwell_gauss_D}) implies the charge conservation
 \begin{equation} \label{equ:charge_continuity}
     \partial_t\rho + \nabla \cdot \mathbf{J} = 0.
 \end{equation}
-Besides, on taking the divergence of equations (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) together with the relation (\ref{equ:charge_continuity}), it is possible to verify that Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are consequences of (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) provided that (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are satisfied at initial time. In other words, Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) can be thought of as initial conditions. 
+Besides, by taking the divergence of equations (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) together with the relation (\ref{equ:charge_continuity}), it is possible to verify that Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are consequences of (\ref{equ:maxwell_faraday}) and (\ref{equ:maxwell_ampere}) provided that (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) are satisfied at initial time. In other words, Gauss's laws (\ref{equ:maxwell_gauss_B}) (\ref{equ:maxwell_gauss_D}) can be thought of as initial conditions. 
 
-Each species in a plasma can be modelled as a compressible fluid by a set of the Euler equations, which additionally includes electromagnetic forces as well as other processes, e.g. collisions and recombination. The generic expressions are
+Each species in a plasma can be modelled as a compressible fluid by a set of Euler equations, which additionally includes electromagnetic forces as well as other processes, e.g. collisions and recombination. The generic expressions are
 \begin{align} \label{equ:euler_}
     \partial_t
     \begin{pmatrix}
@@ -201,9 +167,9 @@ The subscript $*\in \{e, i, \cdots\}$ represents the indices for electron, ions 
 
 For the sake of simplicity, we only consider ion-electron collision in this work, but extension to more species is straightforward. Such collisions can be well modelled by friction terms (\citep[][sec. 5.6.2]{chen2016})
 \begin{equation} \label{equ:collision}
-    \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\varepsilon_0)^2(k_BT_e)^{3/2}}\text{ln}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
+    \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\epsilon)^2(k_BT_e)^{3/2}}\text{ln}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
 \end{equation}
-which is the collision force acting on electrons. ln$\Lambda$ is called the \emph{Coulomb logarithm} and is usually taken as a constant \cite{chen2016}. Because of the conservation of momentum, the collision term for ions $\mathbf{R}_{i}^{\text{coll}}$ is nothing but the negative of $\mathbf{R}_{e}^{\text{coll}}$. In this work, the other effects, e.g. ionization and recombination, are not considered. For full details about the modeling of these physical processes, readers are referred to \cite{fuchs_2021}.  
+which is the collision force acting on electrons. ln$\Lambda$ is called the \emph{Coulomb logarithm} and is usually taken as a constant \cite{chen2016}. Because of the conservation of momentum, the collision term for ions $\mathbf{R}_{i}^{\text{coll}}$ is nothing but the negative of $\mathbf{R}_{e}^{\text{coll}}$. In this work, the other effects, e.g. ionization and recombination, are not considered. For full details about the modeling of these physical processes, readers are referred to \cite[][sec. 3.2]{fuchs_2021}.  
 
 
 Combination of the two sets of equations (\ref{equ:maxwell_faraday}) to (\ref{equ:maxwell_gauss_D}) and (\ref{equ:euler_}) leads to the governing equations for a multi-species plasma model. The coupling of the two subsystems is due to the fact that electric current is the flow of charged particles:
@@ -212,23 +178,23 @@ Combination of the two sets of equations (\ref{equ:maxwell_faraday}) to (\ref{eq
 \end{equation}
 
 \subsection{Rescaling} \label{sec:rescaling}
-In rescaling, variables in equations are replaced by the ratio of original quantities and constant reference quantities, which transforms the system into dimensionless form. In this part, the rescaling procedure mostly follows that of \cite{degond_2017}.
+In rescaling, variables in equations are replaced by the ratio of original quantities and constant reference quantities, which transforms the system into dimensionless form. In this part, the rescaling procedure mostly follows that of \cite[][sec. 2.2]{degond_2017}.
 
-First, a reference value for each quantity, e.g. the characteristic length and time scale, is prescribed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of interest, by which the reference velocity $\overline{v}$ is defined as $\overline{x}/\overline{t}$. The typical magnitudes of electromagnetic fields are $\overline{E}$ and $\overline{B}$. The typical magnitudes of fluid quantities are denoted by $\overline{u}$ for plasma drift velocity, $\overline{n}$ for plasma number density, $\overline{T}$ for plasma temperature. On top of that, the typical pressure is set $\overline{n}k_B\overline{T}$ with $k_B$ being the Boltzmann constant; the typical value for the specific total energy and enthalpy is set $\overline{u}^2$. Together with the physical parameters, i.e. permittivity $\varepsilon_0$, permeability $\mu_0$, light speed $c^2 = (\varepsilon_0\mu_0)^{-1}$, Boltzmann constant $k_B$, the elementary charge $e$, and ion mass $m_i$, the following dimensionless parameters are induced,
+First, a reference value for each quantity, e.g. the characteristic length and time scale, is prescribed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of interest, by which the reference velocity $\overline{v}$ is defined as $\overline{x}/\overline{t}$. The typical magnitudes of electromagnetic fields are $\overline{E}$ and $\overline{B}$. The reference magnitudes of fluid quantities are denoted by $\overline{u}$ for plasma drift velocity, $\overline{n}$ for plasma number density, $\overline{T}$ for plasma temperature. On top of that, the reference pressure is set to $\overline{n}k_B\overline{T}$ with $k_B$ being the Boltzmann constant; the reference value for the specific total energy and enthalpy is set to $\overline{u}^2$. Also taking into account the physical constants, i.e. the reference permittivity $\overline{\epsilon}$, the reference permeability $\overline{\mu}$, the light speed $c^2 = (\overline{\epsilon}\overline{\mu})^{-1}$, Boltzmann constant $k_B$, the elementary charge $e$, and ion mass $m_i$, we introduce the following dimensionless parameters:
 \begin{align*} 
     \xi &:= \frac{\overline{v}}{c} \text{ the velocity of interest \emph{w.r.t.}\footnotemark[1] the light speed}, &\\
     \zeta &:= \frac{\overline{u}}{\overline{v}} \text{ the plasma velocity \emph{w.r.t.} the speed of interest}, &\\
     M &:= \frac{\overline{u}}{v_{th,i}} \text{ the plasma drift velocity \emph{w.r.t.} the thermal speed of ions, where } v_{th,i} := \left(\frac{k_B \overline{T}}{m_i}\right)^{1/2}, &\\
     \eta &:= \frac{e\overline{E}\overline{x}}{m_i\overline{u}^2} \text{ the electric energy \emph{w.r.t.} the kinetic energy of ions}, &\\
     \beta &:= \frac{\overline{v}\overline{B}}{\overline{E}} \text{ the induced electric field \emph{w.r.t.} the total electric field}, &\\
-    \lambda &:= \frac{\lambda_D}{\overline{x}} \text{ the dimensionless Debye length, where }\lambda_D := \left(\frac{\varepsilon_0k_B\overline{T}}{e^2\overline{n}}\right)^{1/2}, &\\
-    \varepsilon_*^2 &:= \frac{m_*}{m_i} \text{ the species mass \emph{w.r.t.} the ion mass},\ \  * \in \{i,e,\text{neutron},\cdots\}, &\\
+    \lambda &:= \frac{\lambda_D}{\overline{x}} \text{ the dimensionless Debye length, where }\lambda_D := \left(\frac{\epsilon k_B\overline{T}}{e^2\overline{n}}\right)^{1/2}, &\\
+    \varepsilon_*^2 &:= \frac{m_*}{m_i} \text{ the species mass \emph{w.r.t.} the ion mass},\ \  * \in \{i,e,\cdots\}, &\\
     g &:= \frac{1}{\overline{n}\lambda_D^3} \text{ the plasma parameter\footnotemark[2]}.&
 \end{align*}
 \footnotetext[1]{Abbreviation of \emph{with respect to}.}
 \footnotetext[2]{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][sec. 1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
 
-By abuse of notation, the dimensionless quantities have the same symbol as the original quantities. For the sake of simplicity, we neglect ionization and recombination but focus on collision terms, i.e. $\Gamma_* = 0, \mathbf{R}_* = \mathbf{R}_*^\text{coll}, Q_* = Q_*^\text{coll}$ in (\ref{equ:euler_}), while neglecting other effects. The rescaled Euler-Maxwell system reads
+By abuse of notation, the dimensionless quantities have the same symbol as the original quantities. For the sake of simplicity, we neglect ionization and recombination but retain collision terms, i.e. $\Gamma_* = 0, \mathbf{R}_* = \mathbf{R}_*^\text{coll}, Q_* = Q_*^\text{coll}$ in (\ref{equ:euler_}), while neglecting other effects. The rescaled Euler-Maxwell system reads
 \begin{subequations}
 \begin{align}
     \beta \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescalling} \\ 
@@ -265,21 +231,21 @@ where the equation of state becomes $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + M^{-2}\
     \mathbf{R}_i^{\text{coll}} = \frac{Z\text{ln}\Lambda}{16\pi}g\lambda^{-1}M^{-1}\varepsilon_en_en_i(\mathbf{u}_i - \mathbf{u}_e). \label{equ:rescaling_friction}
 \end{equation}
 
- Assumptions can be made to reduce the number of dimensionless parameters. Following \cite{degond_2017}, the reference speed $\overline{v}$ is of the same scale as the plasma speed $\overline{u}$ and the thermal speed $v_{th,i}$ whereas it is much smaller than the light speed $c$. Also, it is assumed that $\eta$ and $\beta$ are of order one and $\xi$ has the same magnitude as $\lambda$. 
+ Assumptions can be made to reduce the number of dimensionless parameters. Following \cite[][sec. 2.2]{degond_2017}, the reference speed $\overline{v}$ is of the same scale as the plasma speed $\overline{u}$ and the thermal speed $v_{th,i}$ whereas it is much smaller than the light speed $c$. Also, it is assumed that $\eta$ and $\beta$ are of order one and $\xi$ has the same magnitude as $\lambda$. 
 
-Special treatment is needed for the collision term. One could argue that the occurrence of $\lambda^{-1}$ in (\ref{equ:rescaling_friction}) could lead to singular perturbation of the Euler system as $\lambda \rightarrow 0$. However, the validity of such a collision model is doubtful when $\lambda \rightarrow 0$. From the physical viewpoint, the shielding effect characterized by the rescaled Debye length $\lambda$ makes the impact parameter no larger than $\lambda$. The $\lambda \rightarrow 0$ limit implies that the collisions happen in the atomic length scale, in which quantum-mechanical effects must be taken into effect \citep{frank_1972}. Therefore, we eliminate the perturbation parameter in the friction term by assuming $g \sim \lambda$ and keep the prefactor of collision term constant $\alpha^{\text{coll}}$ throughout the simulation.
+Special treatment is needed for the collision term. One could argue that the occurrence of $\lambda^{-1}$ in (\ref{equ:rescaling_friction}) could lead to singular perturbation of the Euler system as $\lambda \rightarrow 0$. However, the validity of such a collision model is doubtful when $\lambda \rightarrow 0$. From the physical viewpoint, the shielding effect characterized by the rescaled Debye length $\lambda$ makes the impact parameter no larger than $\lambda$. The $\lambda \rightarrow 0$ limit implies that the collisions happen in the atomic length scale, in which quantum-mechanical effects must be taken into effect \cite[][pp. 144-148]{frank_1972}. Therefore, we eliminate the perturbation parameter in the friction term by assuming $g \sim \lambda$ and keep the prefactor $\alpha^{\text{coll}}$ of the collision term constant throughout the simulation.
 
 \begin{remark}
-    It is also of research interest when there is an asymptotic parameter at the denominator of the friction term. Such problem is called relaxation limit, see \cite{peng_2011, wasiolek_2016, Li_2021, Chen_2000}.
+    The case when there is an asymptotic parameter at the denominator of the friction term is of interest, too. Such problem is called relaxation limit, see \cite{peng_2011, wasiolek_2016, Li_2021, Chen_2000}.
 \end{remark}
 
-In summary, we make the following choices
+In summary, we make the following choices\cite[][sec 2.2]{degond_2017}
 \begin{align*}
     \xi \sim g \sim \lambda \in [0,1], \ \ \ \zeta \sim M \sim \eta \sim \beta \sim \mathcal{O}(1).
 \end{align*}
 
 
-Under such assumptions on these dimensionless parameters, the rescaled Euler-Maxwell system is simplified into a parametric system with the dimensionless Debye length $\lambda$ being the asymptotic parameter
+Under such assumptions on these dimensionless parameters, the rescaled Euler-Maxwell system is simplified to a system of PDEs with the dimensionless Debye length $\lambda$ as asymptotic ($\lambda \rightarrow 0$) parameter
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescaled} \\ 
@@ -310,32 +276,36 @@ Under such assumptions on these dimensionless parameters, the rescaled Euler-Max
     \varepsilon_*^{-2}Q_*^{\text{coll}} 
     \end{pmatrix}, \label{equ:euler_rescaled}
 \end{align}
-\end{subequations}
+
 with the equation of state $e_* = \frac{1}{2}|\mathbf{u_*}|^2 + \frac{p_*}{\varepsilon^2_* n_* (\gamma - 1)}$ and $h_* = e_* + \frac{p_*}{\varepsilon^2_* n_*}$. For a fully-ionized gas with only ions and electrons, 
 \begin{equation} \label{equ:collision_rescaled} 
     \mathbf{R}_i^{\text{coll}} = \alpha^{\text{coll}}n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_e^{\text{coll}},
 \end{equation}
 and consequently, the rescaled friction heat for ions and electrons take the expression
-\begin{align*} 
+\begin{align} 
     Q_i^{\text{coll}} &= \alpha^{\text{coll}}n_en_i \mathbf{u}_i (\mathbf{u}_i - \mathbf{u}_e), \\
     Q_e^{\text{coll}} &= \alpha^{\text{coll}}n_en_i \mathbf{u}_e (\mathbf{u}_e - \mathbf{u}_i).
-\end{align*}
+\end{align}
+The rescaled material laws (\ref{equ:material_law}) keep the same expressions: 
+\begin{equation} \label{equ:maxwell_material_law_rescaled}
+    \mathbf{D} = \epsilon \mathbf{E}, \ \ \ \mathbf{B} = \mu \mathbf{H}, 
+\end{equation}
+\end{subequations}
+but here $\epsilon, \mu$ are the rescaled permittivity and permeability.  
 
-We end up getting the rescaled Maxwell-Euler system parameterized by $\lambda$.
+We end up with the rescaled Maxwell-Euler system (\ref{equ:maxwell_faraday_rescaled})-(\ref{equ:maxwell_material_law_rescaled}) parameterized by $\lambda$.
 
 \subsection{Quasi-neutral Limit} \label{sec:quasi-neutral_limit}
-The Debye length $\lambda_D$ (see its definition in the preceding section) is the characteristic length over which local concentrations of charge are shielded, see \cite[Sec. 1.4]{chen2016} for the underlying physics. In many situations, it has a rather low value compared to the reference length scale: the typical $\lambda_D$ for gas discharge and Tokamak is $10^{-4}$ m; for interstellar medium, the magnitude is about $1$ m \cite[ch. 20]{Blandford_2013}. That justifies the quasi-neutrality assumption that the plasma is locally neutral, i.e. $\rho = \sum_* q_*n_* = 0$. The limit model is obtained by formally setting the rescaled Debye length $\lambda$ to zero:
+The Debye length $\lambda_D$ (see its definition in the preceding section) is the characteristic length over which local concentrations of charge are shielded, see \cite[sec. 1.4]{chen2016} for the underlying physics. In many situations, it has a rather low value compared to the reference length scale: the typical $\lambda_D$ for gas discharge and Tokamak is $10^{-4}$ meter; for interstellar medium, the magnitude is about $1$ meter\cite[ch. 20]{Blandford_2013}. That justifies the quasi-neutrality assumption that the plasma is locally neutral, i.e. $\rho = \sum_* q_*n_* = 0$. The limit model is obtained by formally setting the rescaled Debye length $\lambda$ to zero:
 \vspace{-\baselineskip}
 \begin{center}
     \begin{minipage}{0.3\textwidth}
-\begin{subequations}
-\begin{align*}
-    \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0 \tag{\ref{equ:maxwell_faraday_rescaled}},\\ 
-    \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= - \mathbf{J}, \tag{\ref{equ:maxwell_ampere_rescaled}}\\
-    \nabla \cdot \mathbf{B} &= 0, \tag{\ref{equ:maxwell_gauss_B_rescaled}}\\
-    \lambda^2 \nabla \cdot \mathbf{D} &= \rho. \tag{\ref{equ:maxwell_gauss_D_rescaled}}
-\end{align*}
-\end{subequations}
+    \begin{align*}
+        \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0 \tag{\ref{equ:maxwell_faraday_rescaled}},\\ 
+        \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= - \mathbf{J}, \tag{\ref{equ:maxwell_ampere_rescaled}}\\
+        \nabla \cdot \mathbf{B} &= 0, \tag{\ref{equ:maxwell_gauss_B_rescaled}}\\
+        \lambda^2 \nabla \cdot \mathbf{D} &= \rho. \tag{\ref{equ:maxwell_gauss_D_rescaled}}
+    \end{align*}
 \end{minipage}
 \hspace{0.6cm}$\xrightarrow[]{\lambda \rightarrow 0}$
 \begin{minipage}{0.3\textwidth}
@@ -349,36 +319,37 @@ The Debye length $\lambda_D$ (see its definition in the preceding section) is th
 \end{subequations}
 \end{minipage}
 \end{center}
-The quasi-neutral condition (\ref{equ:maxwell_gauss_D_limit}) is the consequence of taking $\lambda = 0$ in Gauss's law for the electric field (\ref{equ:maxwell_gauss_D_rescaled}). Like the non-neutral case, Gauss's laws (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are the consequence of (\ref{equ:maxwell_faraday_limit}) (\ref{equ:maxwell_ampere_limit}) provided (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are satisfied at initial time. 
+The quasi-neutral condition (\ref{equ:maxwell_gauss_D_limit}) is the consequence of setting $\lambda = 0$ in Gauss's law for the electric field (\ref{equ:maxwell_gauss_D_rescaled}). As in the non-neutral case, Gauss's laws (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are the consequence of (\ref{equ:maxwell_faraday_limit}) (\ref{equ:maxwell_ampere_limit}) provided (\ref{equ:maxwell_gauss_B_limit}) (\ref{equ:maxwell_gauss_D_limit}) are satisfied at initial time. 
 
 
-This limit poses a \emph{singular perturbation problem} in the sense that vanishing $\lambda$ changes the character of the PDE system. To be more specific, in the non-limit model the $\mathbf{E}$-field evolves with time whereas in the quasi-neutral model it responds instantaneously to other quantities according to the constraint (\ref{equ:maxwell_ampere_limit}). We replace (\ref{equ:maxwell_ampere_rescaled}) by the sum of the curl of (\ref{equ:maxwell_faraday_rescaled}) and the time-derivative of (\ref{equ:maxwell_ampere_rescaled}). Meanwhile exploiting the momentum equation in (\ref{equ:euler_rescaled}) to express $\partial_t\mathbf{J}$, we end up getting the equation that the $\mathbf{E}$-field satisfies
+This limit represents a \emph{singular perturbation problem} in the sense that vanishing $\lambda$ changes the character of the PDE system. To be more specific, for $\lambda = \mathcal{O}(1)$ the $\mathbf{E}$-field evolves with time whereas in the quasi-neutral model it responds instantaneously to other quantities according to the constraint (\ref{equ:maxwell_ampere_limit}). We replace (\ref{equ:maxwell_ampere_rescaled}) by the sum of the rotation of (\ref{equ:maxwell_faraday_rescaled}) and the time-derivative of (\ref{equ:maxwell_ampere_rescaled}). Meanwhile, due to the link between fluid momenta $n_*u_*$ and current in (\ref{equ:maxwell_euler_coupling}), the term $\partial_t\mathbf{J}$ can be reformulated by the momentum equation according to (\ref{equ:euler_rescaled}) and we end up with the following wave equation with source terms:
 \begin{align}
-    \lambda^2\partial_t^2 \mathbf{E} + \nabla \times \nabla \times \mathbf{E} &= - a\mathbf{E} - \mathbf{b}, \label{equ:E}
+    \lambda^2\partial_t^2 \mathbf{E} + \nabla \times \nabla \times \mathbf{E} &= \mathbf{S}_1 + \mathbf{S}_2, \label{equ:E}
 \end{align}
 where
-\begin{equation*}
-    a = \sum_*\varepsilon_*^{-2}q_*^2n_*, \ \ \ \mathbf{b} = \sum_* \epsilon_*^{-2}q_*^2n_*\mathbf{u}_*\times\mathbf{B} - q_*\nabla\cdot(n_* \mathbf{u}_* \otimes \mathbf{u}_* + \varepsilon_*^{-2}p_*\mathbb{I}).
-\end{equation*}
- (\ref{equ:E}) makes it obvious the shift from hyperbolic to elliptic for the evolution equations for the $\mathbf{E}$-field as $\lambda\rightarrow0$. 
+\begin{align*}
+    \mathbf{S}_1 &= - \left(\sum_*\varepsilon_*^{-2}q_*^2n_*\right)\mathbf{E}, \\
+    \mathbf{S}_2 &= \sum_* q_*\nabla\cdot(n_* \mathbf{u}_* \otimes \mathbf{u}_* - \varepsilon_*^{-2}p_*\mathbb{I}\varepsilon_*^{-2}q_*^2n_*\mathbf{u}_*\times\mathbf{B} - q_*\varepsilon_*^{-2}\mathbf{R}^\text{coll}_*).
+\end{align*}
+ It is obvious in (\ref{equ:E}) that the electric field propagate with finite speed (hyperbolic evolution) when $\lambda = \mathcal{O}(1)$, whereas for $\lambda = 0$ they respond instantaneously everywhere to local excitation (parabolic evolution/elliptic boundary value problems).
 
 \begin{remark}
-    The preceeding formal limit argument is rather heuristic. Deep mathematical tools from perturbation theory is needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper and thus omitted. Readers are referred to \cite[ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
+    The preceeding formal limit argument is heuristic. Deep mathematical tools from perturbation theory would be needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper. Readers are referred to \cite[ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
 \end{remark} 
 
 \subsection{Boundary Conditions} \label{sec:BC}
 
-We consider a simply-connected domain $\Omega$ comprising two sub-domains $\Omega_P$ and $\Omega_N$ representing plasma domain and non-conducting domain respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$, denoting the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary with an artificial cut-off boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding to this setting is sketched in Fig. \ref{fig:domain_sketch} and is the one used in \cite[][ch. 1, sec. 4]{fuchs_2021}. 
+We consider a simply-connected domain $\Omega$ comprising two sub-domains $\Omega_P$ (plamsa domain) and $\Omega_N$ (non-conducting domain). They represent regions of space occupied by plasma and a non-conducting linear dielectric medium (e.g. glass) respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$ to denote the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary with an artificial cut-off boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding to this setting is sketched in Fig. \ref{fig:domain_sketch} and is the one used in \cite[][ch. 1, sec. 4]{fuchs_2021}. 
 
 \mycomment{Roman: expand on a relevant physical setting, e.g. wall-stabilized arc in hight voltage circuit breakers.}
 
-The plasma fills $\Omega_P$ where the Euler system is defined and the boundary of the plasma domain is $\partial\Omega_P$. We consider the physical scenario where plasmas are confined by solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective wall where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by open boundaries in the sense that fluids are free to flow through, i.e. ions and electrons are emitted and absorbed by the electrodes. 
+The Euler system is defined in $\Omega_P$ with boundary $\partial\Omega_P$. We consider the physical scenario where plasma is confined by a solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective wall where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by open boundaries in the sense that fluids are free to flow through, i.e. ions and electrons are emitted and absorbed by the electrodes. 
 
 \begin{remark}
-    The treatment of electrodes as open boundary is a rather simplified approach. For more realistic electrode modelling, see \cite{godyak_1990, parker_1993}.
+    The treatment of electrodes as open boundary is am extreme simplification. For more realistic electrode modelling, see \cite{godyak_1990, parker_1993}.
 \end{remark}
 
-The Maxwell system is defined on the whole domain $\Omega$. The insulating boundary blocks energy interchange and therefore only admits zero electric and magnetic flux, in the sense that $\text{curl}\mathbf{E}\cdot \mathbf{n} = 0$ and $\text{curl}\mathbf{H}\cdot \mathbf{n} = 0$ where $\mathbf{n}$ is the normal vector. We model the electrodes on the contact boundary $\Gamma_C = \Gamma_C^+\cup \Gamma_C^-$ which are two disjoint connecting components. A vanishing tangential component $\mathbf{E}_t$ of the $\mathbf{E}$-field is imposed on $\Gamma_C$. Since we have $\text{curl}\mathbf{E} \cdot \mathbf{n} = 0$ on the whole boundary $\partial\Omega$, there exists a scalar potential $\varphi$ defined on $\partial\Omega$ such that the tangential component $\mathbf{E}_t = \nabla_\Gamma \varphi$ where $\nabla_\Gamma$ denotes surface gradient. $\varphi$ is set constant in each component of $\Gamma_C$, that is, from a physical point of view, $\varphi$ is the external potential difference applied to the electrodes.
+The Maxwell system is defined on the whole domain $\Omega$. The insulating boundary $\Gamma_I$ blocks energy interchange and therefore only admits zero electric and magnetic flux, in the sense that $\mathbf{D}\cdot \mathbf{n}|_{\Gamma_I} = 0$ and $\mathbf{B} \cdot \mathbf{n}|_{\Gamma_I} = 0$ where $\mathbf{n}$ is the normal vector. We model the electrodes by imposing boundary conditions on the contact boundary $\Gamma_C = \Gamma_C^+\cup \Gamma_C^-$ which is composed of two disjoint connected components. On the contact boundary $\Gamma_C$, the tangential component $\mathbf{E}_t$ of the $\mathbf{E}$-field is set to zero. By Faraday's law (\ref{equ:maxwell_faraday_rescaled}) we have $\nabla \times \mathbf{E} \cdot \mathbf{n} = 0$ on the whole (topologically trivial) boundary $\partial\Omega$. It admits a scalar potential $\varphi$ defined on $\partial\Omega$ such that $\mathbf{E}_t = \nabla_\Gamma \varphi$ where $\nabla_\Gamma$ denotes surface gradient. $\varphi$ is constant on $\Gamma_C^+$ and $\Gamma_C^-$. The difference of these two constant values is the voltage drop between the two contacts.
 \begin{figure}
 \begin{minipage}{0.45\textwidth}
     \resizebox{\textwidth}{!}{
@@ -442,39 +413,39 @@ The Maxwell system is defined on the whole domain $\Omega$. The insulating bound
 \end{figure}
 
 
-    To summarize the boundary conditions for both systems:
+    We summarize the boundary conditions for both sets of equations:
     
 \vspace{10pt}
 \begin{minipage}[t]{0.49\textwidth}
     \textbf{For the Euler equations:}
     \begin{align*}
     \mathbf{u_*}\cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W, \\
-    \text{grad}\mathbf{u_*} \cdot \mathbf{n} &= \mathbf{0} \ \ \text{on} \ \ \Gamma_C, \\
-    \text{grad}n_* \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W \cup \Gamma_C, \\
-    \text{grad}e_* \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W \cup \Gamma_C.
+    \nabla \mathbf{u_*} \cdot \mathbf{n} &= \mathbf{0} \ \ \text{on} \ \ \Gamma_C, \\
+    \nabla n_* \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W \cup \Gamma_C, \\
+    \nabla e_* \cdot \mathbf{n} &= 0 \ \ \text{on} \ \ \Gamma_W \cup \Gamma_C.
 \end{align*}
 \end{minipage}
 \begin{minipage}[t]{0.49\textwidth}
     \textbf{For Maxwell's equations:}
     \begin{align*}
-    \text{curl} \mathbf{E} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \partial\Omega,  \\
-    \text{curl} \mathbf{H} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \Gamma_I,  \\
+    \mathbf{D} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \partial\Omega,  \\
+    \mathbf{B} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \Gamma_I,  \\
     \varphi = \varphi^\pm(t)\ \ &\text{on} \ \ \Gamma_C^\pm.
     \end{align*}
 \end{minipage}
 
 \vspace{10pt}
 \begin{remark}
-    No boundary conditions for Maxwell's equations are needed on $\Gamma_W$.
+    No interface condition for Maxwell's equations is needed on $\Gamma_W$.
 \end{remark}
 
-\begin{remark} For a geometric setting with non-trivial geometry, e.g. with a tunnel, \emph{curl}$\mathbf{E}\cdot\mathbf{n}$ does not lead to the existence of a surface potential $\varphi:\mathbf{E}_t = \nabla_\Gamma\varphi$. One needs to consider co-homology vector fields \cite{Hiptmair_2021}.
+\begin{remark} For a geometric setting with non-trivial topology, e.g. with a tunnel, $\nabla \times \mathbf{E}\cdot\mathbf{n} = 0$ does not support the existence of a surface potential $\varphi$ satisfying $\mathbf{E}_t = \nabla_\Gamma\varphi$. One needs to consider co-homology vector fields \cite{Hiptmair_2021}.
 \end{remark}
 
 
 
 \subsection{Reformulation} \label{sec:reform_continuous}
-In the non-conducting domain $\Omega_N$ (see Fig. \ref{fig:domain_sketch}), the Euler system is not defined there due to the absence of plasmas. Consequently, the Maxwell system in $\Omega_N$ is described by
+In the non-conducting domain $\Omega_N$ (see Fig. \ref{fig:domain_sketch}), the Euler system is not defined there due to the absence of plasmas. Consequently, the Maxwell system in $\Omega_N$ boils down to
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins}\\ 
@@ -484,7 +455,7 @@ In the non-conducting domain $\Omega_N$ (see Fig. \ref{fig:domain_sketch}), the 
 \end{align}
 \end{subequations}
 
-In non-neutral regime where $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_N$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial time. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Due to limited machine precision, schemes based on this set of PDEs would become unstable as $\lambda \rightarrow 0$. The vanishing divergence would break down as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
+In non-neutral regime where $\lambda = \mathcal{O}(1)$, the Maxwell system in $\Omega_N$ is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are redundant as long as they are satisfied at initial time. Nonetheless, as the system approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for $\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Schemes based on this set of PDEs would become unstable as $\lambda \rightarrow 0$. The vanishing divergence constraint would evaporate as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold numerically when $\lambda^2$ becomes extremely small. 
 
 To see this issue from another perspective, we examine the limit Maxwell system in $\Omega_N$
 \begin{subequations}
@@ -496,11 +467,9 @@ To see this issue from another perspective, we examine the limit Maxwell system 
 \end{align}
 \end{subequations}
 
-Again, Gauss's law for the $\mathbf{B}$-field (\ref{equ:gauss_B_ins_limit}) is redundant while Gauss's law for $\mathbf{D}$-field (\ref{equ:gaus_D_ins_limit}) is no longer the consequence of Amper\`{e}'s law. However, it is essential for the well-posedness of the problem \citep{ana_2010}. From this perspective, the degeneracy of Gauss's law for $\mathbf{D}$-field in the system (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) as $\lambda \rightarrow 0$ poses some problem.
+Again, Gauss's law for the $\mathbf{B}$-field (\ref{equ:gauss_B_ins_limit}) is redundant while Gauss's law for the $\mathbf{D}$-field (\ref{equ:gaus_D_ins_limit}) is no longer the consequence of Amp\`{e}re's law (\ref{equ:ampere_ins_limit}). However, it is essential for the well-posedness of the problem \cite[][p.  7]{ana_2010}. Obviously, the degeneracy of Gauss's law for the $\mathbf{D}$-field in the system (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) as $\lambda \rightarrow 0$ poses some problem. In other words, the set of equations (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) ``approaches" an ill-posed situation as $\lambda \rightarrow 0$. This is totally fine in the continuous level while it could be problematic on the discrete level due to limited machine precision. 
 
-In other words, the set of equations (\ref{equ:faraday_ins_limit}) to (\ref{equ:gaus_D_ins_limit}) ``approaches" an ill-posed situation as $\lambda \rightarrow 0$. This is totally fine in the continuous level while it could be problematic in the discrete level due to a limited floating-point precision. 
-
-We propose the following reformulation as a remedy, which introduces a Lagrange multiplier $\psi$ and removes the $\lambda^2$ prefactor in Gauss's law for $\mathbf{D}$-field:
+As a remedy, we propose the following reformulation which introduces a scalar Lagrange multiplier $\psi$ and removes the $\lambda^2$ prefactor in Gauss's law for the $\mathbf{D}$-field:
 \begin{subequations}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:faraday_ins_reform}\\ 
@@ -510,7 +479,7 @@ We propose the following reformulation as a remedy, which introduces a Lagrange 
 \end{align}
 \end{subequations}
 
-Supplemented with the boundary condition $\psi = 0$ on $\partial\Omega_N$, one can check that (\ref{equ:faraday_ins_reform}) to (\ref{equ:gauss_D_ins_reform}) are equivalent to the original formulation (\ref{equ:faraday_ins})-(\ref{equ:gauss_D_ins}) by verifying that $\psi = 0$ in $\Omega_N$. This is done by taking the divergence of (\ref{equ:ampere_ins_reform}) such that the Laplace equation of $\psi$ with zero Dirichlet boundary condition gives vanishing $\psi$. The importance of this reformulation will be made clear in the numerical experiment, see Section \ref{sec:numerical_experiment}. 
+Supplemented with the boundary condition $\psi = 0$ on $\partial\Omega_N$, one can check that (\ref{equ:faraday_ins_reform}) to (\ref{equ:gauss_D_ins_reform}) are equivalent to the original formulation (\ref{equ:faraday_ins})-(\ref{equ:gauss_D_ins}) by verifying that $\psi = 0$ in $\Omega_N$. This is done by taking the divergence of (\ref{equ:ampere_ins_reform}), which results in $\delta\psi = 0$ and the zero Dirichlet boundary condition gives vanishing $\psi$. The importance of this reformulation will become clear in the numerical experiments, see Section \ref{sec:numerical_experiment}. 
 
 We point out that this reformulation is not needed in the plasma domain $\Omega_P$ since the Maxwell system is uniformly well-posed for $\lambda \in [0,1]$ thanks to the existence of an electric current and its dependence on the $\mathbf{E}$-field. 
 
@@ -522,19 +491,19 @@ In the following sections, we first briefly discuss the 1D scheme for the Maxwel
 
 \section{Spatial Discretization} \label{sec:spatial_discretization}
 \subsection{Primal-dual Staggered Meshes} \label{sec:mesh-duality}
-\subsubsection{Geometric Property}
-Prior to the spatial discretization of the Maxwell-Euler system, we introduce primal-dual staggered meshes that are necessary in the discretization framework we use. The spatial domain is discretized by two meshes that interlace with each other, denoted by a mesh doublet $(\mathcal{M}, \Tilde{\mathcal{M}})$ for primal mesh and dual mesh respectively. The fundamental duality property requires that \emph{each edge of one mesh penetrates a face of the other mesh and that each vertex of one mesh lies inside of a cell of the other mesh} \citep{weiland_2003}, which makes $(\mathcal{M}, \Tilde{\mathcal{M}})$ staggered. A simple example for Cartesian meshes is shown in Fig. \ref{fig:cartesian}.
+\subsubsection{Definition and Geometric Construction}
+Prior to the spatial discretization of the Maxwell-Euler system, we introduce primal-dual staggered meshes that are necessary in the discretization framework we use. The spatial domain is covered by two meshes that interlace with each other, denoted by a mesh doublet $(\mathcal{M}, \Tilde{\mathcal{M}})$ for primal mesh and dual mesh respectively. The fundamental duality property requires that \emph{each edge of one mesh penetrates a face of the other mesh and that each vertex of one mesh lies inside of a cell of the other mesh} \cite[][sec. 2]{weiland_2003}, which makes $(\mathcal{M}, \Tilde{\mathcal{M}})$ staggered to each other. A simple example for Cartesian meshes is shown in Fig. \ref{fig:cartesian}.
 
-To clarify the notation, in three dimensions the primal mesh $\mathcal{M}$ is a cell complex defined by the set of elements $\{P, L, A, V\}$\footnote{The notation here is a bit floppy. $P, L, A, V$ can refer to a single element or a set of elements.} denoting \emph{vertices, edges, faces} and \emph{cells} respectively. In the same way, the dual mesh $\Tilde{\mathcal{M}}$ is defined by $\{\Tilde{P}, \Tilde{L}, \Tilde{A}, \Tilde{V}\}$. Elements of two meshes are associated with bijective pairings $P \leftrightarrow \Tilde{V}$, $L \leftrightarrow \Tilde{A}$, $A \leftrightarrow \Tilde{L}$ and $V \leftrightarrow \Tilde{P}$ which arise in a very natural way: $P(\Tilde{P} \text{ resp.})$ corresponds to $\Tilde{V}(V \text{ resp.})$ where it lies and $L(\Tilde{L} \text{ resp.})$ penetrates its corresponding $\Tilde{A}(A \text{ resp.})$. According to their dimensions, vertices, edges, faces and cells are also termed 0-dim, 1-dim, 2-dim and 3-dim elements respectively. Meanwhile, we denote by $N_\ast, \ast \in \{P, \Tilde{P}, L, \Tilde{L},A, \Tilde{A},V, \Tilde{V}\}$ the total number of elements in $\mathcal{M}, \Tilde{\mathcal{M}}$. 
+To clarify the notation, in three dimensions the primal mesh $\mathcal{M}$ is a cell complex defined by the set of mesh entities $\{P, L, A, V\}$\footnote{The notation here is a bit sloppy. $P, L, A, V$ can refer to a single entity or a set of entities depending on the context.} denoting \emph{vertices, edges, faces} and \emph{cells} respectively. In the same way, the dual mesh $\Tilde{\mathcal{M}}$ is defined by $\{\Tilde{P}, \Tilde{L}, \Tilde{A}, \Tilde{V}\}$. The entities of two meshes are associated with bijective pairings $P \leftrightarrow \Tilde{V}$, $L \leftrightarrow \Tilde{A}$, $A \leftrightarrow \Tilde{L}$ and $V \leftrightarrow \Tilde{P}$ which arise in a very natural way: $P(\Tilde{P} \text{ resp.})$ corresponds to $\Tilde{V}(V \text{ resp.})$ in which it lies and $L(\Tilde{L} \text{ resp.})$ penetrates its corresponding $\Tilde{A}(A \text{ resp.})$. According to their dimensions, vertices, edges, faces and cells are also called 0-dim, 1-dim, 2-dim and 3-dim entities respectively. Meanwhile, we denote by $N_\ast, \ast \in \{P, \Tilde{P}, L, \Tilde{L},A, \Tilde{A},V, \Tilde{V}\}$ the total number of entities in $\mathcal{M}, \Tilde{\mathcal{M}}$. 
 
 First, we illustrate the 2D case and construct the meshes based on the Delaunay-Voronoi approach: we start with a Delaunay triangulation $\mathcal{M}$ of the domain and construct $\Tilde{\mathcal{M}}$ by connecting \emph{circumcenters} of any two adjacent triangles, see Fig. \ref{fig:2d-mesh}.
 
-In three dimensions, the meshes are constructed by extruding the 2D meshes vertically along one axis in a staggered manner \cite{Marrone_2001}. See an example in Fig. \ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This particular choice is compatible with the cylindrical geometric setting that we are in, see Fig. \ref{fig:domain_sketch}. For a general setting, one can directly decompose the domain into tetrahedrons and constructs the Voronoi grid, but the procedure is more complicated and time-consuming and may not yield a valid dual mesh. The full discretization of the cylindrical domain is given in Fig. \ref{fig:primal_dual_meshes}. 
+In three dimensions, the meshes are constructed by extruding the 2D meshes vertically along one axis in a staggered manner \cite[][sec. 3.1]{Marrone_2001}. See an example in Fig. \ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This particular choice is compatible with the cylindrical geometric setting that we are in, see Fig. \ref{fig:domain_sketch}. For a general setting, one can directly decompose the domain into tetrahedrons and constructs the Voronoi grid, but the procedure is more complicated and time-consuming and may not yield a valid dual mesh. The meshes for the cylindrical domain are displayed in Fig. \ref{fig:primal_dual_meshes}. 
 
-The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \Tilde{L}$ is satisfied and would be a crucial property for approximating the material laws shown in the following section. 
+The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftrightarrow \Tilde{L}$ is satisfied and will be a crucial property for approximating the material laws on the discrete level (which is the so-called Discrete Hodge operator \cite{hip_1999, bossavit1999}), as will be shown in Section \ref{sec:fit}. 
 
 \begin{remark}
-    The use of the Delaunay-Voronoi based primal-dual meshes is problematic when there are obtuse-angle triangles in $\mathcal{M}$. In this case their circumcenters lie outside the triangles and the intersection between edges and faces is violated. An alternative approach is barycenter-based dual meshes, which are not restricted to an acute-angle triangulation \cite{Marrone_2001}. 
+    The use of the Delaunay-Voronoi based primal-dual meshes is problematic when there are obtuse-angle triangles in $\mathcal{M}$. In this case their circumcenters lie outside the triangles and the intersection between edges and faces is violated. An alternative approach is barycenter-based dual meshes, which are not restricted to an acute-angle triangulation \cite[][sec. 4.2]{Marrone_2001}. 
 \end{remark}
 
 
@@ -678,26 +647,27 @@ The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and $A \leftri
     \label{fig:2d-extrusion}
     \end{subfigure}
     \hfill
-    \caption{Illustration of primal and dual meshes. (a) A Delaunay-Voronoi grid in 2D (b) The extrusion of 2D mesh. Six triangle prisms are primal cells (depicted by black and gray edges). One dual cell, which is a hexagon prism, is depicted by blue edges. The dashed hexagon represents the intersection of the dual cell and primal cells. (c) A Cartesian case.}
+    \caption{Illustration of primal and dual meshes. \textbf{(a)} A Delaunay-Voronoi grid in 2D. \textbf{(b)} The extrusion of 2D mesh. Six triangle prisms are primal cells (depicted by black and gray edges). One dual cell, which is a hexagon prism, is depicted by blue edges. The dashed hexagon represents the intersection of the dual cell and primal cells. \textbf{(c)} A Cartesian case.}
     \label{fig:illustration_primal_dual}
 \end{figure}
 
 \subsubsection{Orientation and Incidence Matrices}
-Each geometric element in the primal mesh $\mathcal{M}$ is (arbitrarily) endowed with an \emph{internal orientation}\footnote{This notion should not be aliased with \emph{inner orientation}, which has a slightly different definition, see \cite{tonti_2002}.}. The notion is sketched in Fig. \ref{fig:orientation}. For the elements of the dual mesh $\Tilde{\mathcal{M}}$, we set their internal orientations to be aligned with their corresponding primal elements according to the bijective pairings, i.e. edges penetrate faces.
+Each geometric entity in the primal mesh $\mathcal{M}$ is (arbitrarily) endowed with an \emph{internal orientation}\footnote{This notion should not be aliased with \emph{inner orientation}, which has a slightly different definition, see \cite[][sec. 3.1]{tonti_2002}.}. The notion is sketched in Fig. \ref{fig:orientation}. For the entities of the dual mesh $\Tilde{\mathcal{M}}$, we set their internal orientations to be aligned with their corresponding primal entities according to the bijective pairings, i.e. edges penetrate faces.
 
-Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim element $f$ with respect to a (k+1)-dim element $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rule shown in Fig. \ref{fig:orientation}. 
+Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim entity $f$ with respect to a (k+1)-dim entity $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rules shown in Fig. \ref{fig:orientation}. 
 
-This information can be captured by matrices with entries in $\{0,-1,+1\}$, called \emph{incidence matrices}. To describe the primal face-to-edge relation, for instance, a sparse matrix $\mathbb{C} \in \mathbb{R}^{N_A \times N_L}$ is assembled whose $(i,j)$-entry is assigned $+1$ if the internal orientation of edge $L_j$ and its induced orientation with respect to face $A_i$ coincides; it is assigned $-1$ if two orientations are opposite; and assigned $0$ if $L_j$ is not a subset of the boundary of $A_i$. We will see later that $\mathbb{C}$ functions as a discrete version of the curl operator. The other incidence matrices are constructed in the same manner, see Tab. \ref{tab:incidence_mat} for a summary. Given the link of orientations of $\mathcal{M}$ and $\Tilde{\mathcal{M}}$, we can derive the relations listed in Tab. \ref{tab:incidence_relation}.  
+This information can be captured by matrices with entries in $\{0,-1,+1\}$, called \emph{incidence matrices}. To describe the primal face-to-edge relation, for instance, a sparse matrix $\mathbb{C} \in \mathbb{R}^{N_A \times N_L}$ is assembled whose $(i,j)$-entry is assigned $+1$ if the internal orientation of edge $L_j$ and its induced orientation with respect to face $A_i$ coincides; it is assigned $-1$ if two orientations are opposite; and assigned $0$ if $L_j$ is not a subset of the boundary of $A_i$. We will see later that $\mathbb{C}$ functions as a discrete version of the rotation operator. The other incidence matrices are constructed in the same manner, see Tab. \ref{tab:incidence_mat} for a summary. Given the relationship of orientations of $\mathcal{M}$ and $\Tilde{\mathcal{M}}$, we can derive the relations listed in Tab. \ref{tab:incidence_relation}.  
 
 \begin{table}[h!]
     \centering
-    \begin{tabular}{c c c c}
+    \begin{tabular}{c c l l}
     \hline
          Matrix & Size & Incidence relation & Intuition  \\
     \hline
-         $\mathbb{D}\ (\Tilde{\mathbb{D}})$ & $N_V \times N_A\ (N_{\Tilde{V}} \times N_{\Tilde{A}})$ & cell $\rightarrow$ face & discrete div \\
-         $\mathbb{C}\ (\Tilde{\mathbb{C}})$ & $N_A \times N_L\ (N_{\Tilde{A}} \times N_{\Tilde{L}})$ & face $\rightarrow$ edge & discrete curl \\
-         $\mathbb{G}\ (\Tilde{\mathbb{G}})$ & $N_L \times N_P\ (N_{\Tilde{L}} \times N_{\Tilde{P}})$ & edge $\rightarrow$ vertex & discrete grad \\
+         $\mathbb{D}\ (\Tilde{\mathbb{D}})$ & $N_V \times N_A\ (N_{\Tilde{V}} \times N_{\Tilde{A}})$ & cell $\rightarrow$ face & discrete divergence \\
+         $\mathbb{C}\ (\Tilde{\mathbb{C}})$ & $N_A \times N_L\ (N_{\Tilde{A}} \times N_{\Tilde{L}})$ & face $\rightarrow$ edge & discrete rotation \\
+         $\mathbb{G}\ (\Tilde{\mathbb{G}})$ & $N_L \times N_P\ (N_{\Tilde{L}} \times N_{\Tilde{P}})$ & edge $\rightarrow$ vertex & discrete gradient
+         \\
     \hline
     \end{tabular}
     \caption{Summary of incidence matrices}
@@ -706,15 +676,15 @@ This information can be captured by matrices with entries in $\{0,-1,+1\}$, call
 
 \begin{table}[h!]
     \centering
-    \begin{tabular}{l c}
+    \begin{tabular}{l l}
     \hline
          Relation & Intuition \\
     \hline
-         $\mathbb{G}^T = -\Tilde{\mathbb{D}}$  &  $\text{grad}^* = - \text{div}$\\
-         $\mathbb{C}^T = \Tilde{\mathbb{C}}$   &  $\text{curl}^* = \text{curl}$\\
-         $\mathbb{D}^T = -\Tilde{\mathbb{G}}$  &  $\text{div}^* = - \text{grad}$\\
-         $\mathbb{C}\mathbb{G} = \mathbf{0}, \Tilde{\mathbb{C}}\Tilde{\mathbb{G}} = \mathbf{0}$  &  curl $\circ$ grad = 0 \\
-         $\mathbb{D}\mathbb{C} = \mathbf{0}, \Tilde{\mathbb{D}}\Tilde{\mathbb{C}} = \mathbf{0}$   &  div $\circ$ curl = 0 \\
+         $\mathbb{G}^T = -\Tilde{\mathbb{D}}$  &  $\nabla ^* = - (\nabla \cdot) $\\
+         $\mathbb{C}^T = \Tilde{\mathbb{C}}$   &  $(\nabla \times) ^* = (\nabla \times) $\\
+         $\mathbb{D}^T = -\Tilde{\mathbb{G}}$  &  $(\nabla \cdot) ^* = - \nabla $\\
+         $\mathbb{C}\mathbb{G} = \mathbf{0}, \Tilde{\mathbb{C}}\Tilde{\mathbb{G}} = \mathbf{0}$  &  $(\nabla \times)\circ \nabla = 0$ \\
+         $\mathbb{D}\mathbb{C} = \mathbf{0}, \Tilde{\mathbb{D}}\Tilde{\mathbb{C}} = \mathbf{0}$   &  $(\nabla \cdot) \circ ( \nabla \times) = 0$ \\
     \hline
         \small $\ast$ denotes adjoint operator.
     \end{tabular}
@@ -790,14 +760,23 @@ These matrices are topological and thus invariant under smooth deformation of th
         \node at (S4) [right, xshift=2mm] {$V$};
     \end{tikzpicture}
     \end{minipage}
-    \caption{Illustration of internal and induced orientations. The internal orientation of each element is depicted in black color: vertices are oriented as \emph{sink} by default; edges are oriented by their pointing direction; faces are oriented by their normal vector; cells are oriented as positive default. The induced orientations are depicted in blue color: the ending vertex of an edge is negatively oriented while the starting point is positively oriented; the orientations of edges with respect to a face obey the right-hand rule; a face of a cell are oriented by its outer normal vector. }
+    \caption{Illustration of internal and induced orientations. The internal orientation of each entity is depicted in black: vertices are oriented as \emph{sink} by default; edges are oriented by their pointing direction; faces are oriented by their normal vector; cells are oriented positive by default. The induced orientations are depicted in blue: the ending vertex of an edge is negatively oriented while the starting point is positively oriented; the orientations of edges with respect to a face obey the right-hand rule; a face of a cell are oriented by its outer normal vector. }
     \label{fig:orientation}
 \end{figure}
 
 \subsubsection{Cut-off Boundary}
-The primal mesh $\mathcal{M}$ is first generated and resolves the domain boundary. The dual mesh $\Tilde{\mathcal{M}}$ is generated afterwards. To make both meshes aligned at boundary, we have to truncate the \emph{dual} elements near the boundary due to the staggered character. In the meantime, auxiliary geometric entities are needed to close $\Tilde{\mathcal{M}}$, see Fig. \ref{fig:illustraion_dual_boundary}.
+The primal mesh $\mathcal{M}$ is first generated and resolves the domain boundary. The dual mesh $\Tilde{\mathcal{M}}$ is generated afterwards. To make both meshes aligned at boundary, we have to truncate the \emph{dual} entities near the boundary due to the staggered character. In the meantime, auxiliary geometric entities are needed to close $\Tilde{\mathcal{M}}$, see Fig. \ref{fig:illustraion_dual_boundary}.
 
-Note that the auxiliary edges might not be straight and the auxiliary faces might not be flat as is shown in Fig. \ref{fig:illustraion_dual_boundary}, which necessitates a versatile data structure to include such situations. In the following, the auxiliary elements would be treated as dual elements, which limits the validity of the relations in Tab. \ref{tab:incidence_relation} to interior part of $\Tilde{\mathcal{M}}$.
+Note that the auxiliary edges might not be straight and the auxiliary faces might not be flat as is shown in Fig. \ref{fig:illustraion_dual_boundary}, which necessitates a versatile data structure to include such situations. In the following, the auxiliary entities would be treated as dual entities, which limits the validity of the relations in Tab. \ref{tab:incidence_relation} to interior part of $\Tilde{\mathcal{M}}$. For a more systematic illustration that considers the boundary dual entities, see \cite[][sec. 5]{hip_1999}.
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.3]{primal_mesh.png}
+    \hspace{1cm}
+    \includegraphics[scale=0.3]{dual_mesh.png}
+    \caption{Primal mesh (left) and dual mesh (right).}
+    \label{fig:primal_dual_meshes}
+\end{figure}
 
 \begin{figure}
     \begin{subfigure}[b]{0.3\textwidth}
@@ -956,49 +935,51 @@ Note that the auxiliary edges might not be straight and the auxiliary faces migh
         \end{tikzpicture}
         \caption{3D case}
     \end{subfigure}
-    \caption{Illustration of cut-off boundary. Before the cut-off, the boundary of $\Tilde{\mathcal{M}}$ is not well-defined. To resolve the same boundary as $\mathcal{M}$, boundary dual cells are truncated and auxiliary elements are supplemented (shown in orange color). To be specific, in subfigure (c) four edges and one face are added in order to close this dual cell. Notice that these auxiliary edges and faces can be non-straight and non-flat.}
+    \caption{Illustration of cut-off boundary. Before the cut-off, the boundary of $\Tilde{\mathcal{M}}$ is not well-defined. To resolve the same boundary as $\mathcal{M}$, boundary dual cells are truncated and auxiliary entities are supplemented (shown in orange color). To be specific, in subfigure (c) four edges and one face are added in order to close this dual cell. Notice that these auxiliary edges and faces can be non-straight and non-flat.}
     \label{fig:illustraion_dual_boundary}
 \end{figure}
 
+A pair of primal and dual meshes for the geometry in Fig. \ref{fig:domain_sketch} is displayed in Fig. \ref{fig:primal_dual_meshes}.
+
 \subsection{Discrete Maxwell Equations}
-\subsubsection{Finite Integration Technique (FIT)}
-We utilize FIT to discretize Maxwell's equations. This framework was originally proposed in \cite{weiland_1977} and can be treated as a generalization of Yee's FDTD method \cite{yee_1966}. FIT is established based on the integral form of Maxwell's equations:
+\subsubsection{Finite Integration Technique (FIT)} \label{sec:fit}
+We utilize FIT to discretize Maxwell's equations. This framework was originally proposed in \cite{weiland_1977} and can be regarded as a generalization of Yee's FDTD method \cite{yee_1966}. To derive the discrete Maxwell model under FIT, we first integrate the (rescaled) Maxwell equations (\ref{equ:maxwell_faraday_rescaled})-(\ref{equ:maxwell_gauss_D_rescaled})
 \begin{subequations}
 \begin{align}
-    &\oint_{\partial A} \mathbf{E} \cdot d\mathbf{s} \ = - \iint_A \frac{\partial \mathbf{B}}{\partial t} \cdot d\mathbf{A}, \label{equ:maxwell_int_faraday}\\
-    &\oint_{\partial A} \mathbf{H} \cdot d\mathbf{s} \ = \iint_A \left(\frac{\partial \mathbf{D}}{\partial t} + \mathbf{J}\right) \cdot d\mathbf{A}, \label{equ:maxwell_int_ampere}\\
-    &\oint_{\partial V} \mathbf{B} \cdot d\mathbf{A} = 0, \label{equ:maxwell_int_gauss_B}\\
-    &\oint_{\partial V} \mathbf{D} \cdot d\mathbf{A} = \iiint_V \rho dV. \label{equ:maxwell_int_gauss_D}
+    &\oint_{\partial A} \mathbf{E} \cdot \text{d}\mathbf{s} \ = - \iint_A {\partial_t \mathbf{B}} \cdot \text{d}\mathbf{A}, \label{equ:maxwell_int_faraday}\\
+    &\oint_{\partial A} \mathbf{H} \cdot \text{d}\mathbf{s} \ = \iint_A \left({\lambda^2\partial_t \mathbf{D}} + \mathbf{J}\right) \cdot \text{d}\mathbf{A}, \label{equ:maxwell_int_ampere}\\
+    &\oint_{\partial V} \mathbf{B} \cdot \text{d}\mathbf{A} = 0, \label{equ:maxwell_int_gauss_B}\\
+    &\oint_{\partial V} \lambda^2\mathbf{D} \cdot \text{d}\mathbf{A} = \iiint_V \rho \text{d}V. \label{equ:maxwell_int_gauss_D}
 \end{align}
 \end{subequations}
 where $A, V$ stand for arbitrary surfaces and cells in the spatial domain. 
 
-Given the mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$, the discrete Maxwell system is described by applying the integral equations (\ref{equ:maxwell_int_faraday})-(\ref{equ:maxwell_int_gauss_D}) to the elements in $(\mathcal{M}, \Tilde{\mathcal{M}})$. We end up with
+Given the mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$, the discrete Maxwell system arises from applying the integral equations (\ref{equ:maxwell_int_faraday})-(\ref{equ:maxwell_int_gauss_D}) to the entities in $(\mathcal{M}, \Tilde{\mathcal{M}})$. We end up with
 \begin{subequations}
 \begin{align}
-    &\sum_{k:L_k\in\partial A_l} \underbrace{\int_{L_k} \mathbf{E} \cdot d\mathbf{s}}_{:= e_k} = - \frac{\partial}{\partial t} \underbrace{\iint_{A_l} \mathbf{B} \cdot d\mathbf{A}}_{:= b_l},\ \ \ l = 1,...,N_A, \label{equ:maxwell_grid_faraday} \\
-    &\sum_{k:\Tilde{L}_k\in\partial \Tilde{A}_l} \underbrace{\int_{\Tilde{L}_k} \mathbf{H} \cdot d\mathbf{s}}_{:= h_k} = \frac{\partial}{\partial t} \underbrace{\iint_{\Tilde{A}_l} \mathbf{D} \cdot d\mathbf{A}}_{:= d_l} + \underbrace{\iint_{\Tilde{A}_l} \mathbf{J} \cdot d\mathbf{A}}_{:= j_l}, \ \ \ l = 1,...,N_{\Tilde{A}}, \label{equ:maxwell_grid_ampere}\\
-    &\sum_{k:A_k\in \partial V_l} \iint_{A_k} \mathbf{B} \cdot d\mathbf{A} = 0,\ \ \ l = 1,..., N_V,\label{equ:maxwell_grid_gauss_B}\\
-    &\sum_{k:\Tilde{A}_k \in \partial\Tilde{V}_l}\iint_{\Tilde{A}_k} \mathbf{D} \cdot d\mathbf{A} = \underbrace{\iiint_{\Tilde{V}_l} \rho dV}_{:= q_l},\ \ \ l = 1,...,N_{\Tilde{V}}. \label{equ:maxwell_grid_gauss_D}
+    \sum_{k:L_k\in\partial A_l} \underbrace{\int_{L_k} \mathbf{E} \cdot \text{d}\mathbf{s}}_{:= e_k} &= - {\partial_t} \underbrace{\iint_{A_l} \mathbf{B} \cdot \text{d}\mathbf{A}}_{:= b_l},&l = 1,...,N_A, \label{equ:maxwell_grid_faraday} \\
+    \sum_{k:\Tilde{L}_k\in\partial \Tilde{A}_l} \underbrace{\int_{\Tilde{L}_k} \mathbf{H} \cdot \text{d}\mathbf{s}}_{:= h_k} &= \lambda^2{\partial_t} \underbrace{\iint_{\Tilde{A}_l} \mathbf{D} \cdot \text{d}\mathbf{A}}_{:= d_l} + \underbrace{\iint_{\Tilde{A}_l} \mathbf{J} \cdot \text{d}\mathbf{A}}_{:= j_l}, &l = 1,...,N_{\Tilde{A}}, \label{equ:maxwell_grid_ampere}\\
+    \sum_{k:A_k\in \partial V_l} \iint_{A_k} \mathbf{B} \cdot \text{d}\mathbf{A} &= 0,&l = 1,..., N_V,\label{equ:maxwell_grid_gauss_B}\\
+    \lambda^2\sum_{k:\Tilde{A}_k \in \partial\Tilde{V}_l}\iint_{\Tilde{A}_k} \mathbf{D} \cdot \text{d}\mathbf{A} &= \underbrace{\iiint_{\Tilde{V}_l} \rho \text{d}V}_{:= q_l},&l = 1,...,N_{\Tilde{V}}. \label{equ:maxwell_grid_gauss_D}
 \end{align}
 \end{subequations}
-where $k, l$ are numbering of elements in $(\mathcal{M}, \Tilde{\mathcal{M}})$.
+where $k, l$ are numbering the entities in $(\mathcal{M}, \Tilde{\mathcal{M}})$.
 
-The integral quantities are the unknowns to be solved. As is defined in (\ref{equ:maxwell_grid_faraday})-(\ref{equ:maxwell_grid_gauss_D}) by the underbraces, these scalar quantities are stacked into vectors:
+The integral quantities are the unknowns of the discrete Maxwell model. As is defined in (\ref{equ:maxwell_grid_faraday})-(\ref{equ:maxwell_grid_gauss_D}) by the underbraces, these unknowns are stacked into vectors:
 \begin{equation} \label{equ:fit_scale_vector}
-    \mathbf{e} := (e_k)_{k=1}^{N_L},\ \ \mathbf{b} := (b_k)_{k=1}^{N_A}, \ \ \mathbf{h} := (h_k)_{k=1}^{N_{\Tilde{L}}}, \ \ \mathbf{d} := (d_k)_{k=1}^{N_{\Tilde{A}}}, \ \ \mathbf{j} := (j_k)_{k=1}^{N_{\Tilde{A}}}, \ \ \mathbf{q} := (q_k)_{i=k}^{N_{\Tilde{V}}}.
+    \mathbf{e} := \{e_k\}_{k=1}^{N_L},\ \ \mathbf{b} := \{b_k\}_{k=1}^{N_A}, \ \ \mathbf{h} := \{h_k\}_{k=1}^{N_{\Tilde{L}}}, \ \ \mathbf{d} := \{d_k\}_{k=1}^{N_{\Tilde{A}}}, \ \ \mathbf{j} := \{j_k\}_{k=1}^{N_{\Tilde{A}}}, \ \ \mathbf{q} := \{q_k\}_{i=k}^{N_{\Tilde{V}}}.
 \end{equation}
 
 \begin{remark}
-    In an implementation, it is always convenient to index a pair of corresponding primal and dual elements with the same number. For instance, a primal face $A_k$ is penetrated by the dual edge $\Tilde{L}_k$. In the following discussion, we stick to this convention, which will simplify our notation.
+    In an implementation, it is always convenient to index a pair of corresponding primal and dual entities with the same number. For instance, a primal face $A_k$ is penetrated by the dual edge $\Tilde{L}_k$. In the following discussion, we stick to this convention, which will simplify our notation.
 \end{remark}
 
-The material laws (\ref{equ:material_law}) need to be reformulated within this framework. The relations between scalar vectors, in the form of $\mathbf{b} = \mathbb{M}_\mu \mathbf{h}$ and $\mathbf{d} = \mathbb{M}_\varepsilon \mathbf{e}$, are to be derived. When permittivity $\mu$ and permeability $\varepsilon$ are homogeneous in the domain and the orthogonality of the pair ($\mathcal{M}, \Tilde{\mathcal{M}}$) holds, the discrete material laws involve diagonal matrices with entries 
+The material laws (\ref{equ:material_law}) need to be taken into account within this framework, that is, relations $\mathbf{b} = \mathbb{M}_\mu \mathbf{h}$ and $\mathbf{d} = \mathbb{M}_\epsilon \mathbf{e}$ with suitable \emph{material} matrices $\mathbb{M}_\mu, \mathbb{M}_\epsilon$. When permittivity $\mu$ and permeability $\epsilon$ are homogeneous in the domain and the orthogonality of the pair ($\mathcal{M}, \Tilde{\mathcal{M}}$) holds, the discrete material laws involve diagonal matrices with entries 
 
 \begin{equation*}
-    (\mathbb{M}_\mu)_{k,k} = \frac{\mu|A_k|}{|\Tilde{L}_k|}, \ \ \ \ \ (\mathbb{M}_\varepsilon)_{k,k} = \frac{\varepsilon |\Tilde{A}_k|}{|L_k|},
+    (\mathbb{M}_\mu)_{k,k} = \frac{\mu|A_k|}{|\Tilde{L}_k|}, \ \ \ \ \ (\mathbb{M}_\epsilon)_{k,k} = \frac{\epsilon |\Tilde{A}_k|}{|L_k|},
 \end{equation*}
-where $|\cdot|$ denotes taking length or area. We would like to remark that the approximation error is introduced due to the implicit assumption that vector fields are piecewise constant, see the analysis in \cite{Marrone_2001}.
+where $|\cdot|$ denotes taking length or area. We would like to remark that the approximation error is introduced due to the implicit assumption that vector fields are piecewise constant, see the analysis in \cite[][sec. 3.2]{Marrone_2001}.
 
 With the aid of incidence matrices defined in the preceding section and given the discrete material law, (\ref{equ:maxwell_grid_faraday})-(\ref{equ:maxwell_grid_gauss_D}) can be recast into a set of algebraic equations:
 \begin{center}
@@ -1006,11 +987,11 @@ With the aid of incidence matrices defined in the preceding section and given th
 \begin{minipage}{0.3\textwidth}
 \begin{align*}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \\
-    \partial_t \mathbf{D} - \nabla \times \mathbf{H} &= -\mathbf{J}, \\
+    \lambda^2\partial_t \mathbf{D} - \nabla \times \mathbf{H} &= -\mathbf{J}, \\
     \nabla \cdot \mathbf{B} &= 0,  \\
-    \nabla \cdot \mathbf{D} &= \rho, \\
+    \lambda^2\nabla \cdot \mathbf{D} &= \rho, \\
     \mathbf{H} &= \mu^{-1} \mathbf{B}, \\
-    \mathbf{D} &= \varepsilon \mathbf{E}. 
+    \mathbf{D} &= \epsilon \mathbf{E}. 
 \end{align*}
 \end{minipage}
 \begin{minipage}{0.1\textwidth}
@@ -1023,31 +1004,30 @@ With the aid of incidence matrices defined in the preceding section and given th
 \begin{subequations}
 \begin{align}
     \dot{\mathbf{b}} + \mathbb{C}\mathbf{e} &= \mathbf{0} , \label{equ:alg_faraday}\\
-    \dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} &= - \mathbf{j}, \label{equ:alg_empere}\\
+    \lambda^2\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} &= - \mathbf{j}, \label{equ:alg_empere}\\
     \mathbb{D}\mathbf{b} &= \mathbf{0},  \label{equ:alg_gauss_b}\\
-    \Tilde{\mathbb{D}}\mathbf{d} &= \mathbf{q},  \label{equ:alg_gauss_d}\\
+    \lambda^2\Tilde{\mathbb{D}}\mathbf{d} &= \mathbf{q},  \label{equ:alg_gauss_d}\\
     \mathbf{h} &= \mathbb{M}_\mu^{-1} \mathbf{b}, \label{equ:alg_material_magnetic}\\
-    \mathbf{d} &= \mathbb{M}_{\varepsilon} \mathbf{e}, \label{equ:alg_material_electric} 
+    \mathbf{d} &= \mathbb{M}_{\epsilon} \mathbf{e}, \label{equ:alg_material_electric} 
 \end{align}
 \end{subequations}
 \end{minipage}
 \end{center}
-where the topping dot $\cdot$ stands for taking the time derivative.
+where the dot above variables stands for the time derivative.
 
-At this point, we would like to emphasize the importance of the primal-dual staggered meshes: the material laws can be included in a rather simple way. For magnetic Gauss's law $\mathbf{D} = \varepsilon \mathbf{E}$, for instance, the $\mathbf{D}$-field is represented by a collection of face integrals $ (d_k)_{k}$ while $\mathbf{E}$-field is represented by a collection of edge integrals $ (e_k)_{k}$. The primal-dual meshes allow us to arrange them in a staggered way -- edges penetrate faces -- such that $\mathbf{D} = \varepsilon \mathbf{E}$ can be approximated by $\mathbf{d} = \mathbb{M}_{\varepsilon}\mathbf{e}$ in a local fashion, i.e. $\mathbb{M}_{\varepsilon}$ is diagonal. A more schematic illustration involves the language of differential forms and discrete Hodge operators, see \cite{bossavit1999, teixeira_1999, hip_1999}. 
+At this point, we would like to emphasize the importance of the primal-dual staggered meshes: \emph{the material laws can be included in a rather simple way.} For Gauss's law $\mathbf{D} = \epsilon \mathbf{E}$, for instance, the $\mathbf{D}$-field is represented by a collection of face integrals $ \{d_k\}_{k}$ while the $\mathbf{E}$-field is represented by a collection of edge integrals $ \{e_k\}_{k}$. The primal-dual meshes allow us to arrange them in a staggered way -- edges penetrate faces -- such that $\mathbf{D} = \epsilon \mathbf{E}$ can be approximated by $\mathbf{d} = \mathbb{M}_{\epsilon}\mathbf{e}$ in a local fashion, i.e. $\mathbb{M}_{\epsilon}$ is diagonal. A more schematic illustration relies on the language of discrete exterior calculus (DEC), see \cite{bossavit1999, teixeira_1999, hip_1999}. 
 
-This transformation does not introduce approximations \emph{except for} the discrete material laws. The essence of FIT lies in that the complexity of continuous electric and magnetic field quantities
-is reduced to a finite number of well-defined discrete unknowns \citep{weiland_2003}. Also, this discrete version of Maxwell's equations (\ref{equ:alg_faraday})-(\ref{equ:alg_material_electric}) are topological in the sense that they are invariant under different coordinate systems.
+The essence of FIT lies in: (i) The discrete Maxwell model (\ref{equ:alg_faraday})-(\ref{equ:alg_gauss_d}) are topological in the sense that they are invariant under different coordinate systems. Only the discrete material laws (\ref{equ:alg_material_magnetic})(\ref{equ:alg_material_magnetic}) depend on the geometric information. (ii) The discrete Maxwell model (\ref{equ:alg_faraday})-(\ref{equ:alg_gauss_d}) is free of approximation error, that is, it holds for analytical solutions. The consistency error is only introduced by the discrete material laws (\ref{equ:alg_material_magnetic})(\ref{equ:alg_material_magnetic}). 
 
 \subsubsection{Discrete Boundary Conditions}
-The electromagnetic boundary $\Gamma_C, \Gamma_I$ is resolved by the primal mesh $\mathcal{M}$. As is mentioned in Section \ref{sec:BC}, a boundary scalar potential $\varphi$ can be introduced due to the vanishing surface curl of $\mathbf{E}$-field. It holds in the discrete level as well. We associate each primal vertex $P_k \in \partial\Omega$ with a scalar value $\varphi_k$. Therefore, the boundary conditions (see Section \ref{sec:BC}) are discretized in the following way:
+The electromagnetic boundary $\Gamma_C, \Gamma_I$ is resolved by the primal mesh $\mathcal{M}$. As is mentioned in Section \ref{sec:BC}, the zero magnetic flux $\mathbf{B}\cdot \mathbf{n}$ is equivalent to $\nabla\times\mathbf{E} \cdot \mathbf{n} = 0$, which allows a boundary scalar potential $\varphi$ such that the tangential component $\mathbf{E}_t$ of the $\mathbf{E}$-field is equal to $\nabla_\Gamma\varphi$. It holds on the discrete level as well. We associate each primal vertex $P_k \in \partial\Omega$ with a scalar value $\varphi_k$. Therefore, the boundary conditions (see Section \ref{sec:BC}) are discretized in the following way:
 \begin{center}
     \vspace{-0.5cm}
     \begin{minipage}{0.3\textwidth}
     \begin{align*}
-    \text{curl} \mathbf{E} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \Gamma_I,  \\
-    \text{curl} \mathbf{H} \cdot \mathbf{n} = 0\ \  &\text{on} \ \  \Gamma_I, \\
-    \varphi = \varphi^\pm(t)\ \ &\text{on} \ \ \Gamma_C^\pm.
+    \mathbf{D} \cdot \mathbf{n} = 0\ \ &\text{on} \ \  \Gamma_I,  \\
+    \mathbf{B} \cdot \mathbf{n} = 0\ \  &\text{on} \ \  \Gamma_I, \\
+    \varphi = \varphi^\pm(t)\ \ &\text{on} \ \ \Gamma_C^\pm,
     \end{align*}
     \end{minipage}
     \begin{minipage}{0.1\textwidth}
@@ -1056,133 +1036,152 @@ The electromagnetic boundary $\Gamma_C, \Gamma_I$ is resolved by the primal mesh
     \draw[thick, -{to}] (0,0) -- node[above]{$(\mathcal{M}, \Tilde{\mathcal{M}})$} (1.5,0);
     \end{tikzpicture}
     \end{minipage}
-    \begin{minipage}{0.4\textwidth}
+    \begin{minipage}{0.5\textwidth}
+        \centering
         \begin{subequations}
             \begin{align}
-            e_k = (\mathbb{G}\bm{\varphi})_k,\ \ &\forall k : L_k \subset \partial\Omega, \label{equ:bc_2}\\
-            (\Tilde{\mathbb{C}} \bm{h})_k = 0\ \ &\forall k : \Tilde{A}_k \subset \Gamma_I,\label{equ:bc_3} \\
-            \varphi_k = \varphi^\pm(t), \ \ &\forall k : P_k \subset \Gamma_C^\pm. \label{equ:bc_1}
+            d_k = 0,\ \ &\forall k : \Tilde{A}_k \subset \Gamma_I,\label{equ:bc_3} \\
+            e_k = (\mathbb{GX}_\varphi\bm{\varphi})_k,\ \ &\forall k : L_k \subset \partial\Omega, \label{equ:bc_2}\\
+            \varphi_k = \varphi^\pm(t), \ \ &\forall k : P_k \subset \Gamma_C^\pm, \label{equ:bc_1}
             \end{align}
         \end{subequations}
     \end{minipage}
 \end{center}
+where $\mathbb{X}_\varphi \in \mathbb{R}^{N_P \times N_P^\partial}$ extends $\bm{\varphi}$ to all the primal verices by zero. Therefore, the surface gradient $\nabla_\Gamma$ is represented by $\mathbb{GX}_\varphi$.
 
-\subsubsection{Reformulation} \label{sec:reform_discrete}
+\subsubsection{Stabilization in $\Omega_N$} \label{sec:reform_discrete}
 In Section \ref{sec:reform_continuous}, we have proposed a stabilization of the Maxwell system in the non-conducting domain $\Omega_N$ by introducing a Lagrange multiplier. In the semi-discrete level, the equations to be solved in $\Omega_N$ are
-\begin{subequations}
-    \begin{align}
-        \dot{\mathbf{b}} + \mathbb{C}\mathbf{e} &= \mathbf{0} ,\\
-        \dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \colorbox{orange!20}{$\mathbb{H} \mathbb{G} \bm{\psi}$}&= \mathbf{0},\\
-        \Tilde{\mathbb{D}}\mathbf{d} &= \mathbf{0} \label{equ:discrete_zero_div}, 
-    \end{align} 
-\end{subequations}
-where $\bm{\psi} = (\psi_k)_k$ denotes unknowns assigned to each primal vertex in $\Omega_N$ and the matrix $\mathbb{H}_{k,k} = \frac{|\Tilde{A}_k|}{|L_k|}$ transforms primal edge integrals to dual face fluxes\footnote{$\mathbb{H}$ functions as a discrete Hodge operator.}. To incorporate the zero Dirichlet BC, we limit the unknowns $(\psi_k)_{k=1}^{N^{N,\circ}_P}$ to primal vertices in $\Omega_N^\circ$.
 
-\subsubsection{Remark: Balance of Equations and Unknowns}
+\begin{center}
+    \vspace{-0.5cm}
+    \begin{minipage}{0.3\textwidth}
+    \begin{align*}
+        \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \\ 
+        \lambda^2 \partial_t \mathbf{D} - \nabla \times \mathbf{H} + \colorbox{orange!20}{$\nabla \psi$} &= 0, \\
+        \nabla \cdot \mathbf{D} &= 0. 
+    \end{align*}
+    \end{minipage}
+    \begin{minipage}{0.1\textwidth}
+    \centering
+    \begin{tikzpicture}
+    \draw[thick, -{to}] (0,0) -- node[above]{$(\mathcal{M}, \Tilde{\mathcal{M}})$} (1.5,0);
+    \end{tikzpicture}
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \begin{subequations}
+        \begin{align}
+            [\dot{\mathbf{b}} + \mathbb{C}\mathbf{e} &= \mathbf{0}]_k,\ \ \forall k:A_k \subset \Omega_N,\\
+            [\lambda^2\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \colorbox{orange!20}{$\mathbb{H} \mathbb{G} \mathbb{X}_\psi \bm{\psi}$}&= \mathbf{0}]_k, \ \ \forall k: \Tilde{A}_k \subset \Omega_N \label{equ:discrete_ampere_ins}\\
+            [\Tilde{\mathbb{D}}\mathbf{d} &= \mathbf{0}]_k,\ \ \forall k:\Tilde{V}_k \subset \Omega_N \label{equ:discrete_zero_div}, 
+        \end{align} 
+    \end{subequations}
+    \end{minipage}
+\end{center}
+where $\bm{\psi} := \{\psi_k\}_{k=1}^{N_P^N}$ denotes unknowns assigned to each primal vertex in $\Omega_N$. The matrix $\mathbb{X}_\psi \in \mathbb{R}^{N_P \times N_P^{N}}$ extends $\bm{\psi}$ by zero to all the primal vertices, by which the zero Dirichlet boundary condition is incorporated. We need the matrix $(\mathbb{H})_{k,k} = {|\Tilde{A}_k|}/{|L_k|}$ to transform primal edge integrals to dual face fluxes since the discrete Amp\`{e}re's law (\ref{equ:discrete_ampere_ins}) is defined on dual faces on $\Omega_N$. 
 
-We can heuristically examine the well-posedness of the (semi-)discrete Maxwell system by checking whether the numbers of unknowns (also called degrees of freedom (D.o.F.)) and equations coincide. Before counting, we make a meticulous classification for mesh elements according to their locations and summarize the notation for the sake of clarification (see Tab. \ref{tab:def_size_var}).
+\subsubsection{Numbers of Equations and Unknowns}
+
+We can examine the well-posedness of the (semi-)discrete Maxwell system by checking whether the numbers of unknowns (also called degrees of freedom (D.o.F.)) and equations coincide. 
+
+First, we make a meticulous classification for mesh entities according to their locations:
 \begin{center}
 \vspace{-0.5cm}
 \begin{minipage}[t]{0.4\textwidth}
     \begin{align*}
-        &\#\  \text{primal cell}\ \  N_V \\
-        &\#\  \text{primal edge}\ \  N_L := \underbrace{N^C_L + N^I_L}_{=N^\partial_L} + N^\circ_L  \\
-        &\#\  \text{primal face}\ \  N_A := \underbrace{N_A^C + N^I_A}_{=N^\partial_A} + N^\circ_A  \\
-        &\#\  \text{primal vertex}\ \  N_P := \underbrace{N_P^C + N^I_P}_{=N^\partial_P} + N^\circ_P
+        &\#\  \text{primal cells}\ \  N_V \\
+        &\#\  \text{primal edges}\ \  N_L := \underbrace{N^C_L + N^I_L}_{=N^\partial_L} + N^\circ_L  \\
+        &\#\  \text{primal faces}\ \  N_A := \underbrace{N_A^C + N^I_A}_{=N^\partial_A} + N^\circ_A  \\
+        &\#\  \text{primal vertices}\ \  N_P := \underbrace{N_P^C + N^I_P}_{=N^\partial_P} + N^\circ_P
     \end{align*}
 \end{minipage}
 \begin{minipage}[t]{0.4\textwidth}
     \begin{align*}
-        &\#\  \text{dual cell}\ \  N_{\Tilde{V}} := N_P \\
-        &\#\  \text{dual edge}\ \  N_{\Tilde{L}} := \underbrace{N^\partial_{\Tilde{L}}}_{=N^\partial_L} + \underbrace{N^\circ_{\Tilde{L}}}_{=N_A} \\
-        &\#\  \text{dual face}\ \  N_{\Tilde{A}} := \underbrace{N^\partial_{\Tilde{A}}}_{=N^\partial_P} + \underbrace{N^\circ_{\Tilde{A}}}_{=N_L}
+        &\#\  \text{dual cells}\ \  N_{\Tilde{V}} := N_P \\
+        &\#\  \text{dual edges}\ \  N_{\Tilde{L}} := \underbrace{N^\partial_{\Tilde{L}}}_{=N^\partial_L} + \underbrace{N^\circ_{\Tilde{L}}}_{=N_A} \\
+        &\#\  \text{dual faces}\ \  N_{\Tilde{A}} := \underbrace{N^\partial_{\Tilde{A}}}_{=N^\partial_P} + \underbrace{N^\circ_{\Tilde{A}}}_{=N_L}
     \end{align*}
 \end{minipage}   
 \end{center}
-
-
-where the superscript indicates the locations where the elements lie. The equations $N^\partial_{\Tilde{L}} = N^\partial_L, N^\partial_{\Tilde{A}} = N^\partial_P$ reveal the bijective relation between the boundary primal elements and auxiliary elements, as can be checked easily by inspecting Fig. \ref{fig:illustraion_dual_boundary}.
-
+where the superscript indicates the locations where the entities lie. The equations $N^\partial_{\Tilde{L}} = N^\partial_L, N^\partial_{\Tilde{A}} = N^\partial_P$ reveal the bijective relation between the boundary primal entities and auxiliary entities, as can be checked easily by inspecting Fig. \ref{fig:illustraion_dual_boundary}.
+We also give a summary of the unknowns in Tab. \ref{tab:def_size_var}.
 \begin{table}[]
     \centering
 \begin{tabular}{c c c}
      \hline
-     D.o.F.  & Meaning  & Size \\
+     Vector of unknowns  & Meaning  & Vector size \\
      \hline
      $\mathbf{e}$ & line integrals of $\mathbf{E}$-field at primal edges $L$& $N_L$ \\
-     $\bm{\varphi}$ & electric potentials at primal vertices $P$ on $\partial\Omega$ & $N_P^\partial$ \\
+     $\bm{\varphi}$ & boundary scalar potential $\varphi$ at primal vertices $P$ on $\partial\Omega$ & $N_P^\partial$ \\
      $\mathbf{b}$ & surface integrals of $\mathbf{B}$-field at primal faces $A$ & $N_A$ \\
      $\mathbf{h}$ & line integrals of $\mathbf{H}$-field at dual edges $\Tilde{L}$ & $N_{\Tilde{L}}$ \\
      $\mathbf{d}$ & surface integrals of $\mathbf{D}$-field at dual faces $\Tilde{A}$ & $N_{\Tilde{A}}$ \\
-     $\bm{\psi}$ & Lagrange multiplier at primal vertices $P$ in $\Omega_N^\circ$ & $N^{N,\circ}_P$\\ 
+     $\bm{\psi}$ & Lagrange multiplier $\psi$ at primal vertices $P$ in $\Omega_N$ & $N^{N}_P$\\ 
      \hline
 \end{tabular}
-    \caption{Definitions and sizes of all vectors of degrees of freedom.}
+    \caption{Definitions and sizes of the vectors of unknowns.}
     \label{tab:def_size_var}
 \end{table}
 
 Next, we collect all the algebraic equations derived from the Maxwell system and the boundary conditions: 
 \begin{align*}
-    \text{discrete Faraday law (\ref{equ:alg_faraday})} \ \ &\longrightarrow\ \  N_A \ \ \text{equations} \\
-    \text{discrete Ampere law (\ref{equ:alg_empere})} \ \ &\longrightarrow\ \  N_{\Tilde{A}} \ \ \text{equations} \\
+    \text{discrete Faraday's law (\ref{equ:alg_faraday})} \ \ &\longrightarrow\ \  N_A \ \ \text{equations} \\
+    \text{discrete Ampere's law (\ref{equ:alg_empere})} \ \ &\longrightarrow\ \  N_{\Tilde{A}} \ \ \text{equations} \\
     \text{discrete material laws (\ref{equ:alg_material_magnetic})(\ref{equ:alg_material_electric})} \ \ &\longrightarrow\ \  N_A + N_L \ \ \text{equations} \\
     \text{boundary condition (\ref{equ:bc_1})} \ \ &\longrightarrow\ \  N_P^C \ \ \text{equations} \\
     \text{boundary condition (\ref{equ:bc_2})} \ \ &\longrightarrow\ \  N_L^\partial \ \ \text{equations} \\
     \text{boundary condition (\ref{equ:bc_3})} \ \ &\longrightarrow\ \  N_{\Tilde{A}}^I \ \ \text{equations}. \\
-    \text{vanishing divergence constraint (\ref{equ:discrete_zero_div})} \ \ &\longrightarrow\ \  N_P^{N,\circ} \ \ \text{equations}. \\
+    \text{vanishing divergence constraint (\ref{equ:discrete_zero_div})} \ \ &\longrightarrow\ \  N_{\Tilde{V}}^{N} \ \ \text{equations}. \\
 \end{align*}
-Comparing the numbers of D.o.F in Tab. \ref{tab:def_size_var} and of the equations we collect, we show that they are equal:
+Comparing the numbers of D.o.F in Tab. \ref{tab:def_size_var} and of the equations we collect above, we show that they are equal:
 \begin{align*}
-    \#\text{ of unknowns} &= \colorbox{violet!20}{$N_L$} + \colorbox{blue!20}{$N_A$} + \colorbox{gray!40}{$N_{\Tilde{L}}$} + \colorbox{orange!20}{$N_{\Tilde{A}}$} + \colorbox{green!20}{$N_P^\partial$} + \colorbox{yellow!40}{$N_P^{N,\circ}$}, \\
-    \#\text{ of equations} &= \colorbox{blue!20}{$N_A$} + \colorbox{orange!20}{$N_{\Tilde{A}}$} + \colorbox{gray!40}{$N_A$} + \colorbox{violet!20}{$N_L$} + \colorbox{gray!40}{$N_L^\partial$} + \colorbox{green!20}{$N_P^C + N_P^I$}+ \colorbox{yellow!40}{$N_P^{N,\circ}$},
+    \#\text{ of unknowns} &= \colorbox{violet!20}{$N_L$} + \colorbox{blue!20}{$N_A$} + \colorbox{gray!40}{$N_{\Tilde{L}}$} + \colorbox{orange!20}{$N_{\Tilde{A}}$} + \colorbox{green!20}{$N_P^\partial$} + \colorbox{yellow!40}{$N_P^{N}$}, \\
+    \#\text{ of equations} &= \colorbox{blue!20}{$N_A$} + \colorbox{orange!20}{$N_{\Tilde{A}}$} + \colorbox{gray!40}{$N_A+N_L^\partial$} + \colorbox{violet!20}{$N_L$} + \colorbox{green!20}{$N_P^C + N_P^I$}+ \colorbox{yellow!40}{$N_{\Tilde{V}}^N$},
 \end{align*}
 where the terms with the same color are equal.
 
-However, the matching of numbers of unknowns and equations does not necessarily result in a valid linear system since the equations might be linearly dependent. We will see later in Section \ref{sec:inapp_bc} that inappropriate BCs could cause the singularity of the linear system as $\lambda \rightarrow 0$. 
+Of course, the matching numbers of unknowns and equations do not necessarily result in a valid linear system, since the equations might be linearly dependent. In fact, the linear system will be singular without the stabilization proposed in the previous section when $\lambda = 0$. 
 
-\subsection{Discrete Euler Equations}
-We employ the finite volume method (FVM) to discretize the Euler system. As a classical framework for solving conservation laws and hyperbolic systems, FVM is derived from the integral form of the equations in each cell. It is the cell average of quantities that evolves at each time step, based on the \emph{numerical flux} through the cell boundary. The construction of the numerical flux, which serves to approximate the real flux, is the essence of constructing FVM schemes. Due to the convection nature of fluid dynamics, the numerical fluxes are supposed to respect the convection direction, that is, an \emph{upwind scheme} is preferable. To this end, people resort to the approximated solution of \emph{Riemann problems}. The method is briefly illustrated in the following. For detailed information, see the textbook \cite{leveque_2002}.
-
-The Euler equations (\ref{equ:euler_}) can be generalized into the form of conservation law with source terms:
+\subsection{Discrete Euler Equations} \label{sec:discrete_euler}
+We employ the finite volume method (FVM) to discretize the Euler system. The Euler equations (\ref{equ:euler_}) can be cast into the form of conservation law with source terms:
 \begin{equation} \label{equ:euler_conservation}
     \partial_t \mathbf{U} + \nabla \cdot \mathbf{f}(\mathbf{U}) = \mathbf{RHS},
 \end{equation}
-where $\mathbf{U} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ stands for $m$ conservative variables, $\mathbf{f}(\mathbf{U}) \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the flux density, and $\mathbf{RHS} \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the source term. 
+where $\mathbf{U} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ stands for $m$ conservative variables. In the case of the full 3D Euler equations (\ref{equ:euler_rescaled}), $m = 5$ and $\mathbf{U} := [n, n\mathbf{u}, ne]$. $\mathbf{f}(\mathbf{U}) \in L^2(\Omega \times  [0,T], \mathbb{R}^{3 \times m})$ is the flux function. $\mathbf{RHS} \in L^2(\Omega \times  [0,T], \mathbb{R}^m)$ is the source term. 
 
-To obtain the semi-discretization, we first integrate (\ref{equ:euler_conservation}) over a cell $V_i$ 
+To obtain the semi-discretization, we first integrate (\ref{equ:euler_conservation}) over a \emph{dual} cell $\Tilde{V}_i \in \Omega_P$
 \begin{equation} \label{equ:euler_grid} 
-    \dot{\overline{\mathbf{U}}}_k + \frac{1}{|V_k|}\sum_{l:A_l\in\partial V_k} |A_l|\underbrace{\frac{1}{|A_l|}\iint_{A_l}\mathbf{f}(\mathbf{U})\cdot \mathbf{n}_l \text{d}A}_{:= \overline{\mathbf{f}}_l \approx \mathbf{f}^\text{num}_l} = \underbrace{\frac{1}{|V_k|}\iiint_{V_k} \mathbf{RHS} \text{d}V}_{:= \overline{\mathbf{RHS}}_k}
+    \dot{\overline{\mathbf{U}}}_k + \frac{1}{|\Tilde{V}_k|}\sum_{l:\Tilde{A}_l\in\partial \Tilde{V}_k} |\Tilde{A}_l|\underbrace{\frac{1}{|\Tilde{A}_l|}\iint_{\Tilde{A}_l}\mathbf{f}(\mathbf{U})\cdot \mathbf{n}_l \text{d}A}_{:= \overline{\mathbf{f}}_l \approx \mathbf{f}^\text{num}_l} = \underbrace{\frac{1}{|\Tilde{V}_k|}\iiint_{\Tilde{V}_k} \mathbf{RHS} \text{d}V}_{:= \overline{\mathbf{RHS}}_k},\ \ k = 1,2,\cdots,N_{\Tilde{V}}^P
 \end{equation}
-where $\overline{\mathbf{U}}_k := \iiint_{V_k} \mathbf{U} \text{d}V / |V_k| \in L^2([0,T],\mathbb{R}^m)$ is the cell average of $\mathbf{U}$ and $\mathbf{n}_l$ is the outer normal vector of face $A_l$ with respect to the cell $V_k$. We approximate the flux $\overline{\mathbf{f}}_l$ in (\ref{equ:euler_grid}) by a numerical flux $\mathbf{f}^\text{num}_l := \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_k, \overline{\mathbf{U}}_{\hat{k}(k,l)}, \mathbf{n}_l\right)$, where $\hat{k}(k,l)$ returns the index of the adjacent cell that shares $A_l$ with cell $V_k$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, and Engquist-Osher flux, see \cite[][p. 44-46]{mishra_2019}. Finally, we end up with the semi-discretized equation:
+where $\overline{\mathbf{U}}_k := \iiint_{\Tilde{V}_k} \mathbf{U} \text{d}V / |\Tilde{V}_k| \in L^2([0,T],\mathbb{R}^m)$ is the cell average of $\mathbf{U}$ and $\mathbf{n}_l$ is the outer normal vector of face $\Tilde{A}_l$ with respect to the cell $\Tilde{V}_k$. In FVM, the flux $\overline{\mathbf{f}}_l$ in (\ref{equ:euler_grid}) is approximated by a numerical flux $\mathbf{f}^\text{num}_l := \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_k, \overline{\mathbf{U}}_{\hat{k}(k,l)}, \mathbf{n}_l\right)$, where $\hat{k}(k,l)$ returns the index of the adjacent dual cell that shares $\Tilde{A}_l$ with cell $\Tilde{V}_k$. Classical numerical fluxes include Lax-Friedrich flux, Rusanov flux, and Engquist-Osher flux, see \cite[][pp. 44-46]{mishra_2019}. We end up with the semi-discretized equation:
 \begin{equation}
-    \dot{\overline{\mathbf{U}}}_k + \frac{1}{|V_k|}\sum_{l:A_l\in\partial V_k} |A_l| \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_k, \overline{\mathbf{U}}_{\hat{k}(k,l)}, \mathbf{n}_l\right) = \overline{\mathbf{RHS}}_k.
+    \dot{\overline{\mathbf{U}}}_k + \frac{1}{|V_k|}\sum_{l:\Tilde{A}_l\in\partial \Tilde{V}_k} |\Tilde{A}_l| \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_k, \overline{\mathbf{U}}_{\hat{k}(k,l)}, \mathbf{n}_l\right) = \overline{\mathbf{RHS}}_k,\ \  k = 1,2,\cdots,N_{\Tilde{V}}^P.
     \label{equ:fvm}
 \end{equation}
-The Rusanov flux in multi-dimensions on face $A_l$ writes
+We employ the Rusanov flux, which writes
 \begin{equation} \label{equ:rusanov-flux-3d}
     \mathbf{f}^\text{num}\left(\overline{\mathbf{U}}_L, \overline{\mathbf{U}}_R, \mathbf{n}\right) = \frac{1}{2}\left[\mathbf{f}(\overline{\mathbf{U}}_L)\cdot\mathbf{n} + \mathbf{f}(\overline{\mathbf{U}}_R)\cdot\mathbf{n}\right] - \frac{1}{2}\overline{s}\left(\overline{\mathbf{U}}_R - \overline{\mathbf{U}}_L\right),  
 \end{equation}
-where $\overline{s} = \text{max}(s(\overline{\mathbf{U}}_L), s(\overline{\mathbf{U}}_R))$ with $s(\mathbf{U}) := |\mathbf{u}\cdot\mathbf{n}| + \sqrt{\gamma p/\rho}$ representing the largest wave speed. 
+where $\overline{s} = \text{max}\{s(\overline{\mathbf{U}}_L), s(\overline{\mathbf{U}}_R)\}$ with $s(\mathbf{U}) := |\mathbf{u}\cdot\mathbf{n}| + \sqrt{\gamma p/\rho}$ representing the largest wave speed. 
 
-We would like to emphasize that the Euler system is discretized on $\Tilde{\mathcal{M}}$ due to the fact that (i) the electric current is connected to the momenta of charged particles by (\ref{equ:maxwell_euler_coupling}); (ii) the electric current is discretized on dual faces by (\ref{equ:maxwell_grid_ampere}).
+At this stage, we would like to discuss why the Euler system should be discretized on $\Tilde{\mathcal{M}}$. As is shown in the integrated Amp\`{e}re's law (\ref{equ:maxwell_int_ampere}), the electric currents are defined on dual faces $\Tilde{A}$. By solving the Euler equations on $\Tilde{\mathcal{M}}$, we have the mass flux on dual faces $\Tilde{A}$ as well. In this way, the connection between the charge conservation (\ref{equ:charge_continuity}) and the mass conservation (the 1st equation in \ref{equ:euler_}) due to the current-momentum coupling (\ref{equ:maxwell_euler_coupling}) is preserved on the discrete level. 
 
-To rewrite (\ref{equ:fvm}) into a matrix form, by abuse of notation we stack all the cell average $(\overline{\mathbf{U}}_k)_k$ into a matrix $\mathbf{U} \in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ with $\mathbf{U}_{k,:} = \overline{\mathbf{U}}_k$. Meanwhile, we denote by $\mathbf{F} \in \mathbb{R}^{N_{\Tilde{A}}^P \times m}$ the collection of the (total) numerical fluxes, i.e. $\mathbf{F}_{k,:} = \mathbf{f}^\text{num}_k$. In the same way, we denote by $\mathbf{RHS}\in \mathbb{R}^{N_{\Tilde{V}}^P \times m}$ the collection of $\overline{\mathbf{RHS}}_k$. Besides, we define the diagonal matrix $\mathbb{\Tilde{V}} \in \mathbb{R}^{N_{\Tilde{V}}^P \times N_{\Tilde{V}}^P}$ and $\mathbb{\Tilde{A}}\in \mathbb{R}^{N_{\Tilde{A}}^P \times N_{\Tilde{A}}^P}$ with $\mathbb{\Tilde{A}}_{k,k} = |\Tilde{A}_k|$. Making use of the incidence matrices, we end up with
-\begin{equation*}
+For the sake of presentation, we rewrite (\ref{equ:fvm}) into a matrix form. By abuse of notation, we stack all the cell average $\{\overline{\mathbf{U}}_k\}_{k=1}^{N^P_{\Tilde{V}}}$ into a matrix $\mathbf{U} \in \mathbb{R}^{N_{\Tilde{V}}^P \times 5}$ with $\mathbf{U}_{k,:} = \overline{\mathbf{U}}_k$. Further, we denote by $\mathbf{F} \in \mathbb{R}^{N_{\Tilde{A}}^P \times 5}$ the collection of the (total) numerical fluxes, i.e. $\mathbf{F}_{k,:} = \mathbf{f}^\text{num}_k = [f^\text{mass}_k, \bm{f}^\text{mom}_k, f^\text{ene}_k]$. In the same way, we denote by $\mathbf{RHS}\in \mathbb{R}^{N_{\Tilde{V}}^P \times 5}$ the collection of $\overline{\mathbf{RHS}}_k$. Besides, we define the diagonal matrix $\mathbb{\Tilde{V}} \in \mathbb{R}^{N_{\Tilde{V}}^P \times N_{\Tilde{V}}^P}$ and $\mathbb{\Tilde{A}}\in \mathbb{R}^{N_{\Tilde{A}}^P \times N_{\Tilde{A}}^P}$ with $(\mathbb{\Tilde{A}})_{k,k} = |\Tilde{A}_k|$. Making use of the incidence matrices, we end up with
+\begin{equation} \label{equ:euler_matrix_form}
     \dot{\mathbf{U}} + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbb{\Tilde{A}}\mathbf{F}(\mathbf{U})  = \mathbf{RHS}(\mathbf{U},\mathbf{d},\mathbf{b}),
-\end{equation*}
-where the dependence of $\mathbf{RHS}$ on $\mathbf{d}, \mathbf{b}$ is implied by (\ref{equ:euler_rescaled}) and will be elaborated below.
+\end{equation}
+Recall that $\Tilde{\mathbb{D}}$ represents the discrete divergence of $\Tilde{\mathcal{M}}$. Dependence of $\mathbf{RHS}$ on $\mathbf{d}, \mathbf{b}$ is implied by (\ref{equ:euler_rescaled}) and will be elaborated next.
 
 \subsubsection{Reconstruction of Lorentz Force}
 Since the electromagnetic fields are represented by integrals on edges and faces, we need to reconstruct their vector components for the computation of Lorentz force (and Joule heating) inside each dual cell.    
 
 The problem is twofold:
 \begin{itemize}
-    \item[-] given the fluxes at faces of a cell, reconstruct the vector field inside the cell;
+    \item[-] given the fluxes at the faces of a cell, reconstruct the vector field inside the cell;
     \item[-] given the integrals along the edges of a cell, reconstruct the vector field inside the cell. 
 \end{itemize}
 We adopt the principle of least square fitting and reconstruct a \emph{constant} vector field inside each cell. For a cell $\Tilde{V}$ with $N_A$ faces with areas $\{A_k\}_{k=1}^{N_A}$, normal vectors $\{\mathbf{n}_k\}_{k=1}^{N_A}$ and fluxes $\{f_k\}_{k=1}^{N_A}$, a constant vector field $\mathbf{v}$ satisfying 
 \begin{equation*}
-    \mathbf{v} = \argmin_{v\in \mathbb{R}^3} \sum_{k=1}^{N_A}(A_k\mathbf{v} \cdot \mathbf{n}_k - f_k)^2.   
+    \mathbf{v} = \argmin_{\mathbf{w}\in \mathbb{R}^3} \sum_{k=1}^{N_A}(A_k\mathbf{w} \cdot \mathbf{n}_k - f_k)^2.   
 \end{equation*} can be computed through
 \begin{equation*}
     \mathbf{v} = (\mathbb{K}^T\mathbb{K})^{-1}\mathbb{K}^T\mathbf{f},
@@ -1197,62 +1196,56 @@ and each vector in $\mathbb{R}^3$ is treated as a column vector. The constructio
     \ \ \ \ 
     \mathbf{B} = \Tilde{\mathbb{R}}_B\mathbf{b}, \label{equ:reconstruction}
 \end{equation}
-where $\mathbf{d}, \mathbf{b}$ are stacked unknowns, see Tab. \ref{tab:def_size_var}; $\mathbf{E} := (\mathbf{E}_k)_{k=1}^{N_{\Tilde{V}}}$ and $\mathbf{B} := (\mathbf{B}_k)_{k=1}^{N_{\Tilde{V}}}$ are $N_{\Tilde{V}} \times 3$ matrices stacking the reconstructed $\mathbf{E}$-fields and $\mathbf{B}$-fields at each $\Tilde{V}$; $\Tilde{\mathbb{R}}_E$ and $\Tilde{\mathbb{R}}_B$ are thus rank-3 tensors.
+where $\mathbf{d}, \mathbf{b}$ are defined in Tab. \ref{tab:def_size_var}; $\mathbf{E} := \{\mathbf{E}_k\}_{k=1}^{N_{\Tilde{V}}}$ and $\mathbf{B} := \{\mathbf{B}_k\}_{k=1}^{N_{\Tilde{V}}}$ are $N_{\Tilde{V}} \times 3$ matrices containing the reconstructed $\mathbf{E}$-fields and $\mathbf{B}$-fields at each $\Tilde{V}$; $\Tilde{\mathbb{R}}_E$ and $\Tilde{\mathbb{R}}_B$ are thus rank-3 tensors.
 
-The problem of the reconstruction of vector fields on unstructured meshes is a widely studied topic. Apart from the least-square method, other methods include Perot's method \citep{perot_2000}, finite-element-based methods, etc., which potentially can achieve higher-order accuracy. See \cite[][sec. 3.4.4]{fuchs_2021} and the references therein.  
+The problem of the reconstruction of vector fields on unstructured meshes is a widely studied topic. Apart from the least-square method, other methods include Perot's method \citep{perot_2000}, finite-entity-based methods, etc., which potentially can achieve higher-order accuracy. See \cite[][sec. 3.4.4]{fuchs_2021} and the references therein.  
+
+The right-hand-side term in (\ref{equ:euler_matrix_form}) can be computed according to the rescaled Euler equations (\ref{equ:euler_rescaled}) with the reconstructed $\mathbf{E}$-field and $\mathbf{B}$-field by (\ref{equ:reconstruction}) defined in each dual cell.
 
 \subsubsection{Discrete Boundary Conditions}
-The BCs for the Euler system (see Section \ref{sec:BC}) are implemented by the approach of ghost cells \cite[][ch. 7]{leveque_2007}, i.e. thinking of extending the domain by a few additional cells and prescribing the variables. In our case, the ghost cells at the open boundary at $\Gamma_C$ are set to have equal values as the interior ones that are adjacent. It is equivalent to enforcing the numerical fluxes
-\begin{equation*}
+The boundary conditions for the Euler system (see Section \ref{sec:BC}) are implemented by the approach of ghost cells \cite[][ch. 7]{leveque_2007}, i.e. thinking of extending the domain by a few additional cells and prescribing the variables. In our case, the ghost cells at the open boundary at $\Gamma_C$ are set to have equal values as the interior ones that are adjacent. It is equivalent to enforcing the numerical fluxes
+\begin{equation} \label{equ:discrete_open_bc}
     \mathbf{F}_k = {\mathbf{f}^\text{num}}(\mathbf{U}_l, \mathbf{U}_l, \mathbf{n}_k), \ \ \forall k: \Tilde{A}_k \subset \Gamma_C,
-\end{equation*}
+\end{equation}
 where $l$ refers to the index of the cell adjacent to the boundary face $\Tilde{A}_k$ and is unique. For the reflective wall $\Gamma_W$, the momentum of a ghost cell is reversed with respect to its adjacent one while keeping the other quantities unchanged. Therefore, the numerical fluxes are 
-\begin{equation*}
+\begin{equation} \label{equ:discrete_wall_bc}
     \mathbf{F}_k = \mathbf{f}^\text{num}(\mathbf{U}_l, \hat{\mathbf{U}}_l, \mathbf{n}_k), \ \ \forall k: \Tilde{A}_k \subset \Gamma_W,
-\end{equation*}
-where the value of the ghost cell $\hat{\mathbf{U}} = [n, n\mathbf{u} - 2(\mathbf{n}\cdot\mathbf{u})\mathbf{n}, ne]^T$ reverses the normal velocity of $\mathbf{U} = [n, n\mathbf{u}, ne]^T$. 
+\end{equation}
+where the value of the ghost cell $\hat{\mathbf{U}}_l = [n, n\mathbf{u} - 2(\mathbf{n}\cdot\mathbf{u})\mathbf{n}, ne]^T$ reverses the normal velocity of $\mathbf{U}_l = [n, n\mathbf{u}, ne]^T$. 
 
 
 \subsection{Summary: Spatially Semi-discrete Model}
-We collect all the equations and BCs presented above and make a summary for the spatially semi-discrete Maxwell-Euler system based on the FIT-FVM framework:
+We collect all the equations and boundary conditions presented above and give a summary for the spatially semi-discrete Maxwell-Euler system based on the FIT-FVM framework:
 \begin{subequations}
+\begin{align}
+    (\ref{equ:alg_faraday}) & \implies \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;&  [\dot{\mathbf{b}} + \mathbb{C}\mathbf{e} = \mathbf{0}]_k, \ \ &\forall k: A_k \subset \Omega,  \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \label{equ:faraday_semi_discrete}\\
+    (\ref{equ:alg_empere})  & \implies & [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} = - \Sigma_{\ast} q_*\bm{f}_{\ast}^\text{mass}]_k, \ \ &\forall k: \Tilde{A}_k \subset \Omega_P, \label{equ:empere_semi_discrete}\\
+    (\ref{equ:discrete_ampere_ins}) & \implies & [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \mathbb{H} \mathbb{GX}_\psi \bm{\psi} = \mathbf{0}]_k, \ \ &\forall k: \Tilde{A}_k \subset \Omega_N, \label{equ:ampere_ins_semi_discrete}\\
+    (\ref{equ:discrete_zero_div}) & \implies & [\Tilde{\mathbb{D}}\mathbf{d} = \mathbf{0}]_k,\ \ &\forall k: \Tilde{V}_k \subset \Omega_N, \label{equ:zero_div_ins_semi_discrete}\\
+    (\ref{equ:euler_matrix_form}) & \implies & [\dot{\mathbf{U}}_\ast + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbb{\Tilde{A}}\mathbf{F}_\ast = \mathbf{RHS}_\ast]_k,\ \ &\forall k: \Tilde{V}_i \subset \Omega_P, \label{equ:euler_semi_discrete} \\
+     (\ref{equ:alg_material_magnetic}) & \implies & [\mathbf{h} = \mathbb{M}_\mu^{-1}\mathbf{b}]_k, \ \ &\forall k:A_k \subset \Omega, \label{equ:material_law_h_semi_discrete}\\
+    (\ref{equ:alg_material_electric}) & \implies & [\mathbf{d} = \mathbb{M}_\epsilon\mathbf{e}]_k,\ \ &\forall k:L_k \subset \Omega \label{equ:material_law_d_semi_discrete},
+\end{align}
+where $\ast \in \{e, i, \dots\}$ and $\bm{f}^\text{mass}$ denotes the mass flux which is defined in Section \ref{sec:discrete_euler}. By $[\cdots]_k$ we mean taking the $k$-th component of both sides of the equation. We have the following boundary conditions:
     \begin{align}
-        [\dot{\mathbf{b}} + \mathbb{C}\mathbf{e} = \mathbf{0}]_k, \ \ &\forall k: A_k \subset \Omega, \\
-        [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} = - \Sigma_{\ast} q_*\bm{f}_{\ast}^{n}]_k, \ \ &\forall k: \Tilde{A}_k \subset \Omega_P,\\
-        [\dot{\mathbf{d}} - \Tilde{\mathbb{C}}\mathbf{h} + \mathbb{H} \mathbb{G} \bm{\psi} = \mathbf{0}]_k, \ \ &\forall k: \Tilde{A}_k \subset \Omega_N,\\
-        [\Tilde{\mathbb{D}}\mathbf{d} = \mathbf{0}]_k,\ \ &\forall k: \Tilde{V}_k \subset \Omega_N, \\
-        [\dot{\mathbf{U}}_\ast + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbb{\Tilde{A}}\mathbf{F}_\ast = \mathbf{RHS}_\ast]_k,\ \ &\forall k: \Tilde{V}_i \subset \Omega_P, \\
-        [\mathbf{d} = \mathbb{M}_\varepsilon\mathbf{e}]_k,\ \ &\forall k:L_k \subset \Omega,\\
-        [\mathbf{h} = \mathbb{M}_\mu^{-1}\mathbf{b}]_k, \ \ &\forall k:A_k \subset \Omega,
-    \end{align}
-    \begin{comment}
-        \vspace{-1cm}
-        \begin{align}
-            \hspace{1.6cm}\mathbf{j}_k =
-            \begin{cases}
-             \Sigma_{\ast} q_*\bm{f}_{\ast,k}^{n},&\forall k: \Tilde{A}_k \subset \Omega_P, \\
-            0,&\forall k: \Tilde{A}_k \subset \Omega_N,
-            \end{cases}
-        \end{align}
-    \end{comment}
-where $\ast \in \{e, i, \dots\}$ and $\bm{f}^n$ denotes the mass flux. By $[\cdots]_k$ we mean taking the $k$-th component of both sides of the equation. We have the following BCs:
-    \begin{align}
-    \varphi_k = \varphi(P_k, t), \ \ &\forall k : P_k \subset \Gamma_C, \\
-    e_k = (\mathbb{G}\bm{\varphi})_k,\ \ &\forall k : L_k \subset \partial\Omega, \\
-    (\Tilde{\mathbb{C}} \bm{h})_k = 0,\ \ &\forall k : \Tilde{A}_k \subset \Gamma_I, \label{equ:bc_zero_curl_h} \\
-    \mathbf{F}_{\ast,k} = \mathbf{f}^\text{num}(\mathbf{U}_{\ast,l}, \mathbf{U}_{\ast,l}, \mathbf{n}_k), \ \ &\forall k: \Tilde{A}_k \subset \Gamma_C, \\
-    \mathbf{F}_{\ast,k} = \mathbf{f}^\text{num}(\mathbf{U}_{\ast,l}, \hat{\mathbf{U}}_{\ast,l}, \mathbf{n}_k), \ \ &\forall k: \Tilde{A}_k \subset \Gamma_W.
+    (\ref{equ:bc_3}) & \implies \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;& d_k = 0,\ \ &\forall k : \Tilde{A}_k \subset \Gamma_I,\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\\
+    (\ref{equ:bc_2}) & \implies & e_k = (\mathbb{GX}_\varphi\bm{\varphi})_k,\ \ &\forall k : L_k \subset \partial\Omega, \\
+    (\ref{equ:bc_1}) & \implies & \varphi_k = \varphi^\pm(t), \ \ &\forall k : P_k \subset \Gamma_C^\pm, \\ 
+    (\ref{equ:discrete_open_bc}) & \implies & \mathbf{F}_{\ast,k} = \mathbf{f}^\text{num}(\mathbf{U}_{\ast,l}, \mathbf{U}_{\ast,l}, \mathbf{n}_k), \ \ &\forall k: \Tilde{A}_k \subset \Gamma_C, \\
+    (\ref{equ:discrete_wall_bc}) & \implies & \mathbf{F}_{\ast,k} = \mathbf{f}^\text{num}(\mathbf{U}_{\ast,l}, \hat{\mathbf{U}}_{\ast,l}, \mathbf{n}_k), \ \ &\forall k: \Tilde{A}_k \subset \Gamma_W.
     \end{align}
 \end{subequations}
-We would like to stress again that in our FIT-FVM framework Faraday's law is discretized on $\mathcal{M}$ while Amp\`{e}re's law is discretized on $\Tilde{\mathcal{M}}$ for a simple approximation of material laws. By arranging the Euler system on $\Tilde{\mathcal{M}}$, the connection between electric currents and fluid momenta is naturally established in the discrete level since they are defined on the same locations.    
+
+
+We would like to stress again that in our FIT-FVM framework Faraday's law is discretized on $\mathcal{M}$ while Amp\`{e}re's law is discretized on $\Tilde{\mathcal{M}}$ for a simple approximation of material laws. By arranging the Euler system on $\Tilde{\mathcal{M}}$, the connection between electric currents and fluid momenta is naturally established on the discrete level since both are defined on the dual faces.    
 
 
 \section{Full Discretization}
-\subsection{Motivation: Reduction to 1D Discretization}
-Our work is an extension of the 1D scheme proposed in \cite{degond_2012} towards three dimensions. Therefore, it is supposed to be compatible with the original 1D scheme when reduced to one dimension. This perspective helps to understand how the 3D scheme stems from the 1D one, which is not trivial. For the sake of presentation, we discuss their one-fluid model where ions are assumed immobile and only the motion of electrons is considered.  
+\subsection{Motivation: Reduction to One Spatial Dimension}
+Our work is an extension of the 1D scheme proposed in \cite{degond_2012} towards three dimensions. Therefore, it is supposed to be compatible with the original 1D scheme when reduced to one dimension. This perspective helps to understand how the 3D scheme stems from the 1D one. For the sake of presentation, we discuss the one-fluid model of \cite{degond_2012} where ions are assumed immobile and only the motion of electrons is considered.  
 
 \subsubsection{Projection to One Dimension} \label{sec:projection_to_1d}
-Consider a mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$ that are constructed by 2D extrusion along the $z$-axis and are unbounded along transverse directions. On assuming the transverse invariance and rotational symmetry, we can ``project'' all the D.o.F. onto the $z$-axis. The idea is sketched in in Fig. \ref{fig:1d_reduction}.
+Consider a mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$ that is constructed by 2D extrusion along the $z$-axis and is unbounded in transverse directions. Assuming transverse invariance and rotational symmetry, we can ``project'' all the D.o.F. onto the $z$-axis. The idea is sketched in in Fig. \ref{fig:1d_reduction}.
 
 \begin{figure}
     \centering
@@ -1353,29 +1346,42 @@ Consider a mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$ that are constructed b
             \node[below] (n) at (3,-5) {\textcolor{black}{$z_{k-1/2}$}};
         \end{scope}
     \end{tikzpicture}
-    \caption{3D discretization to 1D. On the assumption of transverse invariance, we can reduce all the D.o.F. lying in the perpendicular plane $z=z_k$ to the vertex at $z=z_k$. For instance, an edge orthogonal to the $z$-axis is projected to a vertex on the $z$-axis while a parallel edge to the $z$-axis is projected to an edge on the $z$-axis.}
+    \caption{3D discretization to 1D. On the assumption of transverse invariance, we can reduce all the degrees of freedom lying in the perpendicular plane $z=z_k$ to the vertex at $z=z_k$. For instance, an edge orthogonal to the $z$-axis is projected to a vertex on the $z$-axis while a parallel edge to the $z$-axis is projected to an edge on the $z$-axis.}
     \label{fig:1d_reduction}
 \end{figure}
 
-\begin{remark}
-    The 1D reduction of FIT-FVM discretization can be interpreted in the sense of finite difference. 
-\end{remark}
-
-In \cite{degond_2012}, the author investigates a 1D Maxwell-Euler system by assuming vanishing traverse derivatives. For further simplicity, a transverse mode is considered, i.e. $u_y, E_y, B_x$, and $B_z$ are set to zero.  The 1D reduced one-fluid Maxwell-Euler system and its quasi-neutral limit are 
+In \cite{degond_2012}, the authors investigate a 1D Maxwell-Euler system by assuming vanishing traverse derivatives. For further simplicity, a transverse mode is considered, i.e. $u_y, E_y, B_x$, and $B_z$ are set to zero.  The 1D reduced component-wise one-fluid Maxwell-Euler system and its quasi-neutral limit are 
 
 \vspace{-0.3cm}
-\begin{minipage}{0.6\textwidth}
+\begin{minipage}{0.07\textwidth}
     \begin{align*}
-        \partial_t n + \partial_z(nu_z) &= 0, \\
-        \varepsilon^2[\partial_t(nu_x) + \partial_z(nu_zu_x)] &= - n(E_x - u_zB_y), \\
-        \varepsilon^2[\partial_t(nu_z) + \partial_z(nu_z^2)] + \partial_z(p(n)) &= -n(E_z + u_xB_y), \\
-        \partial_t B_y + \partial_z E_x &= 0, \\
-        \lambda^2 \partial_t E_x + \partial_z B_y &= nu_x, \\
-        \lambda^2 \partial_t E_z &= nu_z, \\
-        \lambda^2 \partial_z E_z &= 1 - n,
+        (\ref{equ:euler_rescaled})&\implies
+        \begin{cases}
+            \\
+            \\
+            \\
+        \end{cases} \\
+        (\ref{equ:maxwell_faraday_rescaled}) &\implies \\
+        (\ref{equ:maxwell_ampere_rescaled})  &\implies 
+        \begin{cases}
+            \\
+            \\
+        \end{cases} \\
+        (\ref{equ:maxwell_gauss_D_rescaled}) & \implies
+    \end{align*}    
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+    \begin{align*}
+        &\partial_t n + \partial_z(nu_z) = 0, \\
+        &\varepsilon^2[\partial_t(nu_x) + \partial_z(nu_zu_x)] = - n(E_x - u_zB_y), \\
+        &\varepsilon^2[\partial_t(nu_z) + \partial_z(nu_z^2)] + \partial_z(p(n)) = -n(E_z + u_xB_y), \\
+        &\partial_t B_y + \partial_z E_x = 0, \\
+        &\lambda^2 \partial_t E_x + \partial_z B_y = nu_x, \\
+        &\lambda^2 \partial_t E_z = nu_z, \\
+        &\lambda^2 \partial_z E_z = 1 - n,
     \end{align*}
 \end{minipage}
-$\xrightarrow[]{\lambda \rightarrow 0}$
+\hspace{0.5cm}$\xrightarrow[]{\lambda \rightarrow 0}$
 \begin{minipage}{0.3\textwidth}
     \begin{align*}
         n &= 1,\\
@@ -1386,39 +1392,98 @@ $\xrightarrow[]{\lambda \rightarrow 0}$
         \partial_z B_y &= nu_x,
     \end{align*}
 \end{minipage}
-where the subscript indicates the direction of the component. An isentropic process with the equation of state $p(n) = n^\gamma$ is assumed. 
+where all the fluid variables are attributed to electrons and the subscript indicates the direction of the component. An isentropic fluid model with the equation of state $p(n) = n^\gamma$ is assumed to drop the energy equation. 
 
-\subsubsection{1D Fully-discrete Plasma Model} \label{sec:1d_fully_discrete_model}
-The fully-discrete scheme proposed in \cite{degond_2012} is given below. From now on, the superscript of variables involving $m$ indicates the time step. The scheme is built on a uniform 1D mesh with cell size $h$ and evolves the system with time step $\delta^m := t^{m+1} - t^m$:  
+\subsubsection{1D Fully Discrete Plasma Model} \label{sec:1d_fully_discrete_model}
+The fully discrete scheme proposed in \cite{degond_2012} is given below. From now on, the superscript of variables involving $m$ indicates the time step. The scheme is built on a uniform 1D mesh with cell size $h$ and evolves the system with time step size $\delta^m := t^{m+1} - t^m$:  
+
+\begin{minipage}{0.1\textwidth}
+\vspace{0.5cm}
+    \begin{align*}
+        (\ref{equ:euler_semi_discrete}) &\implies \begin{cases}
+         \\
+         \\
+         \\
+         \\
+         \\
+         \\
+         \\
+        \end{cases} \\
+        (\ref{equ:faraday_semi_discrete}) & \implies \\
+        \\
+        (\ref{equ:empere_semi_discrete}) & \implies \begin{cases}
+        \\ 
+        \\
+        \\
+        \\
+        \end{cases}
+    \end{align*}
+\end{minipage}
+\begin{minipage}{0.6\textwidth}
 \begin{align*}
-    \frac{n^{m+1}_k - n^m_k}{\delta^m} + \frac{\mycolorbox{orange!30}{f^{n,m+1/2}_{k+1/2} - f^{n,m+1/2}_{k-1/2}}}{h} &= 0, \\
-    \frac{(nu_x)^{m+1}_k - (nu_x)^m_k}{\delta^m} + \frac{f^{u_x,m}_{k+1/2} - f^{u_x,m}_{k-1/2}}{h} &= -\frac{n^m_k \mycolorbox{orange!30}{E^{m+1}_{x,k}}}{\varepsilon^2} + \frac{n^m_k u^m_{z,k}\Tilde{B}^m_{y,k}}{\varepsilon^2},\\
-    \frac{(nu_z)^{m+1}_k - (nu_z)^m_k}{\delta^m} + \frac{f^{u_z,m}_{k+1/2} - f^{u_z,m}_{k-1/2}}{h} &= - \frac{n^m_k \mycolorbox{orange!30}{\Tilde{E}^{m+1}_{z,k}}}{\varepsilon^2} - \frac{n^m_k u^m_{x,k}\Tilde{B}^m_{y,k}}{\varepsilon^2}, \\ 
-    \frac{B^{m+1}_{y,k+1/2} - B^{m}_{y,k+1/2}}{\delta^m} + \frac{\mycolorbox{orange!30}{E^{m+1}_{x,k+1} - E^{m+1}_{x,k}}}{h} &= 0, \\
+    \frac{n^{m+1}_k - n^m_k}{\delta^m} + \frac{\mycolorbox{orange!30}{f^{\text{mass},m+1/2}_{k+1/2} - f^{\text{mass},m+1/2}_{k-1/2}}}{h} &= 0, \\
+    \frac{(nu_x)^{m+1}_k - (nu_x)^m_k}{\delta^m} + \frac{f^{\text{mom}_x,m}_{k+1/2} - f^{\text{mom}_x,m}_{k-1/2}}{h} &= -\frac{n^m_k \mycolorbox{orange!30}{E^{m+1}_{x,k}}}{\varepsilon^2} + \frac{n^m_k u^m_{z,k}\Tilde{B}^m_{y,k}}{\varepsilon^2},\\
+    \frac{(nu_z)^{m+1}_k - (nu_z)^m_k}{\delta^m} + \frac{f^{\text{mom}_z,m}_{k+1/2} - f^{\text{mom}_z,m}_{k-1/2}}{h} &= - \frac{n^m_k \mycolorbox{orange!30}{\Tilde{E}^{m+1}_{z,k}}}{\varepsilon^2} - \frac{n^m_k u^m_{x,k}\Tilde{B}^m_{y,k}}{\varepsilon^2}, \\
+   \frac{B^{m+1}_{y,k+1/2} - B^{m}_{y,k+1/2}}{\delta^m} + \frac{\mycolorbox{orange!30}{E^{m+1}_{x,k+1} - E^{m+1}_{x,k}}}{h} &= 0, \\
     \lambda^2 \frac{E^{m+1}_{x,k} - E^{m}_{x,k}}{\delta^m} + \frac{\mycolorbox{orange!30}{B^{m+1}_{y,k+1/2} - B^{m+1}_{y,k-1/2}}}{h} &= \mycolorbox{orange!30}{(nu_x)^{m+1}_k}, \\
-    \lambda^2 \frac{E^{m+1}_{z,k+1/2} - E^{m}_{z,k+1/2}}{\delta^m} &= \mycolorbox{orange!30}{f^{m+1}_{n,k+1/2}}, 
+    \lambda^2 \frac{E^{m+1}_{z,k+1/2} - E^{m}_{z,k+1/2}}{\delta^m} &= \mycolorbox{orange!30}{f^{\text{mass},m+1/2}_{k+1/2}}, 
 \end{align*}
-where 
+\end{minipage}
+
+\noindent where
+
+\hspace{0.3cm}\begin{minipage}{0.1\textwidth}
+    \vspace{0.3cm}
+    (\ref{equ:reconstruction})$\implies$
+\end{minipage}
+\hspace{1cm}
+\begin{minipage}{0.6\textwidth}
 \begin{equation*}
-    \Tilde{E}^m_{z,k} = \frac{1}{2}(E^m_{z,k+1/2} + E^m_{z,k-1/2}), \ \ \ \Tilde{B}^m_{y,k} = \frac{1}{2}(B^m_{y,k+1/2} + B^m_{y,k-1/2}),
-\end{equation*}
-are the averaged electromagnetic fields, and the fluxes read
-\begin{align*}
-    f^{n,m+1/2}_{k+1/2} & = \frac{1}{2}[\mycolorbox{orange!30}{(nu_z)^{m+1}_k + (nu_z)^{m+1}_{k+1}} + \mu^m_{k+1/2}(n^m_k - n^m_{k+1})], \\
-    f^{u_x,m}_{k+1/2} & = \frac{1}{2}[(nu_zu_x)^{m}_k + (nu_zu_x)^{m}_{k+1} + \mu^m_{k+1/2}((nu_x)^m_k - (nu_x)^m_{k+1})], \\
-    f^{u_z,m}_{k+1/2} & = \frac{1}{2}[(nu_z^2 + p(n)/\varepsilon^2)^{m}_k + (nu_z^2 + p(n)/\varepsilon^2)^{m}_{k+1} + \mu^m_{k+1/2}((nu_z)^m_k - (nu_z)^m_{k+1})].
+     \Tilde{E}^m_{z,k} = \frac{1}{2}(E^m_{z,k+1/2} + E^m_{z,k-1/2}), \ \ \ \Tilde{B}^m_{y,k} = \frac{1}{2}(B^m_{y,k+1/2} + B^m_{y,k-1/2}),
+\end{equation*}    
+\end{minipage} 
+
+\noindent are the averaged electromagnetic fields, and the fluxes read
+
+\hspace{0.2cm}\begin{minipage}{0.1\textwidth}
+    \begin{align*}
+        (\ref{equ:rusanov-flux-3d}) &\implies \begin{cases}
+         \\
+         \\
+         \\
+         \\
+         \\
+        \end{cases}
+    \end{align*}
+\end{minipage}
+\begin{minipage}{0.6\textwidth}
+    \begin{align*}
+    f^{\text{mass},m+1/2}_{k+1/2} & = \frac{1}{2}[\mycolorbox{orange!30}{(nu_z)^{m+1}_k + (nu_z)^{m+1}_{k+1}} + \mu^m_{k+1/2}(n^m_k - n^m_{k+1})], \\
+    f^{\text{mom}_x,m}_{k+1/2} & = \frac{1}{2}[(nu_zu_x)^{m}_k + (nu_zu_x)^{m}_{k+1} + \mu^m_{k+1/2}((nu_x)^m_k - (nu_x)^m_{k+1})], \\
+    f^{\text{mom}_z,m}_{k+1/2} & = \frac{1}{2}[(nu_z^2 + p(n)/\varepsilon^2)^{m}_k + (nu_z^2 + p(n)/\varepsilon^2)^{m}_{k+1} + \mu^m_{k+1/2}((nu_z)^m_k - (nu_z)^m_{k+1})].
 \end{align*}
-The implicit terms are highlighted and are all essential to achieve the AP property. The implicitness of the electric field in the Lorentz force is shown to be necessary in \cite{fabre_1992} for the Euler-Poisson system. In \cite{degond_2012}, based on the linearized stability analysis, the author shows that the full-implicit treatment of the Maxwell equations is essential to the stability in the quasi-neutral limit. Besides, the mass flux in the mass conservation equation and the current in Amp\`{e}re's law has the same level of implicitness to guarantee consistency with Gauss's law.  
+\end{minipage}
+
+The implicit terms are highlighted and are all essential to achieve the AP property. The implicitness of the electric field in the Lorentz force is shown to be necessary in \cite{fabre_1992} for the Euler-Poisson system. In \cite{degond_2012}, based on the linearized stability analysis, the author shows that the full-implicit treatment of the Maxwell equations is essential to achieve stability in the quasi-neutral limit. Besides, the mass flux in the mass conservation equation and the current in Amp\`{e}re's law has the same level of implicitness to guarantee consistency with Gauss's law.  
 
 \subsection{Semi-implicit Fully-discrete AP Scheme in 3D} \label{sec:3d_ap_scheme}
 Combining the 3D FIT-FVM framework presented in Section \ref{sec:spatial_discretization} and the time-stepping scheme shown below, we propose the following semi-implicit fully-discrete AP scheme in 3D:
 \begin{subequations}
 \begin{align}
-    \left[\delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^{m}) + \mathbb{C}\mycolorbox{orange!30}{\mathbf{e}^{m+1}} = \mathbf{0} \right]_k,\ \ &\forall k:A_k \subset \Omega, \label{equ:maxwell_faraday_ap}\\
-    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\mycolorbox{orange!30}{\mathbf{h}^{m+1}} = - \Sigma_\ast q_\ast \mycolorbox{orange!30}{\bm{f}^{n,m+1}_{\ast}}\right]_k,\ \ &\forall k:\Tilde{A}_k\subset\Omega_P, \label{equ:maxwell_ampere_plasma_ap}\\
-    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\mycolorbox{orange!30}{\mathbf{h}^{m+1}} + \mathbb{H}\mathbb{G}\mycolorbox{orange!30}{\bm{\psi}^{m+1}} = \mathbf{0} \right]_k,\ \ &\forall k:\Tilde{A}_k\subset\Omega_N, \label{equ:maxwell_ampere_nonconducting_ap}\\
-    \left[\mathbb{D}\mycolorbox{orange!30}{\mathbf{d}^{m+1}} = \mathbf{0}\right]_k, \ \ &\forall k : \Tilde{V}_k \subset \Omega_N, \label{equ:gauss_nonconducting_ap} \\
-    \left[\delta_m^{-1}(\mathbf{U}_{*}^{m+1} - \mathbf{U}_{*}^{m}) + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbb{\Tilde{A}}\mycolorbox{orange!30}{\mathbf{F}_\ast^{m+1/2}} = \mycolorbox{orange!30}{\mathbf{RHS}_\ast^{m+1/2}} \right]_k,\ \ &\forall k : \Tilde{V}_k \subset \Omega_P, \label{equ:euler_ap}
+    (\ref{equ:faraday_semi_discrete}) &\implies \;\;\;\;\;\;\;\;\;\;\;\;\;\; &
+    \left[\delta_m^{-1} (\mathbf{b}^{m+1} - \mathbf{b}^{m}) + \mathbb{C}\mycolorbox{orange!30}{\mathbf{e}^{m+1}} = \mathbf{0} \right]_k,\ \ &\forall k:A_k \subset \Omega, \;\;\;\;\;\;\;\;\;\;\;\label{equ:maxwell_faraday_ap}\\
+    (\ref{equ:empere_semi_discrete}) &\implies &
+    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\mycolorbox{orange!30}{\mathbf{h}^{m+1}} = - \Sigma_\ast q_\ast \mycolorbox{orange!30}{\bm{f}^{\text{mass},m+1/2}_{\ast}}\right]_k,\ \ &\forall k:\Tilde{A}_k\subset\Omega_P, \label{equ:maxwell_ampere_plasma_ap}\\
+    (\ref{equ:ampere_ins_semi_discrete}) &\implies &
+    \left[\lambda^2\delta_m^{-1}(\mathbf{d}^{m+1} - \mathbf{d}^m)- \Tilde{\mathbb{C}}\mycolorbox{orange!30}{\mathbf{h}^{m+1}} + \mathbb{H}\mathbb{GX}_\psi\mycolorbox{orange!30}{\bm{\psi}^{m+1}} = \mathbf{0} \right]_k,\ \ &\forall k:\Tilde{A}_k\subset\Omega_N, \label{equ:maxwell_ampere_nonconducting_ap}\\
+    (\ref{equ:zero_div_ins_semi_discrete}) &\implies &
+    \left[\Tilde{\mathbb{D}}\mycolorbox{orange!30}{\mathbf{d}^{m+1}} = \mathbf{0}\right]_k, \ \ &\forall k : \Tilde{V}_k \subset \Omega_N, \label{equ:gauss_nonconducting_ap} \\
+    (\ref{equ:euler_semi_discrete}) &\implies &
+    \left[\delta_m^{-1}(\mathbf{U}_{*}^{m+1} - \mathbf{U}_{*}^{m}) + \mathbb{\Tilde{V}}^{-1}\mathbb{\Tilde{D}}\mathbb{\Tilde{A}}\mycolorbox{orange!30}{\mathbf{F}_\ast^{m+1/2}} = \mycolorbox{orange!30}{\mathbf{RHS}_\ast^{m+1/2}} \right]_k,\ \ &\forall k : \Tilde{V}_k \subset \Omega_P, \label{equ:euler_ap}\\
+    (\ref{equ:material_law_h_semi_discrete}) &\implies &
+    [\mathbf{h}^{m+1} = \mathbb{M}_\mu^{-1}\mathbf{b}^{m+1}]_k, \ \ &\forall k:A_k \subset \Omega, \label{equ:material_law_h_ap}\\
+    (\ref{equ:material_law_d_semi_discrete}) &\implies &
+    [\mathbf{d}^{m+1} = \mathbb{M}_\epsilon\mathbf{e}^{m+1}]_k,\ \ &\forall k:L_k \subset \Omega \label{equ:material_law_d_ap},
 \end{align}
 where 
 \begin{align}
@@ -1430,9 +1495,9 @@ where
     \end{pmatrix}^m_{\ast,k}, \\
     \mathbf{F}_{*,k}^{m+1/2} &=
     \begin{pmatrix}
-    f^{n,m+1} \\
-    \bm{f}^{u,m} \\
-    f^{e,m}
+    f^{\text{mass},m+1/2} \\
+    \bm{f}^{\text{mom},m} \\
+    f^{\text{ene},m}
     \end{pmatrix}_{\ast,k}
     = 
     \begin{pmatrix}
@@ -1462,102 +1527,81 @@ where
     Q_{*,k}^{\text{coll},m+1} &= \mycolorbox{orange!30}{\mathbf{R}_{*,k}^{\text{coll},m+1} \cdot \mathbf{u}_{\ast,k}^{m+1}} \label{equ:Q_coll_ap}
 .\end{align}
 \end{subequations}
-The quantities with superscript $m+1/2$ indicate their dependency on the quantities at both $m$-th and $(m+1)$-th iterations. In Rusanov flux (\ref{equ:flux_ap}), we denote by $u_\perp$ the normal component velocity with respect to the dual face $\Tilde{A}_k$. We restrain the illustration of the collision term (\ref{equ:R_coll_ap}) (\ref{equ:Q_coll_ap}) to the two-species case for the sake of simplicity. 
+The quantities with superscript $m+1/2$ indicate their dependency on the quantities at both $m$-th and $(m+1)$-th iterations. In Rusanov flux (\ref{equ:flux_ap}), we denote by $u_\perp$ the normal component velocity with respect to the dual face $\Tilde{A}_k$. We confine the illustration of the collision term (\ref{equ:R_coll_ap}) (\ref{equ:Q_coll_ap}) to the two-species case for the sake of simplicity. 
 
 The time-stepping scheme mimics the 1D scheme shown in the previous section. The implicitness of the friction term is owing to the stiffness incurred from a potentially large value of the prefactor $\varepsilon^{-2}_*\alpha^\text{coll}$.
 
-\subsubsection{Inappropriate Boundary Condition} \label{sec:inapp_bc}
-We would like to point out that the boundary condition (\ref{equ:bc_zero_curl_h}) is not valid in the quasi-neutral limit, which is revealed by taking the limit of Amp\`{e}re's law in the non-conducting region (\ref{equ:maxwell_ampere_nonconducting_ap}). Since $\bm{\psi}^{m+1}$ can be shown to be zero by multiplying (\ref{equ:gauss_nonconducting_ap}) by $\mathbb{D}$, we obtain that
-\begin{equation*}
-    [\Tilde{\mathbb{C}}\mathbf{h}^{m+1} = 0]_k, \ \ \forall k : \Tilde{A}_k \subset \Omega_N,
-\end{equation*}
-which makes the boundary condition (\ref{equ:bc_zero_curl_h}) an over-determined condition. We propose to replace (\ref{equ:bc_zero_curl_h}) by 
-\begin{equation*}
-    [\mathbf{d}^{m+1} = 0]_k, \ \ \forall k : \Tilde{A}_k \subset \Omega_N.
-\end{equation*}
-One can easily check its equivalence to (\ref{equ:bc_zero_curl_h}) when $\lambda = \mathcal{O}(1)$. In fact, without this condition the Maxwell system in the non-conducting region is not well-posed when $\lambda = 0$ \cite{alfredo_2003}. 
+\todo{Theorem: 1d projection to 1d discrete model?}
 
-\subsubsection{CFL Condition}
-It has been shown in \cite{degond_2012} that the stability-induced constraint on the time-step size does not depend on the value of $\lambda$ thanks to the implicitness in the discrete Maxwell system. However, the Euler system is discretized by an explicit scheme and thus is still subject to a CFL condition.
+\begin{remark}
+    The AP scheme aims to remove the $\lambda$-dependence of the stability constraint on the time step size. Yet time-stepping of the discrete Euler system is still subject to the CFL condition due to its explicitness.   
+\end{remark}
 
-In our case, we have a conservation law with source terms. Let us consider the model equation
-\begin{equation*}
-    \partial_tu + c\partial_xu = \beta u, 
-\end{equation*}
-where $c>0$ and $\beta<0$ are constant. By a first-order upwind scheme
-\begin{equation*}
-    \delta_t^{-1}(u^{m+1}_k - u^m_k) + c\delta_x^{-1}(u^m_k - u^m_{k-1}) = \beta u^m_k,
-\end{equation*}
-we can perform Neumann analysis and deduce the CFL condition
-\begin{equation*}
-    \delta_t \leq \left[\frac{c}{\delta_x} + \frac{\beta}{2}\right]^{-1}.
-\end{equation*}
-On noticing the source term $\varepsilon_*^{-2}q_*(n\mathbf{u})^m_*\times\mathbf{B}^m$ in the momentum equation, we heuristically take the following restriction
-\begin{equation*}
-    \delta_t^m \leq \min_*\bigg\{\left[\frac{s^m_*}{\delta_x} + \frac{\varepsilon^{-2}_*|q_*||\mathbf{B}^m|}{2}\right]^{-1}\bigg\},
-\end{equation*}
-which is proved to be necessary by numerical experiments.
+\subsubsection{Linearly Semi-implicit Time-stepping}
+The semi-implicit scheme (\ref{equ:maxwell_faraday_ap})-(\ref{equ:Q_coll_ap}) entails solving a linear system for each time step. Despite the complexity of the whole scheme, we will illuminate the procedure of time-stepping.
 
-\subsubsection{Procedure of Time-stepping}
-The semi-implicit scheme (\ref{equ:maxwell_faraday_ap})-(\ref{equ:Q_coll_ap}) entails solving a linear system for each time step. We would like to provide a brief guide on how to build such a linear system and evolve the system. 
-
-The main step is to establish the connection between the mass fluxes $\mathbf{f}^{n,m+1}_*$ and discrete electric induction $\mathbf{d}$. From the momentum conservative equation, one can get the relation between the momenta $n\mathbf{u}^{m+1}_*$ and the reconstructed electric field $\mathbf{E}^{m+1}$. Given the reconstruction relation (\ref{equ:reconstruction}), we can get the following relation
-\begin{equation*}
+\noindent \textbf{Step 1.} We establish the connection between $\mathbf{f}^{\text{mass},m+1/2}_*$ and $\mathbf{d}$ through the momentum equation (see (\ref{equ:euler_ap})(\ref{equ:flux_ap})(\ref{equ:rhs_ap})). Relying on the reconstruction (\ref{equ:reconstruction}), the following formula can be achieved
+\begin{equation} \label{equ:relation_nu_and_d}
     (n\mathbf{u})_*^{m+1} = \hat{\mathbb{M}}^m_* \mathbf{d}^{m+1} + \bm{\eta}_*^m. 
-\end{equation*}
-Next, by the formula for the mass fluxes in (\ref{equ:flux_ap}), the expression for the currents in $\Omega_P$ (see (\ref{equ:maxwell_ampere_plasma_ap})) is written by 
+\end{equation}
+The expression for the current $\mathbf{J}^{m+1}$ in $\Omega_P$ (see (\ref{equ:maxwell_ampere_plasma_ap})) depends on the mass flux $\bm{f}^{\text{mass},{m+1}}_*$ which then relies on $(n\mathbf{u})_*^{m+1}$ through (\ref{equ:flux_ap}). One can formulate the following relation:
 \begin{equation} \label{equ:discrete_ohm}
     \mathbf{j}^{m+1} := \Sigma_\ast q_\ast \bm{f}^{n,m+1}_\ast = \mathbb{M}_\sigma^{m} \mathbf{d}^{m+1} + \mathbf{j}^m_{\text{aux}}.
 \end{equation}
-The calculation of $\hat{\mathbb{M}}_*^m, \bm{\eta}_*^m, \mathbb{M}_\sigma^m, \mathbf{j}^m_{\text{aux}}$ is slightly lengthy but straightforward, so we omit the details. 
+where $\mathbb{M}^m_\sigma \in \mathbb{R}^{N_{\Tilde{A}} \times N_{\Tilde{A}}}$ and $\mathbf{j}^m_{\text{aux}} \in \mathbb{R}^{N_{\Tilde{A}}}$.
+The formulas of $\hat{\mathbb{M}}_*^m, \bm{\eta}_*^m, \mathbb{M}_\sigma^m, \mathbf{j}^m_{\text{aux}}$ are slightly lengthy but straightforward, so we omit the details. 
 
-The discrete Maxwell system (\ref{equ:maxwell_faraday_ap})-(\ref{equ:gauss_nonconducting_ap}) is closed provided (\ref{equ:discrete_ohm}) and can be evolved by solving a linear system. The Euler system (\ref{equ:euler_ap}) afterward evolves explicitly. 
+\noindent \textbf{Step 2.} Provided (\ref{equ:discrete_ohm}), the discrete Maxwell system (\ref{equ:maxwell_faraday_ap})-(\ref{equ:gauss_nonconducting_ap}) is closed and can be evolved by solving a linear system. 
+
+\noindent \textbf{Step 3.} With the updated $\mathbf{d}^{m+1}$, update the momenta $(n\mathbf{u})^{m+1}_*$ by (\ref{equ:relation_nu_and_d}).
+
+\noindent \textbf{Step 4.} the rest of the Euler system can be updated explicitly.
+
 
 \begin{remark}
-    The formula (\ref{equ:discrete_ohm}) functions as Ohm's law in the discrete level and $\mathbb{M}_\sigma^m$ can be treated as a "conductivity" matrix. Since in the quasi-neutral limit $\lambda \rightarrow 0$ we lose control of the $\mathbf{E}$-field through its time derivative, $\mathbb{M}_\sigma^m$ is crucial to the stability of the scheme. Since $\mathbf{j}$ and $\mathbf{d}$ are both defined on dual faces, it is reasonable to adopt a local relation between them. Therefore, we perform the \emph{diagonal lumping} trick on (\ref{equ:discrete_ohm}), i.e. rendering it diagonal by accumulating the row sum. We observe enhanced stability in the numerical experiments with very minor changes in the results.
+    The formula (\ref{equ:discrete_ohm}) functions as Ohm's law on the discrete level. The $\mathbb{M}_\sigma^m$ can be treated as a ``conductivity" matrix. Since in the quasi-neutral limit $\lambda \rightarrow 0$ we lose control of the $\mathbf{E}$-field through its time derivative, $\mathbb{M}_\sigma^m$ is crucial to the stability of the scheme. Since $\mathbf{j}$ and $\mathbf{d}$ are both defined on dual faces, it is reasonable to adopt a local relation between them. Therefore, we perform the \emph{diagonal lumping} trick, i.e. rendering $\mathbb{M}_\sigma^m$ diagonal by accumulating the row sum. The lumped $\mathbb{M}_\sigma^m$ has a positive diagonal (for the entity corresponding to $\Omega_P$. the rest is zero since no current exists in $\Omega_N$). Enhanced stability is observed in the numerical experiments with very minor changes in the results.
 \end{remark}
-\section{Numerical Experiment} \label{sec:numerical_experiment}
+\section{Numerical Experiments} \label{sec:numerical_experiment}
 
 We conduct numerical experiments based on the geometric setting and boundary conditions as presented in Section \ref{sec:BC}. The primal-dual mesh pair $(\mathcal{M}, \Tilde{\mathcal{M}})$ is generated based on the code developed in \cite[][ch. 1]{fuchs_2021}. An instance is shown in Fig. \ref{fig:primal_dual_meshes}. We consider a two-fluid plasma model which is composed of electrons and ions. We set the mass ratio $\varepsilon_e := m_e / m_i = 10^4$ and the collision parameter $\alpha^\text{coll} = 32$.
-\begin{figure}
-    \centering
-    \includegraphics[scale=0.3]{primal_mesh.png}
-    \hspace{1cm}
-    \includegraphics[scale=0.3]{dual_mesh.png}
-    \caption{Primal mesh (left) and dual mesh (right).}
-    \label{fig:primal_dual_meshes}
-\end{figure}
-\subsection{Case 1: Quasi-1D Problem}
-On noticing the radial symmetry of the domain as well as boundary conditions, we can simplify the governing equations defined at the axis of symmetry, i.e. $z$-axis in this case, thanks to vanishing radial components of the vector fields and their radial derivatives. The Euler-Maxwell system at the axis of symmetry reduces to
+
+\todo{Reference to github repository}
+
+\subsection{Case I: Quasi-1D Problem}
+Noticing the radial symmetry of the domain as well as boundary conditions, we can simplify the governing equations defined at the axis of symmetry, i.e. $z$-axis in this case, thanks to vanishing radial components of the vector fields and their radial derivatives. The (isentropic and collisionless) Euler-Maxwell system at the axis of symmetry reduces to
 \begin{align*}
     &\partial_t n_* + \partial_z(n_*u_{*,z}) = 0, \\
-    &\partial_t (n_* u_{*,z}) + \partial_z(n_*u_{*,z}^2) + \varepsilon_*^{-2} \partial_z p_* = \varepsilon_*^{-2}q_*n_*E_z, \\
-    &\partial_t (n_*e_*) + \partial_z (n_* h_* u_{*,z}) = \varepsilon_*^{-2} q_* n_* u_{*,z} E_z, \\
+    &\partial_t (n_* u_{*,z}) + \partial_z(n_*u_{*,z}^2) + \varepsilon_*^{-2} \partial_z p_*(n_*) = \varepsilon_*^{-2}q_*n_*E_z, \\
     \lambda^2 &\partial_t E_z = \sum_* - q_* n_* u_{*,z}.
 \end{align*}
-which is similar to the 1D model in Section \ref{sec:projection_to_1d}. Therefore, it is reasonable to compare the results produced by the 1D scheme in Section \ref{sec:1d_fully_discrete_model} and the one on $z$-axis produced by the 3D scheme proposed in Section \ref{sec:3d_ap_scheme}. Fig. \ref{fig:z_axis_reduction} demonstrates good matching. 
+which shares the same equations as the 1D model in Section \ref{sec:projection_to_1d} after further dropping $u_x, B_y, E_x$. We compare the results produced by the 1D scheme (see Section \ref{sec:1d_fully_discrete_model}) and those produced by the 3D scheme (see Section \ref{sec:3d_ap_scheme}) restricted to the $z$-axis. The following initial conditions are used for both models
+\begin{equation*}
+    n_e(z,0) = n_i(z,0) = 1, u_z(z,0) = \chi_{[-0.1,0]}(z) - \chi_{[0,0.1]}(z),\ \ \forall z \in [-0.1,0.1].
+\end{equation*}
+where $\chi$ is the characteristic function. The other variables are initially zero. The case for $\lambda = 1$ is tested. Fig. \ref{fig:z_axis_reduction} demonstrates good matching.
+
 \begin{figure}
     \centering
-    \includegraphics{z_axis_reduction.eps}
-    \caption{Comparison of 1D two-fluid model and reduced 1D model on $z$-axis from 3D two-fluid model. The results are both generated on meshes with 64 cells along the $z$-axis. No friction term exists. $t = 5 \times 10^{-4}.$}
+    \includegraphics[scale=1.2]{z_axis_reduction.eps}
+    \caption{Case I: Comparison of 1D two-fluid model and reduced 1D model on $z$-axis from 3D two-fluid model. The results are both generated on meshes with 64 cells along the $z$-axis. $\lambda = 1$. No friction term exists. $t = 5 \times 10^{-4}.$}
     \label{fig:z_axis_reduction}
 \end{figure}
 
-\subsection{Case 2: 3D Cylindrical Problem}
+\subsection{Case II: 3D Cylindrical Problem}
 
 We stick to the setting in Section \ref{sec:BC} and use the following initial conditions
 \begin{equation*}
     n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{e, i\}.
 \end{equation*}
-All the other quantities are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and excites the system. 
+All the other variables are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and excites the system. 
 
 The cylindrical domain is 5.0 in length and 1.5 in radius. The plasma domain $\Omega_P$ is 1.0 in radius, i.e. the non-conducting domain $\Omega_N$ has an inner radius of 1.0 and an outer radius of 1.5. 
 
 \begin{remark}
-    Such an initial state is compatible with the BCs and the quasi-neutral condition $\rho = 0$, which means no initial layer and boundary layer in the sense of perturbation theory will arise when $\lambda \rightarrow 0$. 
+    Such an initial state is compatible with the boundary conditions and the quasi-neutral condition $\rho = 0$, which means no initial layer and boundary layer in the sense of perturbation theory will arise when $\lambda \rightarrow 0$. 
 \end{remark}
 
-In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$ and $0$ are shown to visualize the 3D structure of the electromagnetic field. Qualitative verification can be done in many aspects. First, the rotational symmetry of the problem is preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a relatively uniform value of approximately 0.2 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the curl-free property of the $\mathbf{E}$-field in the steady state according to Faraday's law. This is also confirmed in Fig. \ref{fig:zaxis-data_vs_z-T_10}. Note that it does not hold for $\lambda = 1$ since the system has a large characteristic time and takes a long time to reach an equilibrium, which will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the $\mathbf{B}$-field is azimuthal (spiral-shaped) and orthogonal to the $\mathbf{E}$-field. Also, under the driven force by the $\mathbf{E}$-field, the electrons move towards the anode $\Gamma^+_C$ as expected.
+In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$ and $0$ are shown to visualize the 3D structure of the electromagnetic field. Qualitative verification can be done in many aspects. First, the rotational symmetry of the problem is preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a relatively uniform value of approximately 0.2 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the irrotational $\mathbf{E}$-field in the steady state according to Faraday's law. This is also confirmed in Fig. \ref{fig:zaxis-data_vs_z-T_10}. Note that it does not hold for $\lambda = 1$ since the system has a large characteristic time and takes a long time to reach an equilibrium, which will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the $\mathbf{B}$-field is azimuthal (spiral-shaped) and orthogonal to the $\mathbf{E}$-field. Also, under the electric force, the electrons move towards the anode $\Gamma^+_C$ as expected.
 \begin{figure}
     \centering
     \begin{subfigure}[b]{\textwidth}
@@ -1598,20 +1642,47 @@ In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.
         \includegraphics[scale=0.25]{electronVel_lambda-0.png}
         \caption{$\lambda = 1.0$}
     \end{subfigure}
-    \caption{Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 10$ based on a primal mesh with 1920 cells (16 cells along $z$-axis). } 
+    \caption{Case II: Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 10$ based on a primal mesh with 1920 cells (16 cells along $z$-axis). } 
     \label{fig:3d_vec_field_E_B_ue}
 \end{figure}
 
-Next, we perform a grid study. The norms of the solutions under mesh refinement are shown in Fig. \ref{fig:grid_study_3d}. Due to the high computational cost in 3D simulations, reference solutions produced by a highly-refined mesh are not trivially accessible. That is why we demonstrate results generated by relatively coarse meshes. Fig. \ref{fig:grid_study_3d} indicates that the solutions are stable under mesh refinement. To reveal more features of the solutions, in Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0}, we plot some quantities at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$. Qualitatively the same solutions are produced under different meshes.
+Next, we perform a grid study. The norms of the solutions under mesh refinement are shown in Fig. \ref{fig:grid_study_3d}. Due to the high computational cost in 3D simulations, reference solutions produced by a highly-refined mesh are not trivially accessible. Therefore, we demonstrate results generated by relatively coarse meshes. Tab. \ref{tab:grid_study_norm} lists $L^2$-norms of the solutions on different meshes, which indicates  robustness with respect to mesh refinement. To reveal more features of the solutions, in Fig. \ref{fig:grid_study_3d_clip_lambda-1e-1} and \ref{fig:grid_study_3d_clip_lambda-0} we plot the solutions at the cross-section generated by meshes of different sizes for $\lambda = 0.1$ and $0$. Qualitatively the same solutions are produced on meshes of different sizes.
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c | c c c | c c c}
+        \hline\hline
+        \multirow{2}{1em}{$N_V$} & \multicolumn{3}{c}{$\lambda = 1$} & \multicolumn{3}{c}{$\lambda = 0$} \\
+        \cline{2-4} \cline{5-7}
+        & $\|n_e \|_{L^2}$ & $\|\mathbf{E} \|_{L^2}$ & $\|\mathbf{B} \|_{L^2}$ & $\|n_e \|_{L^2}$ & $\|\mathbf{E} \|_{L^2}$ & $\|\mathbf{B} \|_{L^2}$  \\
+        \hline
+         1920  &  4.40 & 0.466 & 0.214 & 4.40 & 1.14 & 0.0155 \\
+         3840  &  4.40 & 0.443 & 0.208 & 4.40 & 1.14 & 0.0155 \\
+         14592 &  3.84 & 0.381 & 0.256 & 3.84 & 1.14 & 0.0135 \\ 
+         29184 &  3.84 & 0.362 & 0.256 & 3.84 & 1.14 & 0.0135 \\
+         \hline\hline
+    \end{tabular}
+    \caption{$L^2$-norms of the electron density, the $\mathbf{E}$-field and the $\mathbf{B}$-field on meshes of different size when $\lambda = 1$ or $\lambda = 0$.}
+    \label{tab:grid_study_norm}
+\end{table}
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.8]{norm-vs-mesh.eps}
-    \caption{1-norms of quantities with respect to different mesh sizes: The results are computed for $\lambda = 1$ and $0.1$ at $t = 1$.}.
-    \label{fig:grid_study_3d}
-\end{figure}
-
-\begin{figure}
+    \begin{minipage}{0.0\textwidth}
+    \Large
+    \vspace{0.4cm}
+    $\mathbf{|E|}$
+    
+    \vspace{2.2cm}
+    $\mathbf{|B|}$
+    
+    \vspace{2.2cm}
+    $n_e$
+    
+    \vspace{1.9cm}
+    $n_i$
+    \end{minipage}
+    \begin{minipage}{0.9\textwidth}
     \centering
     \textit{\textsf{Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}}}
     
@@ -1627,36 +1698,60 @@ Next, we perform a grid study. The norms of the solutions under mesh refinement 
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_8-2-2.png}
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_16-3-3.png}
     \includegraphics[scale=0.27]{clip_ni_T-1_lambda-1e-1_32-3-4.png}
-    \caption{Quantities at the cross-section generated by meshes with different refinement levels: 1920 primal cells in Refinement 1; 14592 primal cells in Refinement 2; 30720 primal cells in refinement 3. The snapshots are computed for $\lambda = 0.1$ at $t = 1$.}
+    \end{minipage}
+    \caption{Case II: Quantities at the cross-section generated by meshes with different refinement levels: 1920 primal cells in Refinement 1; 14592 primal cells in Refinement 2; 30720 primal cells in refinement 3. The snapshots are computed for $\lambda = 0.1$ at $t = 1$.}
     \label{fig:grid_study_3d_clip_lambda-1e-1}
 \end{figure}
 
 \begin{figure}
     \centering
-    \textit{\textsf{Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}}}
+    \begin{minipage}{0.0\textwidth}
+    \Large
+    \vspace{0.4cm}
+    $\mathbf{|E|}$
     
+    \vspace{2.2cm}
+    $\mathbf{|B|}$
+    
+    \vspace{2.2cm}
+    $n_e$
+    
+    \vspace{1.9cm}
+    $n_i$
+    \end{minipage}
+    \begin{minipage}{0.9\textwidth}
+    \centering
+    \textit{\textsf{Refinement 1\hspace{2.5cm}Refinement 2\hspace{2.5cm}Refinement 3\hspace{1cm}}}
     \includegraphics[scale=0.27]{slice_E_T-1_lambda-0_8-2-2.png}
     \includegraphics[scale=0.27]{slice_E_T-1_lambda-0_16-3-3.png}
     \includegraphics[scale=0.27]{slice_E_T-1_lambda-0_32-3-4.png}
-    \includegraphics[scale=0.27]{slice_B_T-1_lambda-0_8-2-2.png}
-    \includegraphics[scale=0.27]{slice_B_T-1_lambda-0_16-3-3.png}
+    
+    \hspace{0.0cm}
+    \includegraphics[scale=0.27]{slice_B_T-1_lambda-0_8-2-2.png}\hspace{0.02cm}
+    \includegraphics[scale=0.27]{slice_B_T-1_lambda-0_16-3-3.png}\hspace{0.02cm}
     \includegraphics[scale=0.27]{slice_B_T-1_lambda-0_32-3-4.png}
-    \includegraphics[scale=0.27]{slice_ne_T-1_lambda-0_8-2-2.png}
-    \includegraphics[scale=0.27]{slice_ne_T-1_lambda-0_16-3-3.png}
+    
+    \hspace{0.04cm}
+    \includegraphics[scale=0.27]{slice_ne_T-1_lambda-0_8-2-2.png}\hspace{0.04cm}
+    \includegraphics[scale=0.27]{slice_ne_T-1_lambda-0_16-3-3.png}\hspace{0.03cm}
     \includegraphics[scale=0.27]{slice_ne_T-1_lambda-0_32-3-4.png}
-    \includegraphics[scale=0.27]{slice_ni_T-1_lambda-0_8-2-2.png}
-    \includegraphics[scale=0.27]{slice_ni_T-1_lambda-0_16-3-3.png}
+    
+    \hspace{0.04cm}
+    \includegraphics[scale=0.27]{slice_ni_T-1_lambda-0_8-2-2.png}\hspace{0.04cm}
+    \includegraphics[scale=0.27]{slice_ni_T-1_lambda-0_16-3-3.png}\hspace{0.04cm}
     \includegraphics[scale=0.27]{slice_ni_T-1_lambda-0_32-3-4.png}
-    \caption{Quantities at the cross-section generated by meshes with different refinement levels. Refinement 1: 1920 primal cells; Refinement 2: 14592 primal cells; Refinement 3: 30720 primal cells. The snapshots are computed for $\lambda = 0$ at $t = 1$.}
+    \end{minipage}
+    
+    \caption{Case II: Quantities at the cross-section generated by meshes with different refinement levels. Refinement 1: 1920 primal cells; Refinement 2: 14592 primal cells; Refinement 3: 30720 primal cells. The snapshots are computed for $\lambda = 0$ at $t = 1$.}
     \label{fig:grid_study_3d_clip_lambda-0}
 \end{figure}
 
-To inspect how the system evolves, the time histories of some quantities are displayed in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that dampen over time. A larger value of $\lambda$ leads to oscillations with larger amplitude and slower damping whereas with a smaller $\lambda$ the system quickly reaches a steady state. It is consistent with the fact that $\lambda$ characterizes the time scale of the electromagnetic field. From a different perspective, it is a reflection of the shielding effect of plasma which is characterized by the Debye length. Besides, the electrons move much faster and oscillate more than ions as a consequence of the large difference in inertia. Furthermore, the structure-preserving property of our scheme is revealed by the exact balance of the currents at $\Gamma^+_C$ and $\Gamma^-_C$ \cite{Hiptmair_2021}, as is shown in the last figure in Fig. \ref{fig:origin-data_vs_time}.
+To inspect how the system evolves, the time histories of some quantities are displayed in Fig. \ref{fig:origin-data_vs_time}. Being originally at rest, the system is excited by the applied voltage and generates oscillations that decay over time. A larger value of $\lambda$ leads to oscillations with larger amplitude and slower damping whereas with a smaller $\lambda$ the system quickly reaches a steady state. It is consistent with the fact that $\lambda$ characterizes the time scale of the electromagnetic field. From a different perspective, it is a reflection of the shielding effect of plasma which is characterized by the Debye length. Besides, the electrons move much faster and oscillate more than ions as a consequence of the large difference in inertia. Furthermore, the structure-preserving property of our scheme is revealed by the exact balance of the currents at $\Gamma^+_C$ and $\Gamma^-_C$ \cite{Hiptmair_2021}, as is shown in the last figure in Fig. \ref{fig:origin-data_vs_time}.
 
 \begin{figure}
     \centering
     \includegraphics[scale=0.9]{data-vs-time_stepVoltage.eps}
-    \caption{Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different values of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along the $z$-axis.}
+    \caption{Case II: Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different values of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along the $z$-axis.}
     \label{fig:origin-data_vs_time}
 \end{figure}
 
@@ -1664,16 +1759,16 @@ The stabilization proposed in Section \ref{sec:reform_discrete} is essential to 
 \begin{figure}
     \centering
     \includegraphics{stabilizationComparision_stepVoltage.eps}
-    \caption{Stabilization in the non-conducting domain $\Omega_N$. The $\mathbf{E}$-field z-component in a boundary cell in $\Omega_N$ is displayed over time. }
+    \caption{Case II: Stabilization in the non-conducting domain $\Omega_N$. The $\mathbf{E}$-field z-component in a boundary cell in $\Omega_N$ is displayed over time. }
     \label{fig:stabilization_comparison}
 \end{figure}
 
-The capability of our approach to addressing the non-neutral ($\lambda = \mathcal{O}(1)$) and quasi-neutral ($\lambda = 0$) regimes has been demonstrated in the aforementioned results in the sense that it is stable under different values of $\lambda$. Another important check goes to the quasi-neutral condition, i.e. $\rho = 0$ (\ref{equ:maxwell_gauss_D_limit}) when $\lambda = 0$. We display the $\mathbf{E}$-field and particle densities on the $z$-axis in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The lower figure demonstrates the matching of the density profiles of the electrons and ions, namely, the quasi-neutrality holds in the discrete level.
+The capability of our approach to addressing the non-neutral ($\lambda = \mathcal{O}(1)$) and quasi-neutral ($\lambda = 0$) regimes has been demonstrated in the aforementioned results in the sense that it is stable under different values of $\lambda$. Another important check goes to the quasi-neutral condition, i.e. $\rho = 0$ (\ref{equ:maxwell_gauss_D_limit}) when $\lambda = 0$. We display the $\mathbf{E}$-field and particle densities on the $z$-axis in Fig. \ref{fig:zaxis-data_vs_z-T_10}. The lower figure demonstrates the matching of the density profiles of the electrons and ions, namely, the quasi-neutrality holds on the discrete level.
 
 \begin{figure}
     \centering
     \includegraphics{data-vs-z_stepVoltage.eps}
-    \caption{Quantities along $z$-axis for different $\lambda$: The results are computed at $t = 10$ on a mesh with 1920 primal cells with 8 layers along $z$-axis.}.
+    \caption{Case II: Quantities along $z$-axis for different $\lambda$: The results are computed at $t = 10$ on a mesh with 1920 primal cells with 8 layers along $z$-axis.}.
     \label{fig:zaxis-data_vs_z-T_10}
 \end{figure}
 
