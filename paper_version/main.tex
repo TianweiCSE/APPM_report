@@ -52,15 +52,23 @@
 \section*{Abstract}
 \todo{polish the abstract}
 
+\noindent\textbf{A short version:}
+
+The Debye length $\lambda_D$, as a key characteristic coefficient of plasmas, may range over many orders of magnitude. The induced singularly perturbed problem is a challenge for plasma simulations. Recently so called asymptotic-preserving (AP) schemes, which target such problems, are studied widely. However, in the context of plasma simulations, only AP schemes in one spatial dimension are available. In this work, we construct an AP schemes for Maxwell-Euler equations in three spatial dimensions based on primal-dual meshes and the finite integration technique (FIT) for Maxwell's equations coupled with the finite volume method (FVM) for the fluid equations. Besides, issues like boundary treatment and stabilization in non-conducting regions are tackled. The AP property is verified numerically. We expect this new discretization approach is particularly suited for problems involving multiple scales of the Debye length, e.g. electric arcs.
+
+
+\noindent\textbf{A long version:}
+
+{\color{red}
 A key coefficient characterizing plasmas is the so-called Debye length $\lambda_D$, whose magnitude indicates to what extent net electric charges deviate from zero. It may range over many orders of magnitude: If $\lambda_D = \mathcal{O}(1)$ we face the non-neutral regime, while for $\lambda_D\to 0$ the plasma becomes quasi-neutral. A singularly perturbed problem arises from the $\lambda_D\to 0$ limit, which leads to peculiar issues in numerical algorithms when both regimes coexist, for instance, in the fringes of electric arcs and near electrodes. It is desired to design numerical schemes that are \emph{robust} for arbitrary $\lambda_D$. More precisely, they should be \emph{asymptotic-preserving} (AP), in the sense that the limit $\lambda_D\to 0$ of the scheme yields a viable discretization for the continuous limit model.
 
 An asymptotic-preserving scheme for single- and multi-fluid Euler-Maxwell system was proposed by \cite{degond_2012} for one spatial dimension. We extend their scheme to three dimensions. The key ingredients are (i) a discretization of Maxwell's equations based on primal and dual meshes in the spirit of discrete exterior calculus (DEC)/the finite integration technique (FIT), (ii) finite volume method (FVM) for the fluid equations on the dual mesh, and (iii) mixed implicit-explicit timestepping. The scheme is designed to be AP as $\lambda_D \rightarrow 0$ and this is validated through numerical experiments. Besides, if the electromagnetic fields have to be modelled in an non-conducting region beyond the plasma domain, additional stabilization to accommodate Gauss's law is necessary.
+}
 
 \section{Introduction}
 
-\mycomment{Roman: more info from a physical point of view?}
-
-We consider a hydrodynamic multi-species plasma model, which boils down to the Maxwell-Euler system. As in \cite{degond_2012}, our focus is an \emph{asymptotic-preserving} (AP) discretization in the quasi-neutral limit $\lambda_D \rightarrow 0$, where $\lambda_D$ is the rescaled Debye length, see Section \ref{sec:rescaling} for the underlying scaling arguments and \cite{degond_2012,degond_2017} for a discussion of the importance of the AP property in plasma codes.  
+% \mycomment{Roman: more info from a physical point of view?} R.H. 19.12. Extended paragraph
+The starting point for this work was the desire to numerically simulate the formation and evolution of electric arcs at atmospheric pressures. We rely on a widely accepted description by means of a hydrodynamic multi-species plasma model, which boils down to the Maxwell-Euler system. The arc phenomenon covers a wide range of plasma regimes and the numerical model should be able to deal with all of them seamlessly and simultaneously. Thus in this work, as in \cite{degond_2012}, the focus is on \emph{asymptotic-preserving} (AP) discretization in the quasi-neutral limit $\lambda \rightarrow 0$, where $\lambda$ is the rescaled Debye length, see Section \ref{sec:rescaling} for the underlying scaling arguments and \cite{degond_2012,degond_2017} for a discussion of the importance of the AP property of numerical plasma models.  
 
 Our approach is inspired by \cite{degond_2012}, but goes beyond that work in various directions:
 \begin{itemize}
@@ -167,7 +175,7 @@ Each species in a plasma can be modelled as a compressible fluid by a set of Eul
 \end{align}
 The subscript $*\in \{e, i, \cdots\}$ represents the indices for electron, ions and other species. The involved fluid quantities are: number density $n_*[\frac{1}{\text{m}^3}]$, particle mass $m_*[\text{kg}]$,  charge number $q_*[\text{C}]$, velocity $\mathbf{u}_*[\frac{\text{m}}{\text{s}}]$, pressure $p_*[\frac{\text{N}}{\text{m}^2}]$, specific total energy $e_* := \frac{1}{2}|\mathbf{u}_*|^2 + \frac{p_*}{m_*n_*(\gamma - 1)}[\frac{\text{J}}{\text{kg}}]$, specific total enthalpy $h_* := e_* + \frac{p_*}{m_*n_*}[\frac{\text{J}}{\text{kg}}]$ and current density $\mathbf{J}_* := q_*n_*\mathbf{u}_*[\frac{\text{A}}{\text{m}^2}]$. All the species are assumed to be ideal gases with heat capacity ratio $\gamma=5/3$ for monatomic gases. The left-hand side of the equations describes the convection of plasma fluids. The first term at the right-hand side takes into account the Lorentz force in the momentum equation and Joule heating in the energy equation. $\Gamma_*, \mathbf{R}_*, Q_*$ are generic terms due to effects of inter-species collision, ionization, recombination, etc. 
 
-For the sake of simplicity, we only consider ion-electron collision in this work, but extension to more species is straightforward. Such collisions can be well modelled by friction terms (\citep[][sec. 5.6.2]{chen2016})
+For the sake of simplicity, we only consider ion-electron collision in this work, but extension to more species is straightforward. Such collisions can be well modelled by friction terms (\citep[][Sec. 5.6.2]{chen2016})
 \begin{equation} \label{equ:collision}
     \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\epsilon)^2(k_BT_e)^{3/2}}\text{ln}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
 \end{equation}
@@ -298,7 +306,7 @@ but here $\epsilon, \mu$ are the rescaled permittivity and permeability.
 We end up with the rescaled Maxwell-Euler system (\ref{equ:maxwell_faraday_rescaled})-(\ref{equ:maxwell_material_law_rescaled}) parameterized by $\lambda$.
 
 \subsection{Quasi-neutral Limit} \label{sec:quasi-neutral_limit}
-The Debye length $\lambda_D$ (see its definition in the preceding section) is the characteristic length over which local concentrations of charge are shielded, see \cite[sec. 1.4]{chen2016} for the underlying physics. In many situations, it has a rather low value compared to the reference length scale: the typical $\lambda_D$ for gas discharge and Tokamak is $10^{-4}$ meter; for interstellar medium, the magnitude is about $1$ meter\cite[ch. 20]{Blandford_2013}. That justifies the quasi-neutrality assumption that the plasma is locally neutral, i.e. $\rho = \sum_* q_*n_* = 0$. The limit model is obtained by formally setting the rescaled Debye length $\lambda$ to zero:
+The Debye length $\lambda_D$ (see its definition in the preceding section) is the characteristic length over which local concentrations of charge are shielded, see \cite[Sec. 1.4]{chen2016} for the underlying physics. In many situations, it has a rather low value compared to the reference length scale: the typical $\lambda_D$ for gas discharge and Tokamak is $10^{-4}$ meter; for interstellar medium, the magnitude is about $1$ meter\cite[Ch. 20]{Blandford_2013}. That justifies the quasi-neutrality assumption that the plasma is locally neutral, i.e. $\rho = \sum_* q_*n_* = 0$. The limit model is obtained by formally setting the rescaled Debye length $\lambda$ to zero:
 \vspace{-\baselineskip}
 \begin{center}
     \begin{minipage}{0.3\textwidth}
@@ -336,16 +344,15 @@ where
  It is obvious in (\ref{equ:E}) that the electric field propagate with finite speed (hyperbolic evolution) when $\lambda = \mathcal{O}(1)$, whereas for $\lambda = 0$ they respond instantaneously everywhere to local excitation (parabolic evolution/elliptic boundary value problems).
 
 \begin{remark}
-    The preceeding formal limit argument is heuristic. Deep mathematical tools from perturbation theory would be needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper. Readers are referred to \cite[ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
+    The preceeding formal limit argument is heuristic. Deep mathematical tools from perturbation theory would be needed to rigorously prove the convergence of the limiting sequence. This topic is beyond the scope of this paper. Readers are referred to \cite[Ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
 \end{remark} 
 
 \subsection{Boundary Conditions} \label{sec:BC}
 
-We consider a simply-connected domain $\Omega$ comprising two sub-domains $\Omega_P$ (plamsa domain) and $\Omega_N$ (non-conducting domain). They represent regions of space occupied by plasma and a non-conducting linear dielectric medium (e.g. glass) respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$ to denote the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary with an artificial cut-off boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding to this setting is sketched in Fig. \ref{fig:domain_sketch} and is the one used in \cite[][Ch. 1, sec. 4]{fuchs_2021}. 
+We consider a simply-connected domain $\Omega$ comprising two sub-domains $\Omega_P$ (plamsa domain) and $\Omega_N$ (non-conducting domain). They represent regions of space occupied by plasma and a non-conducting linear dielectric medium (e.g. glass) respectively. We use the notation $\Gamma_C := \partial\Omega \cap \partial\Omega_P$ to denote the contact boundary, and $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary with an artificial cut-off boundary. The interface between the two domains is denoted by $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding to this setting is sketched in Fig. \ref{fig:domain_sketch} and is the one used in \cite[][Ch. 1, Sec. 4]{fuchs_2021}. This situation is simple, but highly relevant. It covers fundamental experimental set-ups, for example, those studying wall-stabilized electric arcs \cite{GGF05}, but is also adequate for a range of industrial plasmas, for instance, those occurring in high-voltage circuit breakers \cite{SEE15,MGU20}. 
+%\mycomment{Roman: expand on a relevant physical setting, e.g. wall-stabilized arc in hight voltage circuit breakers.}
 
-\mycomment{Roman: expand on a relevant physical setting, e.g. wall-stabilized arc in hight voltage circuit breakers.}
-
-The Euler system is defined in $\Omega_P$ with boundary $\partial\Omega_P$. We consider the physical scenario where plasma is confined by a solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective wall where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by open boundaries in the sense that fluids are free to flow through, i.e. ions and electrons are emitted and absorbed by the electrodes. 
+The Euler equations are posed $\Omega_P$ and associated boundary conditions are imposed on $\partial\Omega_P$. We consider the physical scenario where plasma is confined by a solid insulator. Therefore, the interface $\Gamma_W$ is treated as reflective wall where fluid particles are bounced back while keeping the tangential velocity and energy unchanged. The contact boundary $\Gamma_C$ is where the plasma and energy flow across, modelled by open boundaries in the sense that fluids are free to flow through, i.e. ions and electrons are emitted and absorbed by the electrodes. 
 
 \begin{remark}
     The treatment of electrodes as open boundary is am extreme simplification. For more realistic electrode modelling, see \cite{godyak_1990, parker_1993}.
@@ -1569,8 +1576,6 @@ We conduct numerical experiments based on the geometric setting and boundary con
 
 The source code is published in \cite{yu2022}.
 
-\todo{Reference to github repository}
-
 \subsection{Case I: Quasi-1D Problem}
 Noticing the radial symmetry of the domain as well as boundary conditions, we can simplify the governing equations defined at the axis of symmetry, i.e. $z$-axis in this case, thanks to vanishing radial components of the vector fields and their radial derivatives. The (isentropic and collisionless) Euler-Maxwell system at the axis of symmetry reduces to
 \begin{align*}
@@ -1780,8 +1785,7 @@ The capability of our approach to addressing the non-neutral ($\lambda = \mathca
 \section{Conclusion}
 We have developed an AP scheme for the Euler-Maxwell plasma model in three spatial dimensions that is versatile in both non-neutral $\lambda = \mathcal{O}(1)$ and quasi-neutral $\lambda \rightarrow 0$ regimes. The main features of our work lie in: i) Maxwell's equations are discretized on primal and dual meshes by FIT (in the spirit of DEC). By discretizing the Euler equations by FVM on dual mesh, the coupling of two systems is naturally realized via the connection of the mass flux and electric current at each dual face. ii) A non-conducting region is taken into account where additional stabilization is essential when $\lambda \rightarrow 0$. We enforce the vanishing divergence of the $\mathbf{D}$-field through a Lagrange multiplier for any value of $\lambda$. iii) The alignment of primal-dual meshes at the boundary entails cut-off cells and auxiliary unknowns have to be introduced. iv) A lumping trick is applied to the conductivity matrix (relating the electric current and the electric field) to enhance stability.   
 
-Our approach has been tested on a cylindrical domain with ECE boundary conditions and the AP property has been verified numerically. To the best of the authors' knowledge, this work is among the first to try to solve the 3D fluid plasma model on unstructured meshes, which potentially gives more flexibility than the finite-difference-based approaches and reduces the computational cost compared to particle-based approaches. In particular, the AP property allows us to address regimes of the arbitrary value of the Debye length. 
+Our approach has been tested on a cylindrical domain with settings meant for electric arc simulations. The AP property has been verified numerically. To the best of the authors' knowledge, this work is among the first to try to solve the 3D fluid plasma model on unstructured meshes, which potentially gives more flexibility than the finite-difference-based approaches and reduces the computational cost compared to particle-based approaches. In particular, the AP property allows us to address regimes of the arbitrary value of the Debye length. 
 
-\todo{Polish the reference}
 \bibliography{ref}
 \end{document}
