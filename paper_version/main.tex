@@ -52,7 +52,23 @@
 \section*{Abstract}
 % \todo{polish the abstract}
 
-We elaborate a numerical method for a three-dimensional hydrodynamic multi-species plasma model which boils down to an extended Euler-Maxwell system. Our method is inspired by and extends the one-dimensional scheme from $[$P.~Degond, F.~Deluzet, and D.~Savelief, Numerical approximation of the Euler-Maxwell model in the quasineutral limit, Journal of Computational Physics, 231 (4), pp.~1917--1946, 2012$]$, it can cope with large variations of the so-called Debye length $\lambda_D$ and is robust in the quasi-neutral singular-perturbation limit $\lambda_D\to 0$, because it enjoys an \emph{asymptotic-preserving} (AP) property in the sense that in the sense that the limit $\lambda_D\to 0$ of the scheme yields a viable discretization for the continuous limit model. The key ingredients of our approach are (i) a discretization of Maxwell's equations based on primal and dual meshes in the spirit of \emph{discrete exterior calculus} (DEC) also known the finite integration technique (FIT), (ii) a finite volume method (FVM) for the fluid equations on the dual mesh, (iii) \emph{mixed implicit-explicit timestepping}, (iv) special no-flux and contact boundary conditions at an outer cut-off boundary, and (v) additional \emph{stabilization} in the non-conducting region outside the plasma domain based on direct enforcement of Gauss' law. Numerical tests provide strong evidence confirming the AP property of the new method. 
+We elaborate a numerical method for a three-dimensional hydrodynamic multi-species plasma
+model which boils down to an extended Euler-Maxwell system. Our method is inspired by and
+extends the one-dimensional scheme from $[$P.~Degond, F.~Deluzet, and D.~Savelief,
+Numerical approximation of the Euler-Maxwell model in the quasineutral limit, Journal of
+Computational Physics, 231 (4), pp.~1917--1946, 2012$]$, it can cope with large variations
+of the so-called Debye length $\lambda_D$ and is robust in the quasi-neutral
+singular-perturbation limit $\lambda_D\to 0$, because it enjoys an
+\emph{asymptotic-preserving} (AP) property in the sense that in the sense that the limit
+$\lambda_D\to 0$ of the scheme yields a viable discretization for the continuous limit
+model. The key ingredients of our approach are (i) a discretization of Maxwell's equations
+based on primal and dual meshes in the spirit of \emph{discrete exterior calculus} (DEC)
+also known the finite integration technique (FIT), (ii) a finite volume method (FVM) for
+the fluid equations on the dual mesh, (iii) \emph{mixed implicit-explicit timestepping},
+(iv) special no-flux and contact boundary conditions at an outer cut-off boundary, and (v)
+additional \emph{stabilization} in the non-conducting region outside the plasma domain
+based on direct enforcement of Gauss' law. Numerical tests provide strong evidence
+confirming the AP property of the new method.
 
 %The scheme is designed to be AP as $\lambda_D \rightarrow 0$ and this is validated through numerical experiments. Besides, if the electromagnetic fields have to be modelled in an non-conducting region beyond the plasma domain, additional stabilization to accommodate Gauss's law is necessary.
 
