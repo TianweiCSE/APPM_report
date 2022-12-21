@@ -97,7 +97,7 @@ plasma regimes and, thus, the design goal was a numerical model capable of deali
 with all of them seamlessly and simultaneously. Thus in this work, as in
 \cite{degond_2012}, the focus is on \emph{asymptotic-preserving} (AP) discretization in
 the quasi-neutral limit $\lambda \rightarrow 0$, where $\lambda$ is the rescaled Debye
-length, see Section \ref{sec:rescaling} for the underlying scaling arguments and
+length, see Section~\ref{sec:rescaling} for the underlying scaling arguments and
 \cite{degond_2012,degond_2017} for a discussion of the importance of the AP property of
 numerical plasma models.
 
@@ -113,9 +113,9 @@ Our approach is inspired by \cite{degond_2012}, but goes beyond that work in var
 
 We stay close to \cite{degond_2012} in terms of discretization in time employing
 semi-implicit time-stepping. We also base our considerations on the model geometry shown
-in Fig. \ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical
+in Fig.~\ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical
 scheme proposed in this paper can in principle be adapted to geometric situations much
-more general than that of Fig. \ref{fig:domain_geometry}. However, one may encounter
+more general than that of Fig.~\ref{fig:domain_geometry}. However, one may encounter
 subtle problems in defining proper dual meshes as we need it in Section
 \ref{sec:mesh-duality}. Thus, for the sake of simplicity of presentation we forgo
 geometric generality.
@@ -134,18 +134,18 @@ discretize a parameter($\lambda$)-dependent model $P^\lambda$, which converges t
 $P^0$ as $\lambda \rightarrow 0$, by the scheme $P^\lambda_h$ where $h$ denotes some
 discretization parameter, e.g., the mesh size. The AP property amounts to uniform
 convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. Readers are
-referred to the illustration by a commuting diagram in \cite[][Fig. 1]{jin_2010} and, more
+referred to the illustration by a commuting diagram in \cite[][Fig.~1]{jin_2010} and, more
 generally, to the comprehensive reviews \cite{jin_2010, degond_2017} for more details
 about AP schemes.
 
-The content of this paper is organized as follows: In Section \ref{sec:plasma-model}, we
+The content of this paper is organized as follows: In Section~\ref{sec:plasma-model}, we
 give a full description of the underlying equations of the Maxwell-Euler system and its
 rescaling procedure. Meanwhile, the boundary conditions in our setting is elaborated. A
 reformulation of Maxwell's equations in the non-conducting region is presented. Section
 \ref{sec:spatial_discretization} is devoted to the spatial discretization. The concept of
 primal-dual meshes is introduced based on which FIT and FVM are utilized. We discuss the
-full AP discretization in Section \ref{sec:full-discretization} and do numerical
-experiments in Section \ref{sec:numerical_experiment}.
+full AP discretization in Section~\ref{sec:full-discretization} and do numerical
+experiments in Section~\ref{sec:numerical_experiment}.
 
 \begin{figure}
     \centering
@@ -553,7 +553,7 @@ $\Gamma_C := \partial\Omega \cap \partial\Omega_P$ to denote the contact boundar
 $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary which is an
 ``artificial'' cut-off boundary. The interface between the two domains is denoted by
 $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding
-to this setting is sketched in Fig. \ref{fig:domain_sketch} and is the one used in
+to this setting is sketched in Fig.~\ref{fig:domain_sketch} and is the one used in
 \cite[][Ch. 1, Sec. 4]{fuchs_2021}. This situation is simple, but highly relevant. It
 covers fundamental experimental set-ups, for example, those studying wall-stabilized
 electric arcs \cite{GGF05}, but is also adequate for a range of industrial plasmas, for
@@ -683,7 +683,7 @@ We summarize the boundary conditions for both sets of equations:
 \subsection{Stabilization in $\Omega_{N}$}
 \label{sec:reform_continuous}
 
-No plasma fills the non-conducting domain $\Omega_N$ (see Fig. \ref{fig:domain_sketch}),
+No plasma fills the non-conducting domain $\Omega_N$ (see Fig.~\ref{fig:domain_sketch}),
 and, consequently, the Maxwell system in $\Omega_N$ reduces to 
 \begin{subequations}
   \label{eq:mxon}
@@ -743,7 +743,7 @@ the original formulation (\ref{equ:faraday_ins})-(\ref{equ:gauss_D_ins}) by veri
 $\psi = 0$ in $\Omega_N$. This is done by taking the divergence of
 (\ref{equ:ampere_ins_reform}), which results in $\Delta\psi = 0$ and the zero Dirichlet
 boundary condition gives vanishing $\psi$. The importance of this reformulation will
-become clear through numerical experiments, see Section \ref{sec:numerical_experiment}.
+become clear through numerical experiments, see Section~\ref{sec:numerical_experiment}.
 
 We point out that this reformulation is not needed in the plasma domain $\Omega_P$ since
 the Maxwell system is uniformly well-posed for $\lambda \in [0,1]$ thanks to the existence
@@ -796,20 +796,20 @@ total number of entities in $\mathcal{M}, \Tilde{\mathcal{M}}$.
 
 In 2D we construct the pair of meshes based on the Delaunay-Voronoi approach: we start with a
 Delaunay triangulation $\mathcal{M}$ of the domain and construct $\Tilde{\mathcal{M}}$ by
-connecting \emph{circumcenters} of any two adjacent triangles, see Fig. \ref{fig:2d-mesh}.
+connecting \emph{circumcenters} of any two adjacent triangles, see Fig.~\ref{fig:2d-mesh}.
 In three dimensions, the meshes are constructed by extruding the 2D meshes vertically
 along one axis in a staggered manner \cite[][Sec. 3.1]{Marrone_2001}. See an example in
-Fig. \ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This
+Fig.~\ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This
 particular choice is compatible with the cylindrical geometric setting that we are in, see
-Fig. \ref{fig:domain_sketch}. For a general setting, one can directly decompose the domain
+Fig.~\ref{fig:domain_sketch}. For a general setting, one can directly decompose the domain
 into tetrahedrons and constructs the Voronoi grid, but the procedure is more
 complicated. The meshes for the cylindrical domain are displayed in
-Fig. \ref{fig:primal_dual_meshes}.
+Fig.~\ref{fig:primal_dual_meshes}.
 
 The geometric orthogonality between $L \leftrightarrow \Tilde{A}$ and
 $A \leftrightarrow \Tilde{L}$ is satisfied and will be a crucial property for
 approximating the material laws on the discrete level (which is the so-called discrete
-Hodge operator \cite{hip_1999, bossavit1999}), as will be shown in Section \ref{sec:fit}.
+Hodge operator \cite{hip_1999, bossavit1999}), as will be shown in Section~\ref{sec:fit}.
 
 \begin{remark}
   The use of the Delaunay-Voronoi based primal-dual meshes is problematic when there are
@@ -974,13 +974,13 @@ Each geometric entity in the primal mesh $\mathcal{M}$ is (arbitrarily) endowed 
 \emph{internal orientation}\footnote{This notion should not be confused with \emph{inner
     orientation}, which has a slightly different definition, see
   \cite[][Sec. 3.1]{tonti_2002}.}. The notion is illustrated in
-Fig. \ref{fig:orientation}. For the entities of the dual mesh $\Tilde{\mathcal{M}}$, we
+Fig.~\ref{fig:orientation}. For the entities of the dual mesh $\Tilde{\mathcal{M}}$, we
 set their internal orientations to be aligned with their corresponding primal entities
 according to the bijective pairings, i.e. edges penetrate faces.
 
-Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim entity $f$ with respect to a (k+1)-dim entity $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rules shown in Fig. \ref{fig:orientation}. 
+Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim entity $f$ with respect to a (k+1)-dim entity $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rules shown in Fig.~\ref{fig:orientation}. 
 
-This information can be described by matrices with entries in $\{0,-1,+1\}$, called \emph{incidence matrices}. To describe the primal face-to-edge relation, for instance, a sparse matrix $\mathbb{C} \in \mathbb{R}^{N_A \times N_L}$ is assembled whose $(i,j)$-entry is assigned $+1$ if the internal orientation of edge $L_j$ and its induced orientation with respect to face $A_i$ coincides; it is assigned $-1$ if two orientations are opposite; and assigned $0$ if $L_j$ is not a subset of the boundary of $A_i$. We will see later that $\mathbb{C}$ functions as a discrete version of the rotation operator. The other incidence matrices are constructed in the same manner, see Tab. \ref{tab:incidence_mat} for a summary. Given the relationship of orientations of $\mathcal{M}$ and $\Tilde{\mathcal{M}}$, we can derive the relations listed in Tab. \ref{tab:incidence_relation}.  
+This information can be described by matrices with entries in $\{0,-1,+1\}$, called \emph{incidence matrices}. To describe the primal face-to-edge relation, for instance, a sparse matrix $\mathbb{C} \in \mathbb{R}^{N_A \times N_L}$ is assembled whose $(i,j)$-entry is assigned $+1$ if the internal orientation of edge $L_j$ and its induced orientation with respect to face $A_i$ coincides; it is assigned $-1$ if two orientations are opposite; and assigned $0$ if $L_j$ is not a subset of the boundary of $A_i$. We will see later that $\mathbb{C}$ functions as a discrete version of the rotation operator. The other incidence matrices are constructed in the same manner, see Tab.~\ref{tab:incidence_mat} for a summary. Given the relationship of orientations of $\mathcal{M}$ and $\Tilde{\mathcal{M}}$, we can derive the relations listed in Tab.~\ref{tab:incidence_relation}.  
 
 \begin{table}[h!]
     \centering
@@ -1097,10 +1097,10 @@ boundary. In addition, auxiliary geometric entities are needed to close
 $\Tilde{\mathcal{M}}$, see Fig.~\ref{fig:illustraion_dual_boundary}.
 
 Note that the auxiliary edges might not be straight and the auxiliary faces might not be
-flat as is shown in Fig. \ref{fig:illustraion_dual_boundary}, which necessitates a
+flat as is shown in Fig.~\ref{fig:illustraion_dual_boundary}, which necessitates a
 versatile data structure to include such situations. In the following, the auxiliary
 entities would be treated as dual entities, which limits the validity of the relations in
-Tab. \ref{tab:incidence_relation} to interior part of $\Tilde{\mathcal{M}}$. For a more
+Tab.~\ref{tab:incidence_relation} to interior part of $\Tilde{\mathcal{M}}$. For a more
 systematic illustration that considers the boundary dual entities, see
 \cite[][Sec. 5]{hip_1999}.
 
@@ -1274,7 +1274,7 @@ systematic illustration that considers the boundary dual entities, see
     \label{fig:illustraion_dual_boundary}
 \end{figure}
 
-A pair of primal and dual meshes for the geometry in Fig. \ref{fig:domain_sketch} is displayed in Fig. \ref{fig:primal_dual_meshes}.
+A pair of primal and dual meshes for the geometry in Fig.~\ref{fig:domain_sketch} is displayed in Fig.~\ref{fig:primal_dual_meshes}.
 
 \subsection{Discrete Maxwell Equations}
 \subsubsection{Finite Integration Technique (FIT)} \label{sec:fit}
@@ -1398,13 +1398,13 @@ Summing up, the essence of DEC/FIT is the following:
 \subsubsection{Discrete Boundary Conditions}
 
 The electromagnetic boundary $\partial\Omega = \Gamma_C\cup \Gamma_I$ is resolved by the
-primal mesh $\mathcal{M}$. As is mentioned in Section \ref{sec:BC}, the zero-magnetic-flux
+primal mesh $\mathcal{M}$. As is mentioned in Section~\ref{sec:BC}, the zero-magnetic-flux
 boundary condition $\mathbf{B}\cdot \mathbf{n}$ is equivalent to
 $(\nabla\times\mathbf{E}) \cdot \mathbf{n} = 0$, which paves the way for a surface scalar
 potential $\varphi:\partial\Omega\to\mathbb{R}$ such that the tangential component
 $\mathbf{E}_t$ of the $\mathbf{E}$-field is equal to $\nabla_\Gamma\varphi$. This remains
 true on the discrete level. We associate with each primal vertex $P_k \in \partial\Omega$
-a scalar value $\varphi_k$. Therefore, the boundary conditions (see Section \ref{sec:BC})
+a scalar value $\varphi_k$. Therefore, the boundary conditions (see Section~\ref{sec:BC})
 are discretized in the following way:
 \begin{center}
     \vspace{-0.5cm}
@@ -1438,7 +1438,7 @@ represented by $\mathbb{GX}_\varphi$.
 
 \subsubsection{Stabilization in $\Omega_N$} \label{sec:reform-discrete}
 
-In Section \ref{sec:reform_continuous}, we have proposed a stabilization of the Maxwell
+In Section~\ref{sec:reform_continuous}, we have proposed a stabilization of the Maxwell
 system in the non-conducting domain $\Omega_N$ by introducing a Lagrange multiplier. On
 the semi-discrete level, the equations to be solved in $\Omega_N$ are
 \begin{center}
@@ -1645,7 +1645,7 @@ for each dual cell, the global construction can be written as
     \mathbf{B} = \Tilde{\mathbb{R}}_B\mathbf{b},
     \label{equ:reconstruction}
 \end{equation}
-where $\mathbf{d}, \mathbf{b}$ are defined in Tab. \ref{tab:def_size_var};
+where $\mathbf{d}, \mathbf{b}$ are defined in Tab.~\ref{tab:def_size_var};
 $\mathbf{E} := \{\mathbf{E}_k\}_{k=1}^{N_{\Tilde{V}}}$ and
 $\mathbf{B} := \{\mathbf{B}_k\}_{k=1}^{N_{\Tilde{V}}}$ are $N_{\Tilde{V}} \times 3$
 matrices containing the reconstructed $\mathbf{E}$-fields and $\mathbf{B}$-fields at each
@@ -1663,7 +1663,7 @@ defined in each dual cell.
 
 \subsubsection{Discrete Boundary Conditions}
 
-The boundary conditions for the Euler system (see Section \ref{sec:BC}) are implemented by
+The boundary conditions for the Euler system (see Section~\ref{sec:BC}) are implemented by
 the approach of ghost cells \cite[][Ch. 7]{leveque_2007}, i.e. extending the domain by a
 layer of virtual cells with prescribed variables. In our case, the ghost cells at the open
 boundary at $\Gamma_C$ are assigned the same state as their adjacent interior cells. It is
@@ -1696,7 +1696,7 @@ We collect all the equations and boundary conditions presented above and give a 
      (\ref{equ:alg_material_magnetic}) & \implies & [\mathbf{h} = \mathbb{M}_\mu^{-1}\mathbf{b}]_k, \ \ &\forall k:A_k \subset \Omega, \label{equ:material_law_h_semi_discrete}\\
     (\ref{equ:alg_material_electric}) & \implies & [\mathbf{d} = \mathbb{M}_\epsilon\mathbf{e}]_k,\ \ &\forall k:L_k \subset \Omega \label{equ:material_law_d_semi_discrete},
 \end{align}
-where $\ast \in \{e, i, \dots\}$ and $\bm{f}^\text{mass}$ denotes the mass flux which is defined in Section \ref{sec:discrete_euler}. By $[\cdots]_k$ we mean taking the $k$-th component of both sides of the equation. We have the following boundary conditions:
+where $\ast \in \{e, i, \dots\}$ and $\bm{f}^\text{mass}$ denotes the mass flux which is defined in Section~\ref{sec:discrete_euler}. By $[\cdots]_k$ we mean taking the $k$-th component of both sides of the equation. We have the following boundary conditions:
     \begin{align}
     (\ref{equ:bc_3}) & \implies \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;& d_k = 0,\ \ &\forall k : \Tilde{A}_k \subset \Gamma_I,\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\\
     (\ref{equ:bc_2}) & \implies & e_k = (\mathbb{GX}_\varphi\bm{\varphi})_k,\ \ &\forall k : L_k \subset \partial\Omega, \\
@@ -1972,7 +1972,7 @@ the same level of implicitness to guarantee consistency with Gauss's law.
 \subsection{Semi-implicit Fully-discrete AP Scheme in 3D} \label{sec:3d_ap_scheme}
 
 Taking the cue from the formulas of Sec.~\ref{sec:1d_fully_discrete_model} and combining the
-3D FIT/DEC-FVM framework presented in Section \ref{sec:spatial_discretization} and the
+3D FIT/DEC-FVM framework presented in Section~\ref{sec:spatial_discretization} and the
 time-stepping scheme shown below, we propose the following semi-implicit fully-discrete AP
 scheme in 3D:
 \begin{subequations}
@@ -2108,7 +2108,7 @@ computations:
 \section{Numerical Tests} \label{sec:numerical_experiment}
 
 We conduct numerical tests based on the geometric setting and boundary conditions as
-presented in Section \ref{sec:BC}. The primal-dual mesh pair
+presented in Section~\ref{sec:BC}. The primal-dual mesh pair
 $(\mathcal{M}, \Tilde{\mathcal{M}})$ is generated as explained in
 \cite[][Ch. 1]{fuchs_2021}. An instance is shown in Fig.~\ref{fig:primal_dual_meshes}. We
 consider a two-fluid plasma model, which comprises electrons and ions. We set the mass
@@ -2128,7 +2128,7 @@ symmetry reduces to
     &\partial_t (n_* u_{*,z}) + \partial_z(n_*u_{*,z}^2) + \varepsilon_*^{-2} \partial_z p_*(n_*) = \varepsilon_*^{-2}q_*n_*E_z, \\
     \lambda^2 &\partial_t E_z = \sum_* - q_* n_* u_{*,z}.
 \end{align*}
-which is nothing but the 1D model in Section \ref{sec:projection_to_1d} after further
+which is nothing but the 1D model in Section~\ref{sec:projection_to_1d} after further
 dropping $u_x, B_y, E_x$. We compare the results produced by the 1D scheme (see Section
 \ref{sec:1d_fully_discrete_model}) and those produced by the 3D scheme (see Section
 \ref{sec:3d_ap_scheme}) restricted to the $z$-axis. The following initial conditions are
@@ -2152,7 +2152,7 @@ and demonstrate good matching.
 
 \subsection{Case II: 3D Cylindrical Problem}
 
-We stick to the setting in Section \ref{sec:BC} and use the following initial conditions
+We stick to the setting in Section~\ref{sec:BC} and use the following initial conditions
 \begin{equation*}
     n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{e, i\}.
 \end{equation*}
@@ -2168,7 +2168,7 @@ outer radius of 1.5.
   perturbation theory will arise when $\lambda \rightarrow 0$.
 \end{remark}
 
-In Fig. \ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$
+In Fig.~\ref{fig:3d_vec_field_E_B_ue}, the numerical solutions for $\lambda = 1.0, 0.1$
 and $0$ are shown to visualize the 3D structure of the electromagnetic field. Qualitative
 verification can be done in many aspects. First, the rotational symmetry of the problem is
 preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a
@@ -2177,7 +2177,7 @@ relatively uniform value of approximately 0.2
 $\mathbf{E}$-field in the steady state according to Faraday's law (, which is also confirmed
 in Fig.~\ref{fig:stabilization_comparison} \textbf{(b)}). Note that it does not hold for $\lambda = 1$
 since the system has a large characteristic time and takes a long time to reach an
-equilibrium, as will be shown later in Fig. \ref{fig:origin-data_vs_time}. Besides, the
+equilibrium, as will be shown later in Fig.~\ref{fig:origin-data_vs_time}. Besides, the
 $\mathbf{B}$-field is azimuthal (vortex-shaped) and orthogonal to the
 $\mathbf{E}$-field. Also, under the electric force, the electrons move towards the anode
 $\Gamma^+_C$ as expected.
@@ -2255,7 +2255,7 @@ qualitative agreement is observed.
     \end{tabular}
     \caption{$L^2$-norms of the electron density, the $\mathbf{E}$-field and the
       $\mathbf{B}$-field on meshes of different size when
-      \colorbox{yellow!30}{$\lambda = 1$} or $\lambda = 0$.}
+      \colorbox{yellow!30}{$\lambda = 1$} or \colorbox{yellow!30}{$\lambda = 0$}.}
     \label{tab:grid_study_norm}
 \end{table}
 
@@ -2365,7 +2365,7 @@ shown in the bottom plot in Fig.~\ref{fig:origin-data_vs_time}.
     \label{fig:origin-data_vs_time}
 \end{figure}
 
-The stabilization proposed in Section \ref{sec:reform-discrete} is essential to achieve
+The stabilization proposed in Section~\ref{sec:reform-discrete} is essential to achieve
 good results when $\lambda$ tends to zero. As is shown in
 Fig.~\ref{fig:stabilization_comparison} \textbf{(a)}, the scheme without stabilization incurs a blow-up
 when $\lambda$ is close to zero. The proposed stabilization clearly offers a remedy.
