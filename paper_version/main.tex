@@ -1548,11 +1548,11 @@ terms:
 \begin{equation} \label{equ:euler_conservation}
     \partial_t \mathbf{U} + \nabla \cdot \mathbf{f}(\mathbf{U}) = \mathbf{RHS},
 \end{equation}
-where $\mathbf{U} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ stands for a vector of $m$
-conservative variables,
-$\mathbf{f}(\mathbf{U}) \in L^2(\Omega \times [0,T], \mathbb{R}^{3 \times m})$ is the flux
-function, and $\mathbf{RHS} \in L^2(\Omega \times [0,T], \mathbb{R}^m)$ is the source
-term.. In the case of the full 3D Euler equations (\ref{equ:euler_rescaled}), $m = 5$ and
+where $\mathbf{U} : \Omega \times [0,T] \rightarrow \mathbb{R}^m$ stands for $m$
+conservative variables;
+$\mathbf{f}(\mathbf{U}) : \Omega \times [0,T] \rightarrow \mathbb{R}^{3 \times m}$ is the flux
+function depending on $\mathbf{U}$; $\mathbf{RHS} : \Omega \times [0,T] \rightarrow \mathbb{R}^m$ is the source
+term. In the case of the full 3D Euler equations (\ref{equ:euler_rescaled}), $m = 5$ and
 $\mathbf{U} := [n, n\mathbf{u}, ne]$.
 
 To obtain the semi-discretization, we first integrate (\ref{equ:euler_conservation}) over
