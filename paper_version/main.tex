@@ -39,12 +39,11 @@
 }
 
 
-\title{APPM report - Draft}
-\author[1]{R. Hiptmair}
-\author[1]{T.W. Yu}
-\author[2]{R. Fuchs}
-\affil[1]{Seminar for Applied Mathematics , ETH Z\"{u}rich}
-\affil[2]{IET Institut für Energietechnik, OST}
+\title{Asymptotic-Preserving Discretization of Three-Dimensional Plasma Fluid Models}
+\author[]{Tianwei Yu \thanks{Seminar for Applied Mathematics , ETH Z\"{u}rich, \texttt{tianwei.yu@math.ethz.ch}}}
+\author[]{Roman Fuchs \thanks{IET Institut für Energietechnik, OST, \texttt{roman.fuchs@ost.ch}}}
+\author[]{Ralf Hiptmair \thanks{Seminar for Applied Mathematics , ETH Z\"{u}rich, \texttt{ralf.hiptmair@math.ethz.ch}}}
+\affil[]{}
 \date{}
 
 \begin{document}
@@ -449,7 +448,7 @@ electrons,
 \begin{equation} \label{equ:collision_rescaled} 
     \mathbf{R}_i^{\text{coll}} = \alpha^{\text{coll}}n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_e^{\text{coll}},
 \end{equation}
-and consequently, the rescaled friction heat for ions and electrons take the form:
+and consequently, the rescaled friction heat for ions and electrons takes the form:
 \begin{align} 
     Q_i^{\text{coll}} &= \alpha^{\text{coll}}n_en_i \mathbf{u}_i (\mathbf{u}_i - \mathbf{u}_e), \\
     Q_e^{\text{coll}} &= \alpha^{\text{coll}}n_en_i \mathbf{u}_e (\mathbf{u}_e - \mathbf{u}_i).
@@ -467,7 +466,7 @@ starting point for the development of the numerical method.
 \subsection{Quasi-neutral Limit}
 \label{sec:quasi-neutral_limit}
 
-The Debye length $\lambda_D$ is the characteristic length over which local net charge is
+The Debye length $\lambda_D$ is the characteristic length over which the local net charge is
 shielded, see \cite[Sec. 1.4]{chen2016} for the underlying physics. In many situations, it
 has a very small value compared to the reference length scale: the typical $\lambda_D$ for
 gas discharge and Tokamak fusion reactors is $10^{-4}$ meter, for interstellar medium, the
@@ -510,14 +509,14 @@ initial time.
   The limit \eqref{limit} represents a \emph{singular perturbation problem} in the sense
   that vanishing $\lambda$ changes the character of the PDE system. To be more specific,
   for $\lambda = \mathcal{O}(1)$ the $\mathbf{E}$-field evolves with time whereas in the
-  quasi-neutral model it responds instantaneously to other quantities according to the
+  quasi-neutral model, it responds instantaneously to other quantities according to the
   constraint (\ref{equ:maxwell_ampere_limit}). We replace
   (\ref{equ:maxwell_ampere_rescaled}) by the sum of the rotation of
   (\ref{equ:maxwell_faraday_rescaled}) and the time-derivative of
   (\ref{equ:maxwell_ampere_rescaled}). Meanwhile, due to the link between fluid momenta
   $n_*u_*$ and current in (\ref{equ:maxwell_euler_coupling}), the term
   $\partial_t\mathbf{J}$ can be reformulated by the momentum equation according to
-  (\ref{equ:euler_rescaled}) and we end up with the following wave equation with source
+  (\ref{equ:euler_rescaled}) and we end up with the following wave equation with the source
   terms:
   \begin{align}
     \lambda^2\partial_t^2 \mathbf{E} + \nabla \times \nabla \times \mathbf{E} &= \mathbf{S}_1 + \mathbf{S}_2, \label{equ:E}
@@ -536,11 +535,11 @@ initial time.
 \end{remark}
 
 \begin{remark}
-  The preceeding formal limit argument is heuristic. Deep mathematical tools from
+  The preceding formal limit argument is heuristic. Deep mathematical tools from
   perturbation theory would be needed to rigorously prove the convergence of the limiting
   sequence. This topic is beyond the scope of this paper. Readers are referred to
   \cite[Ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the
-  Maxwell-Euler system, and \cite{mark_1995, Eckhaus_1980} for the general theory.
+  Maxwell-Euler system and \cite{mark_1995, Eckhaus_1980} for the general theory.
 \end{remark} 
 
 \subsection{Boundary Conditions} \label{sec:BC}
@@ -554,7 +553,7 @@ $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary w
 ``artificial'' cut-off boundary. The interface between the two domains is denoted by
 $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding
 to this setting is sketched in Fig.~\ref{fig:domain_sketch} and is the one used in
-\cite[][Ch. 1, Sec. 4]{fuchs_2021}. This situation is simple, but highly relevant. It
+\cite[][Ch. 1, Sec. 4]{fuchs_2021}. This situation is simple but highly relevant. It
 covers fundamental experimental set-ups, for example, those studying wall-stabilized
 electric arcs \cite{GGF05}, but is also adequate for a range of industrial plasmas, for
 instance, for those occurring in high-voltage circuit breakers \cite{SEE15,MGU20}.
