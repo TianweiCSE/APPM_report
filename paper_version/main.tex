@@ -293,9 +293,9 @@ flow of charged particles induces electric currents:
 extension to more species is straightforward. Such collisions can be well modelled by
 friction terms, for instance \citep[][Sec. 5.6.2]{chen2016}
 \begin{equation} \label{equ:collision}
-    \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\epsilon)^2(k_BT_e)^{3/2}}\text{ln}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
+    \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\epsilon)^2(k_BT_e)^{3/2}}\text{\emph{ln}}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
 \end{equation}
-which is the collision force acting on electrons. ln$\Lambda$ is called the \emph{Coulomb
+which is the collision force acting on electrons. \emph{ln}$\Lambda$ is called the \emph{Coulomb
   logarithm} and is usually taken as a constant \cite{chen2016}. Because of the
 conservation of momentum, the collision term for ions $\mathbf{R}_{i}^{\text{coll}}$ is
 nothing but the negative of $\mathbf{R}_{e}^{\text{coll}}$. In this work, the other
@@ -310,12 +310,12 @@ modeling of these physical processes, readers are referred to
 
 We arrive at non-dimensional equations by following the rescaling procedure of
 \cite[][Sec. 2.2]{degond_2017}.  First, a reference value for each quantity is
-prescribed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of
+fixed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of
 interest, by which the reference velocity $\overline{v}$ is defined as
 $\overline{x}/\overline{t}$. The typical magnitudes of electromagnetic fields are
 $\overline{E}$ and $\overline{B}$. The reference magnitudes of fluid quantities are
-denoted by $\overline{u}$ for plasma drift velocity, $\overline{n}$ for plasma number
-density, $\overline{T}$ for plasma temperature. On top of that, the reference pressure is
+denoted by $\overline{u}$ for the plasma drift velocity, $\overline{n}$ for the plasma number
+density, $\overline{T}$ for the plasma temperature. On top of that, the reference pressure is
 set to $\overline{n}k_B\overline{T}$ with $k_B$ being the Boltzmann constant; the
 reference value for the specific total energy and enthalpy is set to
 $\overline{u}^2$. Also taking into account the physical constants, i.e. the reference
@@ -336,8 +336,7 @@ parameters:
 \footnotetext[1]{Abbreviation of \emph{with respect to}.}
 \footnotetext[2]{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][Sec. 1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
 
-By abuse of notation, the rescaled variables share the same notation as before
-rescaling. We neglect ionization and recombination but retain collision terms,
+Though rescaled, we keep the notations for the various quantities. We neglect ionization and recombination but retain collision terms,
 i.e. $\Gamma_* = 0, \mathbf{R}_* = \mathbf{R}_*^\text{coll}, Q_* = Q_*^\text{coll}$ in
 (\ref{equ:euler_}). The rescaled Euler-Maxwell system is
 \begin{subequations}
@@ -528,9 +527,9 @@ initial time.
     - \varepsilon_*^{-2}p_*\mathbb{I}\varepsilon_*^{-2}q_*^2n_*\mathbf{u}_*\times\mathbf{B}
     - q_*\varepsilon_*^{-2}\mathbf{R}^\text{coll}_*).
   \end{align}
-  It is obvious in (\ref{equ:E}) that the electric fields propagate with finite speed
-  (hyperbolic evolution) when $\lambda = \mathcal{O}(1)$, whereas for $\lambda = 0$ they
-  respond instantaneously everywhere to local excitation (parabolic evolution/elliptic
+  It is obvious in (\ref{equ:E}) that the electric field propagates with finite speed
+  (hyperbolic evolution) when $\lambda = \mathcal{O}(1)$, whereas for $\lambda = 0$ it
+  responds instantaneously everywhere to local excitation (parabolic evolution/elliptic
   boundary value problems).
 \end{remark}
 
@@ -674,7 +673,7 @@ We summarize the boundary conditions for both sets of equations:
 \end{remark}
 
 \begin{remark} For a geometric setting with non-trivial topology, e.g. with a tunnel,
-  $\nabla \times \mathbf{E}\cdot\mathbf{n} = 0$ does guarantee the existence of a surface
+  $\nabla \times \mathbf{E}\cdot\mathbf{n} = 0$ does not guarantee the existence of a surface
   potential $\varphi$ satisfying $\mathbf{E}_t = \nabla_\Gamma\varphi$. One needs to
   include co-homology vector fields \cite{Hiptmair_2021}.
 \end{remark}
@@ -697,7 +696,7 @@ In a non-neutral regime where $\lambda = \mathcal{O}(1)$, the Maxwell system in 
 is well-posed and Gauss's laws (\ref{equ:gauss_B_ins}) (\ref{equ:gauss_D_ins}) are
 redundant as long as they are satisfied at initial time. Nonetheless, as the system
 approaches the quasi-neutral limit as $\lambda \rightarrow 0$, Gauss's law for the
-$\mathbf{D}$-field (\ref{equ:gauss_D_ins}) becomes degenerate. Schemes based on this set
+$\mathbf{D}$-field (\ref{equ:gauss_D_ins}) is no longer enforced. Schemes based on this set
 of PDEs would become unstable as $\lambda \rightarrow 0$. The vanishing divergence
 constraint would evaporate as $\nabla \cdot \mathbf{D} = 0/\lambda^2 = 0$ would not hold
 numerically when $\lambda^2$ becomes extremely small.
@@ -977,7 +976,7 @@ Fig.~\ref{fig:orientation}. For the entities of the dual mesh $\Tilde{\mathcal{M
 set their internal orientations to be aligned with their corresponding primal entities
 according to the bijective pairings, i.e. edges penetrate faces.
 
-Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim entity $f$ with respect to a (k+1)-dim entity $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rules shown in Fig.~\ref{fig:orientation}. 
+Another orientation attribute, \emph{induced orientation}, is defined as follows: an induced orientation of a k-dim entity $f$ with respect to a $(k+1)$-dim entity $f'$, satisfying $f \subset \partial f' $, is determined by the internal orientation of $f'$ according to the rules shown in Fig.~\ref{fig:orientation}. 
 
 This information can be described by matrices with entries in $\{0,-1,+1\}$, called \emph{incidence matrices}. To describe the primal face-to-edge relation, for instance, a sparse matrix $\mathbb{C} \in \mathbb{R}^{N_A \times N_L}$ is assembled whose $(i,j)$-entry is assigned $+1$ if the internal orientation of edge $L_j$ and its induced orientation with respect to face $A_i$ coincides; it is assigned $-1$ if two orientations are opposite; and assigned $0$ if $L_j$ is not a subset of the boundary of $A_i$. We will see later that $\mathbb{C}$ functions as a discrete version of the rotation operator. The other incidence matrices are constructed in the same manner, see Tab.~\ref{tab:incidence_mat} for a summary. Given the relationship of orientations of $\mathcal{M}$ and $\Tilde{\mathcal{M}}$, we can derive the relations listed in Tab.~\ref{tab:incidence_relation}.  
 
@@ -985,7 +984,7 @@ This information can be described by matrices with entries in $\{0,-1,+1\}$, cal
     \centering
     \begin{tabular}{c c l l}
     \hline
-         Matrix & Size & Incidence relation & Intuition  \\
+         Matrix & Size & Incidence relation & Operator  \\
     \hline
          $\mathbb{D}\ (\Tilde{\mathbb{D}})$ & $N_V \times N_A\ (N_{\Tilde{V}} \times N_{\Tilde{A}})$ & cell $\rightarrow$ face & discrete divergence \\
          $\mathbb{C}\ (\Tilde{\mathbb{C}})$ & $N_A \times N_L\ (N_{\Tilde{A}} \times N_{\Tilde{L}})$ & face $\rightarrow$ edge & discrete rotation \\
@@ -1098,10 +1097,10 @@ $\Tilde{\mathcal{M}}$, see Fig.~\ref{fig:illustraion_dual_boundary}.
 Note that the auxiliary edges might not be straight and the auxiliary faces might not be
 flat as is shown in Fig.~\ref{fig:illustraion_dual_boundary}, which necessitates a
 versatile data structure to include such situations. In the following, the auxiliary
-entities would be treated as dual entities, which limits the validity of the relations in
-Tab.~\ref{tab:incidence_relation} to interior part of $\Tilde{\mathcal{M}}$. For a more
+entities will be treated as dual entities, which limits the validity of the relations in
+Tab.~\ref{tab:incidence_relation} to the interior part of $\Tilde{\mathcal{M}}$. For a more
 systematic illustration that considers the boundary dual entities, see
-\cite[][Sec. 5]{hip_1999}.
+\cite[][Sec. 5]{hip_1999}. A pair of primal and dual meshes for the geometry in Fig.~\ref{fig:domain_sketch} is displayed in Fig.~\ref{fig:primal_dual_meshes}.
 
 \begin{figure}
     \centering
@@ -1273,7 +1272,7 @@ systematic illustration that considers the boundary dual entities, see
     \label{fig:illustraion_dual_boundary}
 \end{figure}
 
-A pair of primal and dual meshes for the geometry in Fig.~\ref{fig:domain_sketch} is displayed in Fig.~\ref{fig:primal_dual_meshes}.
+
 
 \subsection{Discrete Maxwell Equations}
 \subsubsection{Finite Integration Technique (FIT)} \label{sec:fit}
@@ -1432,7 +1431,7 @@ are discretized in the following way:
     \end{minipage}
 \end{center}
 where $\mathbb{X}_\varphi \in \mathbb{R}^{N_P \times N_P^\partial}$ extends $\bm{\varphi}$
-to all the primal verices by zero. Obviously, the surface gradient $\nabla_\Gamma$ is
+to all the primal vertices by zero. Obviously, the surface gradient $\nabla_\Gamma$ is
 represented by $\mathbb{GX}_\varphi$.
 
 \subsubsection{Stabilization in $\Omega_N$} \label{sec:reform-discrete}
@@ -1542,7 +1541,7 @@ $\lambda = 0$.
 \subsection{Discrete Euler Equations} \label{sec:discrete_euler}
 
 We employ the finite volume method (FVM) to discretize the Euler system. The Euler
-equations (\ref{equ:euler_}) can be cast into the form of conservation law with source
+equations (\ref{equ:euler_}) can be cast into the form of a conservation law with source
 terms:
 \begin{equation} \label{equ:euler_conservation}
     \partial_t \mathbf{U} + \nabla \cdot \mathbf{f}(\mathbf{U}) = \mathbf{RHS},
@@ -1615,7 +1614,7 @@ by (\ref{equ:euler_rescaled}) and will be elaborated next.
 \subsubsection{Reconstruction of Lorentz Force}
 
 Since the electromagnetic fields are represented by integrals on edges and faces, we need
-to reconstruct their vector components for the computation of Lorentz force (and Joule
+to reconstruct their vector components for the computation of the Lorentz force (and Joule
 heating) inside each dual cell. The task involves two aspects:
 \begin{itemize}
     \item[-] given the fluxes at the faces of a cell, reconstruct the vector field inside the cell;
@@ -1626,7 +1625,7 @@ field inside each cell. For a cell $\Tilde{V}$ with $N_A$ faces with areas
 $\{A_k\}_{k=1}^{N_A}$, normal vectors $\{\mathbf{n}_k\}_{k=1}^{N_A}$ and fluxes
 $\{f_k\}_{k=1}^{N_A}$, a constant vector field $\mathbf{v}$ satisfying
 \begin{equation*}
-    \mathbf{v} = \argmin_{\mathbf{w}\in \mathbb{R}^3} \sum_{k=1}^{N_A}(A_k\mathbf{w} \cdot \mathbf{n}_k - f_k)^2.   
+    \mathbf{v} = \argmin_{\mathbf{w}\in \mathbb{R}^3} \sum_{k=1}^{N_A}(A_k\mathbf{w} \cdot \mathbf{n}_k - f_k)^2   
 \end{equation*} can be computed through
 \begin{equation*}
     \mathbf{v} = (\mathbb{K}^T\mathbb{K})^{-1}\mathbb{K}^T\mathbf{f},
@@ -1651,7 +1650,7 @@ matrices containing the reconstructed $\mathbf{E}$-fields and $\mathbf{B}$-field
 $\Tilde{V}$; $\Tilde{\mathbb{R}}_E$ and $\Tilde{\mathbb{R}}_B$ are thus rank-3 tensors.
 
 The problem of the reconstruction of vector fields on unstructured meshes is a widely
-studied topic. Apart from the least-square method, other methods include Perot's method
+studied topic. Apart from the least-squares method, other methods include Perot's method
 \citep{perot_2000}, finite-entity-based methods, etc., which potentially can achieve
 higher-order accuracy. See \cite[][Sec. 3.4.4]{fuchs_2021} and the references therein.
 
