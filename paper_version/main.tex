@@ -26,6 +26,8 @@
 %\usepackage{showlabels}
 \usepackage{multirow}
 \usepackage{comment}
+%\usepackage[outdir=./]{epstopdf}
+
 
 \newtheorem*{remark}{Remark}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -1098,9 +1100,9 @@ systematic illustration that considers the boundary dual entities, see
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.3]{paper_version/figures/primal_mesh.png}
+    \includegraphics[scale=0.3]{./figures/primal_mesh.png}
     \hspace{1cm}
-    \includegraphics[scale=0.3]{paper_version/figures/dual_mesh.png}
+    \includegraphics[scale=0.3]{./figures/dual_mesh.png}
     \caption{Primal mesh (left) and dual mesh (right).}
     \label{fig:primal_dual_meshes}
 \end{figure}
@@ -2143,7 +2145,7 @@ and demonstrate good matching.
 
 \begin{figure}
     \centering
-    \includegraphics[scale=1.2]{z_axis_reduction.eps}
+    \includegraphics[scale=1.2]{./figures/z_axis_reduction.eps}
     \caption{Case I, $\lambda = 1$: Comparison of 1D two-fluid model and of 3D results (at
       time $t = 5 \times 10^{-4}$ projected onto the $z$-axis. The simulations were both
       conducted on meshes with 64 cells along the $z$-axis. No friction terms were taken
@@ -2283,9 +2285,9 @@ The scheme is tested at different mesh resolutions and the convergence rates are
         }
     \end{minipage}
     \hspace{1cm}
-    \includegraphics[scale=0.2]{paper_version/figures/cube_mesh_primal.png}
+    \includegraphics[scale=0.2]{./figures/cube_mesh_primal.png}
     \hspace{1cm}
-    \includegraphics[scale=0.2]{paper_version/figures/cube_mesh_dual.png}
+    \includegraphics[scale=0.2]{./figures/cube_mesh_dual.png}
     \caption{\review{Case II: domain sketch (left); primal mesh (middle); dual mesh (right).}}
     \label{fig:cube_domain_sketch}
 \end{figure}
@@ -2331,9 +2333,9 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.2]{paper_version/figures/E-field_lambda-1.png}\hspace{0.6cm}
-        \includegraphics[scale=0.2]{paper_version/figures/B-field_lambda-1.png}
-        \includegraphics[scale=0.2]{paper_version/figures/electronVel_lambda-1.png}
+        \includegraphics[scale=0.2]{./figures/E-field_lambda-1.png}\hspace{0.6cm}
+        \includegraphics[scale=0.2]{./figures/B-field_lambda-1.png}
+        \includegraphics[scale=0.2]{./figures/electronVel_lambda-1.png}
         \caption{\colorbox{yellow!30}{$\lambda = 1.0$}}
     \end{subfigure}
      \begin{subfigure}[b]{\textwidth}
@@ -2343,10 +2345,10 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.2]{paper_version/figures/E-field_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{./figures/E-field_lambda-1e-1.png}
         \hspace{0.3cm}
-        \includegraphics[scale=0.2]{paper_version/figures/B-field_lambda-1e-1.png}
-        \includegraphics[scale=0.2]{paper_version/figures/electronVel_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{./figures/B-field_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{./figures/electronVel_lambda-1e-1.png}
         \caption{\colorbox{yellow!30}{$\lambda = 0.1$}}
     \end{subfigure}
     \begin{subfigure}[b]{\textwidth}
@@ -2356,10 +2358,10 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.2]{paper_version/figures/E-field_lambda-0.png}
+        \includegraphics[scale=0.2]{./figures/E-field_lambda-0.png}
         \hspace{0.3cm}
-        \includegraphics[scale=0.2]{paper_version/figures/B-field_lambda-0.png}
-        \includegraphics[scale=0.2]{paper_version/figures/electronVel_lambda-0.png}
+        \includegraphics[scale=0.2]{./figures/B-field_lambda-0.png}
+        \includegraphics[scale=0.2]{./figures/electronVel_lambda-0.png}
         \caption{\colorbox{yellow!30}{$\lambda = 0.0$}}
     \end{subfigure}
     \caption{Case III: Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 0.5$. } 
@@ -2503,7 +2505,7 @@ shown in the bottom plot in Fig.~\ref{fig:origin-data_vs_time}.
 
 \begin{figure}
   \centering
-    \includegraphics[scale=0.9]{data-vs-time_stepVoltage.eps}
+    \includegraphics[scale=0.9]{./figures/data-vs-time_stepVoltage }
     \caption{Case III: Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different values of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along the $z$-axis.}
     \label{fig:origin-data_vs_time}
 \end{figure}
@@ -2515,7 +2517,7 @@ when $\lambda$ is close to zero. The proposed stabilization clearly offers a rem
 \begin{figure}
     \centering
 \begin{minipage}[t]{0.4\textwidth}\centering
-  \includegraphics[width=\textwidth]{stabilizationComparision_stepVoltage.eps}
+  \includegraphics[width=\textwidth]{./figures/stabilizationComparision_stepVoltage}
 
   \parbox{0.9\textwidth}{\begin{tabular}[c]{ll}
     \textbf{(a)} & Time-dependent z-component of \\ & the $\mathbf{E}$-field
@@ -2523,7 +2525,7 @@ when $\lambda$ is close to zero. The proposed stabilization clearly offers a rem
   \end{tabular}}
 \end{minipage}%    
  \begin{minipage}[t]{0.6\textwidth}\centering
-   \includegraphics[width=\textwidth]{data-vs-z_stepVoltage.eps}
+   \includegraphics[width=\textwidth]{./figures/data-vs-z_stepVoltage}
 
    \parbox{0.9\textwidth}{\begin{tabular}[c]{ll}
      \textbf{(b)} & Quantities along $z$-axis for different $\lambda$; the results \\ & 
@@ -2585,9 +2587,9 @@ To demonstrate the performance of the proposed scheme on more general three-dime
         }
     \end{minipage}
     \hspace{1cm}
-    \includegraphics[scale=0.2]{paper_version/figures/primal_mesh_bend.png}
+    \includegraphics[scale=0.2]{./figures/primal_mesh_bend.png}
     \hspace{1cm}
-    \includegraphics[scale=0.2]{paper_version/figures/dual_mesh_bend.png}
+    \includegraphics[scale=0.2]{./figures/dual_mesh_bend.png}
     \caption{\review{Case IV: domain sketch (left); primal mesh (middle); dual mesh (right).}}
     \label{fig:bend_domain_sketch}
 \end{figure}
@@ -2595,14 +2597,14 @@ To demonstrate the performance of the proposed scheme on more general three-dime
     \centering
     \begin{subfigure}[b]{\textwidth}
         \centering
-        \includegraphics[scale=0.3]{paper_version/figures/E-field_lamnbda-1_bend.png}\hspace{1cm}
-        \includegraphics[scale=0.3]{paper_version/figures/B-field_lamnbda-1_bend.png}
+        \includegraphics[scale=0.3]{./figures/E-field_lamnbda-1_bend.png}\hspace{1cm}
+        \includegraphics[scale=0.3]{./figures/B-field_lamnbda-1_bend.png}
         \caption{\colorbox{yellow!30}{$\lambda = 1$}}
     \end{subfigure}
     \begin{subfigure}[b]{\textwidth}
         \centering
-        \includegraphics[scale=0.3]{paper_version/figures/E-field_lamnbda-0_bend.png}\hspace{1cm}
-        \includegraphics[scale=0.3]{paper_version/figures/B-field_lamnbda-0_bend.png}
+        \includegraphics[scale=0.3]{./figures/E-field_lamnbda-0_bend.png}\hspace{1cm}
+        \includegraphics[scale=0.3]{./figures/B-field_lamnbda-0_bend.png}
         \caption{\colorbox{yellow!30}{$\lambda = 0$}}
     \end{subfigure}
     \caption{Case IV: Snapshots of the $\mathbf{E}$-field and $\mathbf{B}$-field for different $\lambda$ at $t = 0.05$.}
