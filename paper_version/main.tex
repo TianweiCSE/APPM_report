@@ -25,6 +25,7 @@
 \usepackage{soul}
 %\usepackage{showlabels}
 \usepackage{multirow}
+\usepackage{comment}
 
 \newtheorem*{remark}{Remark}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -38,6 +39,10 @@
     \end{tcolorbox}
 }
 
+\def\ifUpdate{1}
+
+\newcommand{\review}[1]{\textcolor{blue}{\if\ifUpdate1\textbf{#1}\fi}}
+\newcommand{\reviewDel}[1]{\begin{comment} #1 \end{comment}}
 
 \title{Asymptotic-Preserving Discretization of Three-Dimensional Plasma Fluid Models}
 \author[]{Tianwei Yu \thanks{Seminar for Applied Mathematics , ETH Z\"{u}rich, \texttt{tianwei.yu@math.ethz.ch}}}
@@ -95,31 +100,33 @@ Our approach is inspired by \cite{degond_2012}, but goes beyond that work in var
 \end{itemize}
 
 We stay close to \cite{degond_2012} in terms of discretization in time employing
-semi-implicit time-stepping. We also base our considerations on the model geometry shown
-in Fig.~\ref{fig:domain_geometry}. We would like to remark that the mesh-based numerical
+semi-implicit time-stepping. We base our illustration on the model case shown
+in Fig.~\ref{fig:domain_geometry}. Yet we would like to remark that the mesh-based numerical
 scheme proposed in this paper can in principle be adapted to geometric situations much
-more general than that of Fig.~\ref{fig:domain_geometry}. However, one may encounter
-subtle problems in defining proper dual meshes as we need it in Section
-\ref{sec:mesh-duality}. Thus, for the sake of simplicity of presentation we forgo
-geometric generality.
+more general than that of Fig.~\ref{fig:domain_geometry}. \review{In particular, we do not 
+assume the solution to enjoy the rotational symmetry. If the symmetry is assumed, 
+it can be exploited for reduction to two spatial dimensions \cite{bonotto_2022}.}
 
 The quasi-neutral limit of the Maxwell-Euler system leads to a singularly perturbed
 problem, that is, the limiting PDE system changes its type\footnote{The type of the
   Maxwell-Euler system switches from hyperbolic to mixed for $\lambda_{D}\to 0$}. This
-poses a challenge for simulations in settings encompassing different regimes. We remind
-that singularly perturbed problems occur in many physical models, e.g., in the case of
-vanishing viscosity in the Navier-Stokes equations \cite{Kato_1984}, the
-zero-relaxation-limit of kinetic equations \cite{jin_2010}, and the zero-Mach-number limit
-of compressible flows \cite{degond_2007, haack_2010}. Throughout, it is essential that
+poses a challenge for simulations in settings encompassing different regimes. 
+Beside the quasi-neutral limit, we remind
+that singularly perturbed problems occur in extensively many physical models, 
+e.g., in the case of vanishing viscosity problem \cite{Kato_1984, bianchini_2005, temam_1997}, the
+zero-relaxation-limit of kinetic-type equations \cite{raymond_2009, degond_1996}, and the incompressible limit
+of compressible flows \cite{klainerman_1981}. Throughout, it is essential that
 numerical schemes remain valid even if crucial model parameters approach the limit. These
 schemes are then said to be \emph{asymptotic-preserving} (AP): Let us assume that we
 discretize a parameter($\lambda$)-dependent model $P^\lambda$, which converges to a limit
 $P^0$ as $\lambda \rightarrow 0$, by the scheme $P^\lambda_h$ where $h$ denotes some
 discretization parameter, e.g., the mesh size. The AP property amounts to uniform
-convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. Readers are
-referred to the illustration by a commuting diagram in \cite[][Fig.~1]{jin_2010} and, more
-generally, to the comprehensive reviews \cite{jin_2010, degond_2017} for more details
-about AP schemes.
+convergence of $P^\lambda_h$ to the $P^\lambda$ as $\lambda\rightarrow0$. 
+The concept is effectively depicted by a commuting diagram in \cite[][Fig.~1]{jin_2010}. 
+\review{AP schemes have been extensively studied for various problems, e.g. the diffusive limit of the kinetic equations \cite{jin_1999, liu_2023}, 
+the low Mach-number limit of compressible flows \cite{degond_2007, haack_2010} and magnetohydrodynamics\cite{chen_2023}, 
+the quasi-neutral limit of drift-diffusion equations \cite{chatard_2014, claire_2007}. 
+More generally, readers are referred to the comprehensive reviews \cite{jin_2010, degond_2017}.}
 
 The content of this paper is organized as follows: In Section~\ref{sec:plasma-model}, we
 give a full description of the underlying equations of the Maxwell-Euler system and its
@@ -154,7 +161,7 @@ experiments in Section~\ref{sec:numerical_experiment}.
     \coordinate (PP2) at ([shift={({0.196*1.5},{-0.98*1.5})}]O2);
     \draw[very thick] (SS1) -- (SS2);
     \draw[very thick] (PP1) -- (PP2); 
-    \draw[black, very thick] (SS2) arc (101.31:180+101.31:1.5);
+    \draw[violet] (SS2) arc (101.31:180+101.31:1.5);
     \draw[very thick] (PP2) arc (101.31-180:101.31:1.5);
     \draw[-to] (barycentric cs:SS1=1,SS2=1,S1=1,S2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:SS1=1,SS2=1,S1=1,S2=1) node[left, gray] {Insulator};
     \begin{scope}[shift={(5.5,-1.4)}]
@@ -275,7 +282,7 @@ flow of charged particles induces electric currents:
   \label{rem:coll}
   For the sake of simplicity, we only consider ion-electron collision in this work, but
 extension to more species is straightforward. Such collisions can be well modelled by
-friction terms, for instance \citep[][Sec. 5.6.2]{chen2016}
+friction terms, for instance \citep[][Sec.~5.6.2]{chen2016}
 \begin{equation} \label{equ:collision}
     \mathbf{R}_{e}^{\text{coll}} = \frac{\pi Ze^4m_e^{1/2}}{(4\pi\epsilon)^2(k_BT_e)^{3/2}}\text{\emph{ln}}\Lambda n_en_i(\mathbf{u}_i - \mathbf{u}_e) = - \mathbf{R}_{i}^{\text{coll}},  
 \end{equation}
@@ -285,15 +292,15 @@ conservation of momentum, the collision term for ions $\mathbf{R}_{i}^{\text{col
 nothing but the negative of $\mathbf{R}_{e}^{\text{coll}}$. In this work, the other
 effects, e.g. ionization and recombination, are not considered. For full details about the
 modeling of these physical processes, readers are referred to
-\cite[][Sec. 3.2]{fuchs_2021}.
+\cite[][Sec.~3.2]{fuchs_2021}.
 \end{remark}
 
 \subsection{Rescaling}
 \label{sec:rescaling}
-% In rescaling, variables in equations are replaced by the ratio of original quantities and constant reference quantities, which transforms the system into dimensionless form. In this part, the rescaling procedure mostly follows that of \cite[][Sec. 2.2]{degond_2017}.
+% In rescaling, variables in equations are replaced by the ratio of original quantities and constant reference quantities, which transforms the system into dimensionless form. In this part, the rescaling procedure mostly follows that of \cite[][Sec.~2.2]{degond_2017}.
 
 We arrive at non-dimensional equations by following the rescaling procedure of
-\cite[][Sec. 2.2]{degond_2017}.  First, a reference value for each quantity is
+\cite[][Sec.~2.2]{degond_2017}.  First, a reference value for each quantity is
 fixed. We define $\overline{x}$ and $\overline{t}$ as space and time scale of
 interest, by which the reference velocity $\overline{v}$ is defined as
 $\overline{x}/\overline{t}$. The typical magnitudes of electromagnetic fields are
@@ -318,7 +325,7 @@ parameters:
   g &:= \frac{1}{\overline{n}\lambda_D^3} \text{ the plasma parameter\footnotemark[2]}.&
 \end{align*}
 \footnotetext[1]{Abbreviation of \emph{with respect to}.}
-\footnotetext[2]{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][Sec. 1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
+\footnotetext[2]{It is basically the reciprocal of the number of particles per Debye sphere, see \cite[][Sec.~1.1]{gibbon2020}. Classical plasma theory assumes $g \ll 1$.} 
 
 Though rescaled, we keep the notations for the various quantities. We neglect ionization and recombination but retain collision terms,
 i.e. $\Gamma_* = 0, \mathbf{R}_* = \mathbf{R}_*^\text{coll}, Q_* = Q_*^\text{coll}$ in
@@ -364,7 +371,7 @@ rescaled expression becomes
 \end{equation}
 
 Assumptions can be made to reduce the number of dimensionless parameters. Following
-\cite[][Sec. 2.2]{degond_2017}, the reference speed $\overline{v}$ is of the same scale as
+\cite[][Sec.~2.2]{degond_2017}, the reference speed $\overline{v}$ is of the same scale as
 the plasma speed $\overline{u}$ and the thermal speed $v_i^{\text{th}}$ whereas it is much
 smaller than the light speed $c$. Also, it is assumed that $\eta$ and $\beta$ are of order
 one and $\xi$ has the same magnitude as $\lambda$.
@@ -393,7 +400,7 @@ In summary, we make the following choices \cite[][sec 2.2]{degond_2017}
 Assuming this behavior of the dimensionless parameters, the rescaled Euler-Maxwell system
 is simplified to a system of PDEs with the dimensionless \emph{Debye length} $\lambda$ as
 single parameter, whose value may tend to zero:
-\begin{subequations}
+\begin{subequations} \label{equ:euler-maxwell-rescaled}
   \label{resc}
 \begin{align}
     \partial_t \mathbf{B} + \nabla \times \mathbf{E} &= 0, \label{equ:maxwell_faraday_rescaled} \\ 
@@ -446,14 +453,18 @@ $\lambda$-parameterized rescaled Maxwell-Euler system
 (\ref{equ:maxwell_faraday_rescaled})-(\ref{equ:maxwell_material_law_rescaled}) is the
 starting point for the development of the numerical method.
 
+\review{
+It is worth mentioning that an important aspect of devising numerical schemes is the structure-preserving property which is concerned with keeping some constraints at the discrete level. In this context, some typical constraints are the positivity of densities and pressures, the entropy inequality, zero divergence of the $\mathbf{B}$-field, etc. There are in general two ways of numerically approaching the coupled system (\ref{equ:euler-maxwell-rescaled}) or its reduced models, e.g. the magnetohydrodynamic (MHD) equations. The first approach is to lump all the equations into one hyperbolic system of conservation laws and apply finite volume methods. Such numerical methods are rather simple to implement and also computationally efficient. Complications typically go to ensuring the stability and the divergence constraint which requires suitable numerical fluxes and limiters. Schemes that are provably positive, entropy-stable, or divergence-free have been constructed, see \cite{wu_2018, wu_2023a, wu_2023b, kumar_2011, fuchs_2009} and references therein. The second class of numerical methods handles the electromagnetic part and the fluid part separately. The rationale behind such a splitting strategy is that dedicated solvers for subsystems are rather mature. Particularly, the divergence constraint can be easily handled by finite element exterior calculus. Yet the implementation of coupled solvers is usually complicated. To name some related work, \cite{fuchs_2009} applies dedicated finite volume schemes to each subsystem; \cite{hu_2017, hiptmair_2018} treat the electromagnetic part via finite element exterior calculus. The scheme proposed in this work lies in the second category and by construction satisfies the divergence-free constraint at the discrete level. Nevertheless, we do not pursue the structure-preserving property while focusing on the asymptotic-preserving property in this work. 
+}
+
 \subsection{Quasi-neutral Limit}
 \label{sec:quasi-neutral_limit}
 
 The Debye length $\lambda_D$ is the characteristic length over which the local net charge is
-shielded, see \cite[Sec. 1.4]{chen2016} for the underlying physics. In many situations, it
+shielded, see \cite[Sec.~1.4]{chen2016} for the underlying physics. In many situations, it
 has a very small value compared to the reference length scale: the typical $\lambda_D$ for
 gas discharge and Tokamak fusion reactors is $10^{-4}$ meter, for interstellar medium, the
-magnitude is about $1$ meter \cite[Ch. 20]{Blandford_2013}. Then the quasi-neutrality
+magnitude is about $1$ meter \cite[Chapt.~20]{Blandford_2013}. Then the quasi-neutrality
 assumption $\rho = \sum_* q_*n_* \approx 0$ is justified, which is typical of the limit
 model.  Formally we obtain it by setting the rescaled Debye length $\lambda$ to zero in
 \eqref{resc}:
@@ -521,7 +532,7 @@ initial time.
   The preceding formal limit argument is heuristic. Deep mathematical tools from
   perturbation theory would be needed to rigorously prove the convergence of the limiting
   sequence. This topic is beyond the scope of this paper. Readers are referred to
-  \cite[Ch. 2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the
+  \cite[Chapt.~2]{remi_2014} \cite{Peng_2008} for the quasi-neutral limit of the
   Maxwell-Euler system and \cite{mark_1995, Eckhaus_1980} for the general theory.
 \end{remark} 
 
@@ -536,7 +547,7 @@ $\Gamma_I := \partial\Omega \cap \partial\Omega_N$ for the insulating boundary w
 ``artificial'' cut-off boundary. The interface between the two domains is denoted by
 $\Gamma_W = \partial\Omega_I \cap \partial\Omega_P$. A geometric arrangement corresponding
 to this setting is sketched in Fig.~\ref{fig:domain_sketch} and is the one used in
-\cite[][Ch. 1, Sec. 4]{fuchs_2021}. This situation is simple but highly relevant. It
+\cite[][Chapt.~1, Sec.~4]{fuchs_2021}. This situation is simple but highly relevant. It
 covers fundamental experimental set-ups, for example, those studying wall-stabilized
 electric arcs \cite{GGF05}, but is also adequate for a range of industrial plasmas, for
 instance, for those occurring in high-voltage circuit breakers \cite{SEE15,MGU20}.
@@ -594,13 +605,13 @@ two contacts.
     \coordinate (PP2) at ([shift={({0.196*1.5},{-0.98*1.5})}]O2);
     \draw[very thick] (SS1) -- (SS2);
     \draw[very thick] (PP1) -- (PP2); 
-    \draw[black, very thick] (SS2) arc (101.31:180+101.31:1.5);
+    \draw[violet] (SS2) arc (101.31:180+101.31:1.5);
     \draw[very thick] (PP2) arc (101.31-180:101.31:1.5);
     \draw[-to] (barycentric cs:SS1=1,SS2=1,S1=1,S2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:SS1=1,SS2=1,S1=1,S2=1) node[left, gray] {Insulator};
     \begin{scope}[shift={(5.5,-1.4)}]
-    \draw[blue, -to] (0,0) -- (0.65,0.12) node[right]{\small $z$};
-    \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
-    \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+        \draw[blue, -to] (0,0) -- (20:0.7) node[right]{\small $z$};
+        \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+        \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
     \end{scope}
     \end{tikzpicture}}
 \end{minipage}
@@ -758,7 +769,7 @@ interlacing with each other, denoted by a mesh doublet
 $(\mathcal{M}, \Tilde{\mathcal{M}})$ for primal mesh and dual mesh respectively. The
 fundamental duality property requires that \emph{each edge of one mesh penetrates a face
   of the other mesh and that each vertex of one mesh lies inside of a cell of the other
-  mesh} \cite[][Sec. 2]{weiland_2003}. Examples are shown in Fig.~\ref{fig:cartesian}.
+  mesh} \cite[][Sec.~2]{weiland_2003}. Examples are shown in Fig.~\ref{fig:cartesian}.
 
 To clarify the notation, in three dimensions the primal mesh $\mathcal{M}$ is a cell
 complex defined by the set of mesh entities $\{P, L, A, V\}$\footnote{The notation here is
@@ -780,7 +791,7 @@ In 2D we construct the pair of meshes based on the Delaunay-Voronoi approach: we
 Delaunay triangulation $\mathcal{M}$ of the domain and construct $\Tilde{\mathcal{M}}$ by
 connecting \emph{circumcenters} of any two adjacent triangles, see Fig.~\ref{fig:2d-mesh}.
 In three dimensions, the meshes are constructed by extruding the 2D meshes vertically
-along one axis in a staggered manner \cite[][Sec. 3.1]{Marrone_2001}. See an example in
+along one axis in a staggered manner \cite[][Sec.~3.1]{Marrone_2001}. See an example in
 Fig.~\ref{fig:2d-extrusion}. In this way, the meshes are composed of prisms. This
 particular choice is compatible with the cylindrical geometric setting that we are in, see
 Fig.~\ref{fig:domain_sketch}. For a general setting, one can directly decompose the domain
@@ -798,7 +809,7 @@ Hodge operator \cite{hip_1999, bossavit1999}), as will be shown in Section~\ref{
   triangles with an obtuse angle in $\mathcal{M}$. In this case their circumcenters lie
   outside the triangles and the intersection between edges and faces is violated. An
   alternative approach is barycenter-based dual meshes, which are not restricted to an
-  acute-angle triangulation \cite[][Sec. 4.2]{Marrone_2001}.
+  acute-angle triangulation \cite[][Sec.~4.2]{Marrone_2001}.
 \end{remark}
 
 
@@ -955,7 +966,7 @@ Hodge operator \cite{hip_1999, bossavit1999}), as will be shown in Section~\ref{
 Each geometric entity in the primal mesh $\mathcal{M}$ is (arbitrarily) endowed with an
 \emph{internal orientation}\footnote{This notion should not be confused with \emph{inner
     orientation}, which has a slightly different definition, see
-  \cite[][Sec. 3.1]{tonti_2002}.}. The notion is illustrated in
+  \cite[][Sec.~3.1]{tonti_2002}.}. The notion is illustrated in
 Fig.~\ref{fig:orientation}. For the entities of the dual mesh $\Tilde{\mathcal{M}}$, we
 set their internal orientations to be aligned with their corresponding primal entities
 according to the bijective pairings, i.e. edges penetrate faces.
@@ -1084,7 +1095,7 @@ versatile data structure to include such situations. In the following, the auxil
 entities will be treated as dual entities, which limits the validity of the relations in
 Tab.~\ref{tab:incidence_relation} to the interior part of $\Tilde{\mathcal{M}}$. For a more
 systematic illustration that considers the boundary dual entities, see
-\cite[][Sec. 5]{hip_1999}. A pair of primal and dual meshes for the geometry in Fig.~\ref{fig:domain_sketch} is displayed in Fig.~\ref{fig:primal_dual_meshes}.
+\cite[][Sec.~5]{hip_1999}. A pair of primal and dual meshes for the geometry in Fig.~\ref{fig:domain_sketch} is displayed in Fig.~\ref{fig:primal_dual_meshes}.
 
 \begin{figure}
     \centering
@@ -1312,7 +1323,7 @@ framework, that is, relations $\mathbf{b} = \mathbb{M}_\mu \mathbf{h}$ and $\mat
 \end{equation*}
 where $|\cdot|$ denotes taking length or area. We would like to remark that an
 approximation error is introduced due to the implicit assumption that vector fields are
-piecewise constant, see the analysis in \cite[][Sec. 3.2]{Marrone_2001}.
+piecewise constant, see the analysis in \cite[][Sec.~3.2]{Marrone_2001}.
 
 With the aid of incidence matrices defined in the preceding section and given the discrete
 material law, (\ref{equ:maxwell_grid_faraday})-(\ref{equ:maxwell_grid_gauss_D}) can be
@@ -1595,7 +1606,7 @@ Recall that $\Tilde{\mathbb{D}}$ represents the discrete divergence of
 $\Tilde{\mathcal{M}}$. Dependence of $\mathbf{RHS}$ on $\mathbf{d}, \mathbf{b}$ is implied
 by (\ref{equ:euler_rescaled}) and will be elaborated next.
 
-\subsubsection{Reconstruction of Lorentz Force}
+\subsubsection{Reconstruction of Lorentz Force} \label{sec:recon_lorentz_f}
 
 Since the electromagnetic fields are represented by integrals on edges and faces, we need
 to reconstruct their vector components for the computation of the Lorentz force (and Joule
@@ -1636,7 +1647,7 @@ $\Tilde{V}$; $\Tilde{\mathbb{R}}_E$ and $\Tilde{\mathbb{R}}_B$ are thus rank-3 t
 The problem of the reconstruction of vector fields on unstructured meshes is a widely
 studied topic. Apart from the least-squares method, other methods include Perot's method
 \citep{perot_2000}, finite-entity-based methods, etc., which potentially can achieve
-higher-order accuracy. See \cite[][Sec. 3.4.4]{fuchs_2021} and the references therein.
+higher-order accuracy. See \cite[][Sec.~3.4.4]{fuchs_2021} and the references therein.
 
 Eventually, the right-hand-side term in (\ref{equ:euler_matrix_form}) can be computed by
 evaluating the right-hand-side of rescaled Euler equations (\ref{equ:euler_rescaled}) for
@@ -1646,7 +1657,7 @@ defined in each dual cell.
 \subsubsection{Discrete Boundary Conditions}
 
 The boundary conditions for the Euler system (see Section~\ref{sec:BC}) are implemented by
-the approach of ghost cells \cite[][Ch. 7]{leveque_2007}, i.e. extending the domain by a
+the approach of ghost cells \cite[][Chapt.~7]{leveque_2007}, i.e. extending the domain by a
 layer of virtual cells with prescribed variables. In our case, the ghost cells at the open
 boundary at $\Gamma_C$ are assigned the same state as their adjacent interior cells. It is
 equivalent to enforcing the numerical fluxes
@@ -2026,6 +2037,15 @@ The time-stepping scheme mimics the 1D scheme shown in the previous section. The
 implicit treatment of the friction term is necessary owing to its potential stiffness in
 case the prefactor $\varepsilon^{-2}_*\alpha^\text{coll}$ attains a large value. 
 
+\review{
+\begin{remark}
+When applying the ``projection to one dimension"
+  described in Section~4.1.1, the fully discrete 3D AP scheme (32) collapses to (31)
+  discretization proposed in \cite{degond_2012}. This is not a coincidence, because
+  recovering of (31) under dimensional reduction has guided our construction.
+\end{remark}
+}
+
 \begin{remark}
   The AP scheme aims to remove the $\lambda$-dependence of the stability constraint on the
   time step size. Yet time-step size for the fully discrete Euler system is still limited
@@ -2092,7 +2112,7 @@ computations:
 We conduct numerical tests based on the geometric setting and boundary conditions as
 presented in Section~\ref{sec:BC}. The primal-dual mesh pair
 $(\mathcal{M}, \Tilde{\mathcal{M}})$ is generated as explained in
-\cite[][Ch. 1]{fuchs_2021}. An instance is shown in Fig.~\ref{fig:primal_dual_meshes}. We
+\cite[][Chapt.~1]{fuchs_2021}. An instance is shown in Fig.~\ref{fig:primal_dual_meshes}. We
 consider a two-fluid plasma model, which comprises electrons and ions. We set the mass
 ratio $\varepsilon_e := m_e / m_i = 10^4$ and the collision parameter
 $\alpha^\text{coll} = 32$. All source codes plus instructions for use are available from
@@ -2128,17 +2148,156 @@ and demonstrate good matching.
     \caption{Case I, $\lambda = 1$: Comparison of 1D two-fluid model and of 3D results (at
       time $t = 5 \times 10^{-4}$ projected onto the $z$-axis. The simulations were both
       conducted on meshes with 64 cells along the $z$-axis. No friction terms were taken
-      into account.}
+      into account. \review{The 3D result is generated under the setting in Fig.~2
+  and restricted to the z-axis. They are slightly different from
+  the 1D results possibly due to the impact of the outer boundary of the
+  3D domain.}}
     \label{fig:z_axis_reduction}
 \end{figure}
 
-\subsection{Case II: 3D Cylindrical Problem}
+\review{
+\subsection{Case II: 3D cuboid domain (convergence study for a range of $\epsilon$)} 
+The scheme is tested at different mesh resolutions and the convergence rates are estimated. The problem setting follows the one depicted in Fig.~\ref{fig:domain_sketch} while we adopt a cuboid domain, see Fig.~\ref{fig:cube_domain_sketch}. Under this setting, we decompose the domain with structured Cartesian meshes and benefit from simpler error computation.  
+The initial conditions are
+\begin{equation*}
+    n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{e, i\}
+\end{equation*}
+and zero for the other variables. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 10\times t$, that is, one electrode is grounded and a linear voltage is applied on the other electrode. The results are computed for the final time $t = 0.01$. Tab.~\ref{tab:grid_study_cube} lists the errors for the $\mathbf{E}$-field, $\mathbf{B}$-field, and electron densities where the reference solutions are generated by a sufficiently fine mesh with $2^{18} = 262144$ cells. The results show uniform convergence over $0\leq \lambda \leq 1$, a justification of the AP property. It is expected that the convergence rate does not exceed one since the reconstruction of the electromagnetic field discussed in Section~\ref{sec:recon_lorentz_f} is only of first order and the numerical flux used for solving the Euler equations is also of first order. The $1/2$-order reduction observed in the $L^2$-error of the $\mathbf{E}$-field and the electron density is possibly the consequence of singularity in the solution due to the interface of different types of boundary conditions (electrodes and insulating boundary).
+\begin{table}[!ht]
+    \review{
+    \centering
+    \subfloat[\colorbox{yellow!30}{$\lambda = 1$}]{
+        \begin{tabular}{c | c c | c c | c c }
+            \hline\hline
+            \multirow{2}{1em}{$N_V$} & \multicolumn{2}{c|}{$\mathbf{E}$-field}
+            &
+            \multicolumn{2}{c|}{$\mathbf{B}$-field} & \multicolumn{2}{c}{electron density} \\
+            \cline{2-4} \cline{5-7}
+            & $L^1$-error & $L^2$-error & $L^1$-error & $L^2$-error
+            & $L^1$-error & $L^2$-error  \\
+            \hline
+             64   &  0.369 & 0.0712 & 5.88 & 1.14 & 6.67 & 1.83 \\
+             512  &  0.195 & 0.0493 & 3.13 & 0.77 & 3.09 & 1.36 \\
+             4096 &  0.087 & 0.0332 & 0.98 & 0.34 & 1.26 & 0.76 \\
+             \hline
+             aver. rate & 1.05 & 0.55 & 1.34 & 0.90 & 1.21 & 0.65 \\
+             \hline\hline
+        \end{tabular}
+    }\\
+    \vspace{0.5cm}\subfloat[\colorbox{yellow!30}{$\lambda = 0.01$}]{
+        \begin{tabular}{c | c c | c c | c c }
+            \hline\hline
+            \multirow{2}{1em}{$N_V$} & \multicolumn{2}{c|}{$\mathbf{E}$-field}
+            &
+            \multicolumn{2}{c|}{$\mathbf{B}$-field} & \multicolumn{2}{c}{electron density} \\
+            \cline{2-4} \cline{5-7}
+            & $L^1$-error & $L^2$-error & $L^1$-error & $L^2$-error
+            & $L^1$-error & $L^2$-error  \\
+            \hline
+             64   &  0.141 & 0.0271 & 1.52E-3 & 2.67E-4 & 6.67 & 1.83 \\
+             512  &  0.094 & 0.0214 & 8.21E-4 & 1.47E-4 & 3.09 & 1.36 \\
+             4096 &  0.041 & 0.0113 & 3.84E-4 & 6.93E-5 & 1.26 & 0.76 \\
+             \hline
+             aver. rate & 0.93 & 0.66 & 1.00 & 0.98 & 1.21 & 0.65 \\
+             \hline\hline
+        \end{tabular}
+    }\\
+    \vspace{0.5cm}\subfloat[\colorbox{yellow!30}{$\lambda = 0$}]{
+        \begin{tabular}{c | c c | c c | c c }
+            \hline\hline
+            \multirow{2}{1em}{$N_V$} & \multicolumn{2}{c|}{$\mathbf{E}$-field}
+            &
+            \multicolumn{2}{c|}{$\mathbf{B}$-field} & \multicolumn{2}{c}{electron density} \\
+            \cline{2-4} \cline{5-7}
+            & $L^1$-error & $L^2$-error & $L^1$-error & $L^2$-error
+            & $L^1$-error & $L^2$-error  \\
+            \hline
+             64   &  0.127 & 0.0274 & 9.46E-4 & 1.58E-4 & 6.67 & 1.83 \\
+             512  &  0.100 & 0.0212 & 6.26E-4 & 1.05E-4 & 3.09 & 1.36 \\
+             4096 &  0.038 & 0.0110 & 2.49E-4 & 4.33E-5 & 1.26 & 0.76 \\
+             \hline
+             aver. rate & 0.96 & 0.69 & 1.00 & 0.98 & 1.21 & 0.65 \\
+             \hline\hline
+        \end{tabular}
+    }
+    \caption{\review{Case II:  $L^1$ and $L^2$ errors of the $\mathbf{E}$-field, the $\mathbf{B}$-field, and the electron density and their convergence rates for a range of $\lambda$. The reference solution is computed at a sufficiently mesh resolution with $2^{18} = 262144$ primal cells.}}
+    \label{tab:grid_study_cube}}
+\end{table}
+}
+\begin{figure}
+    \centering
+    
+    \begin{minipage}{0.3\textwidth}
+    \vspace{-2cm}
+        \resizebox{\textwidth}{!}{
+            \begin{tikzpicture}[>=stealth]
+                % Electrode 1
+                \coordinate (O1) at (0,0);
+                \draw[violet,very thick] (O1) rectangle ++(2,2) node[midway, blue] {Electrode};
+                \fill[blue, opacity=0.2] (O1) rectangle ++(2,2);
+                
+                % Electrode 2
+                \coordinate (O2) at (4.5,1);
+                \draw[violet,very thick] (O2) rectangle ++(2,2) node[midway, red] {Electrode};
+                \fill[blue, opacity=0.2] (O2) rectangle ++(2,2);
+                
+                % Connecting lines
+                \coordinate (N1) at  ([shift={(0,2)}]O1);
+                \coordinate (E1) at  ([shift={(2,0)}]O1);
+                \coordinate (NE1) at ([shift={(2,2)}]O1);
+                \coordinate (N2) at  ([shift={(0,2)}]O2); 
+                \coordinate (E2) at  ([shift={(2,0)}]O2);
+                \coordinate (NE2) at ([shift={(2,2)}]O2); 
+                \draw[violet] (O1) -- (O2);
+                \draw[violet] (N1) -- (N2);
+                \draw[violet] (E1) -- (E2);
+                \draw[violet] (NE1) -- (NE2);
+
+                 % Plasma
+                \node at (barycentric cs:NE1=1,O2=1) {Plasma}; 
+                \fill[red, opacity=0.2] (O2) rectangle ++(2,2);
+
+                \coordinate (_O1) at (-0.5, -0.5);
+                \coordinate (_O2) at (4.0,0.5);
+                \draw[very thick] (_O1) rectangle ++(3,3);
+                \draw[very thick] (_O2) rectangle ++(3,3);
+                \coordinate (_N1) at  ([shift={(0,3)}]_O1);
+                \coordinate (_E1) at  ([shift={(3,0)}]_O1);
+                \coordinate (_NE1) at ([shift={(3,3)}]_O1);
+                \coordinate (_N2) at  ([shift={(0,3)}]_O2); 
+                \coordinate (_E2) at  ([shift={(3,0)}]_O2);
+                \coordinate (_NE2) at ([shift={(3,3)}]_O2); 
+                \draw[very thick] (_O1) -- (_O2);
+                \draw[very thick] (_N1) -- (_N2);
+                \draw[very thick] (_E1) -- (_E2);
+                \draw[very thick] (_NE1) -- (_NE2);
+                
+                \draw[-to] (barycentric cs:_N1=1,_NE1=1,_N2=1,_NE2=1) to[out=90,in=0] ([shift={(-0.5,0.5)}]barycentric cs:_N1=1,_NE1=1,_N2=1,_NE2=1) node[left, gray] {Insulator};
+                % Axes
+                 \begin{scope}[shift={(6.5,-0.9)}]
+                    \draw[blue, -to] (0,0) -- (20:0.7) node[right]{\small $z$};
+                    \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
+                    \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
+                \end{scope}
+            \end{tikzpicture}
+        }
+    \end{minipage}
+    \hspace{1cm}
+    \includegraphics[scale=0.2]{paper_version/cube_mesh_primal.png}
+    \hspace{1cm}
+    \includegraphics[scale=0.2]{paper_version/cube_mesh_dual.png}
+    \caption{\review{Case II: domain sketch (left); primal mesh (middle); dual mesh (right).}}
+    \label{fig:cube_domain_sketch}
+\end{figure}
+
+
+\subsection{Case III: 3D cylindrical domain}
 
 We stick to the setting in Section~\ref{sec:BC} and use the following initial conditions
 \begin{equation*}
     n_\ast(\mathbf{x}, 0) = 1, \ \ \  p_\ast(\mathbf{x},0) = 1, \ \ \forall \mathbf{x}\in\Omega, \ast \in \{e, i\}.
 \end{equation*}
-All the other variables are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = 1$, that is, a constant voltage is applied at the anode and excites the system. 
+All the other variables are set to zero initially. We set $\varphi(\mathbf{x}, t)|_{\Gamma_C^-} = 0, \varphi(\mathbf{x}, t)|_{\Gamma_C^+} = \tanh(100\times t)$, that is, a smooth voltage jump is applied at the anode and excites the system. 
 
 The cylindrical domain is 5.0 in length and 1.5 in radius. The plasma domain $\Omega_P$ is
 1.0 in radius, i.e. the non-conducting domain $\Omega_N$ has an inner radius of 1.0 and an
@@ -2156,7 +2315,7 @@ verification can be done in many aspects. First, the rotational symmetry of the 
 preserved. Second, the $\mathbf{E}$-field points from $\Gamma^+_C$ to $\Gamma^-_C$ with a
 relatively uniform value of approximately 0.2
 ($=\text{applied voltage}/\text{cylinder length}$) as a consequence of the irrotational
-$\mathbf{E}$-field in the steady state according to Faraday's law (, which is also confirmed
+$\mathbf{E}$-field in the steady state according to Faraday's law (which is also confirmed
 in Fig.~\ref{fig:stabilization_comparison} \textbf{(b)}). Note that it does not hold for $\lambda = 1$
 since the system has a large characteristic time and takes a long time to reach an
 equilibrium, as will be shown later in Fig.~\ref{fig:origin-data_vs_time}. Besides, the
@@ -2172,9 +2331,9 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.25]{E-field_lambda-1.png}
-        \includegraphics[scale=0.25]{B-field_lambda-1.png}
-        \includegraphics[scale=0.25]{electronVel_lambda-1.png}
+        \includegraphics[scale=0.2]{E-field_lambda-1.png}\hspace{0.6cm}
+        \includegraphics[scale=0.2]{B-field_lambda-1.png}
+        \includegraphics[scale=0.2]{electronVel_lambda-1.png}
         \caption{\colorbox{yellow!30}{$\lambda = 1.0$}}
     \end{subfigure}
      \begin{subfigure}[b]{\textwidth}
@@ -2184,10 +2343,10 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.25]{E-field_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{E-field_lambda-1e-1.png}
         \hspace{0.3cm}
-        \includegraphics[scale=0.25]{B-field_lambda-1e-1.png}
-        \includegraphics[scale=0.25]{electronVel_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{B-field_lambda-1e-1.png}
+        \includegraphics[scale=0.2]{electronVel_lambda-1e-1.png}
         \caption{\colorbox{yellow!30}{$\lambda = 0.1$}}
     \end{subfigure}
     \begin{subfigure}[b]{\textwidth}
@@ -2197,16 +2356,17 @@ $\Gamma^+_C$ as expected.
         \draw[blue, -to] (0,0) -- (0,0.7) node[above]{\small $x$};
         \draw[blue, -to] (0,0) -- (0.7,0) node[below]{\small $y$};
         \end{tikzpicture}
-        \includegraphics[scale=0.25]{E-field_lambda-0.png}
+        \includegraphics[scale=0.2]{E-field_lambda-0.png}
         \hspace{0.3cm}
-        \includegraphics[scale=0.25]{B-field_lambda-0.png}
-        \includegraphics[scale=0.25]{electronVel_lambda-0.png}
+        \includegraphics[scale=0.2]{B-field_lambda-0.png}
+        \includegraphics[scale=0.2]{electronVel_lambda-0.png}
         \caption{\colorbox{yellow!30}{$\lambda = 0.0$}}
     \end{subfigure}
-    \caption{Case II: Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 10$ based on a primal mesh with 1920 cells (16 cells along $z$-axis). } 
+    \caption{Case III: Snapshots of the $\mathbf{E}$-field, $\mathbf{B}$-field, and $\mathbf{u}_e$ for different $\lambda$ at $t = 0.5$. } 
     \label{fig:3d_vec_field_E_B_ue}
 \end{figure}
 
+\if\ifUpdate0
 Next, we study the impact of mesh refinement. Due to the high computational cost in 3D
 simulations, reference solutions produced by a highly-refined mesh are not
 available. Therefore, we demonstrate results generated by relatively coarse
@@ -2326,6 +2486,7 @@ qualitative agreement is observed.
       \colorbox{yellow!30}{$\lambda = 0$} at $t = 1$.}
     \label{fig:grid_study_3d_clip_lambda-0}
 \end{figure}
+\fi
 
 To inspect how the system evolves, the time histories of some quantities are displayed in
 Fig.~\ref{fig:origin-data_vs_time}. Being in stable equilibrium at $t=0$, the system is
@@ -2343,7 +2504,7 @@ shown in the bottom plot in Fig.~\ref{fig:origin-data_vs_time}.
 \begin{figure}
   \centering
     \includegraphics[scale=0.9]{data-vs-time_stepVoltage.eps}
-    \caption{Case II: Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different values of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along the $z$-axis.}
+    \caption{Case III: Time histories of quantities at the domain center and of the averaged current densities at $\Gamma^+_C$ (anode) and $\Gamma^-_C$ (cathode) for different values of $\lambda$. The simulations are done on a mesh with 1920 primal cells with 8 layers along the $z$-axis.}
     \label{fig:origin-data_vs_time}
 \end{figure}
 
@@ -2357,7 +2518,7 @@ when $\lambda$ is close to zero. The proposed stabilization clearly offers a rem
   \includegraphics[width=\textwidth]{stabilizationComparision_stepVoltage.eps}
 
   \parbox{0.9\textwidth}{\begin{tabular}[c]{ll}
-    \textbf{(a)} & time-dependent z-component of \\ & the $\mathbf{E}$-field
+    \textbf{(a)} & Time-dependent z-component of \\ & the $\mathbf{E}$-field
     in a boundary cell on $\Omega_N$
   \end{tabular}}
 \end{minipage}%    
@@ -2370,8 +2531,8 @@ when $\lambda$ is close to zero. The proposed stabilization clearly offers a rem
    \end{tabular}}
 \end{minipage}%
 
-\caption{Case II: \textbf{(a)} Stabilization in the non-conducting domain $\Omega_N$,
-  \textbf{(b)} Numerical quasi-neutrality    }
+\caption{Case III: \textbf{(a)} Stabilization in the non-conducting domain $\Omega_N$,
+  \textbf{(b)} Numerical quasi-neutrality.    }
 \label{fig:stabilization_comparison}
 \end{figure}
 
@@ -2384,6 +2545,69 @@ $\mathbf{E}$-field and particle densities on the $z$-axis in
 Fig.~\ref{fig:stabilization_comparison} \textbf{(b)}. The bottom plot demonstrates that
 the density profiles of the electrons and ions offset each other also for computed quantities:
 Quasi-neutrality holds on the discrete level.
+
+\review{
+\subsection{Case IV: 3D bended cylindrical domain}
+To demonstrate the performance of the proposed scheme on more general three-dimensional settings, we bend the cylinder domain in Case III (see Fig.~\ref{fig:domain_sketch}), as is shown in Fig.~\ref{fig:bend_domain_sketch}. The same initial and boundary conditions as Case III are used. The numerical results of the electromagnetic field for $\lambda = 0$ and $1$ is displayed in Fig.~\ref{fig:3d_vec_field_E_B_bend}. It can be observed the qualitatively similar phenomena as Case~III (see Fig.~\ref{fig:3d_vec_field_E_B_ue}), that is, the electromagnetic field in the bulk of the domain develops much faster at small $\lambda$.}
+\begin{figure}
+    \centering
+    \begin{minipage}{0.3\textwidth}
+    \vspace{-2cm}
+        \resizebox{\textwidth}{!}{
+            \begin{tikzpicture}
+                \coordinate (O1) at (0,0);
+                \draw[violet] (O1) circle (1) node[blue] {Electrode};
+                \fill[blue, opacity=0.2] (O1) circle (1);
+                \draw[very thick] (O1) circle (1.5);
+                \coordinate (O2) at (4.5,2);
+                %\draw[violet] (O2) circle (1);
+                \node at (O2) {\textcolor{red}{Electrode}};
+                
+                \coordinate (S1) at ([shift={(-0.707,0.707)}]O1);
+                \coordinate (S2) at ([shift={(-0.196,0.98)}]O2);
+                \coordinate (P1) at ([shift={(0.707,-0.707)}]O1);
+                \coordinate (P2) at ([shift={(0.196,-0.98)}]O2);
+                \draw[violet] (S1) to[out=45, in=180 + 10] (S2);
+                \draw[violet] (P1) to[out=45, in=180 + 10] (P2);
+                \coordinate (SS1) at ([shift={({-0.707*1.5},{0.707*1.5})}]O1);
+                \coordinate (SS2) at ([shift={({-0.196*1.5},{0.99*1.5})}]O2);
+                \coordinate (PP1) at ([shift={({0.707*1.5},{-0.707*1.5})}]O1);
+                \coordinate (PP2) at ([shift={({0.196*1.5},{-0.99*1.5})}]O2);
+                \draw[very thick] (SS1) to[out=45, in=180 + 10] (SS2);
+                \draw[very thick] (PP1) to[out=45, in=180 + 10] (PP2); 
+                \draw[very thick] (SS2) to[out=-180+10, in=180+10] (PP2);
+                \draw[very thick] (PP2) to[out=10, in=10] (SS2);
+                \draw[violet] (S2) to[out=-180+10, in=180+10] (P2) to[out=10, in=10] (S2);
+                \fill[red, opacity=0.2] (S2) to[out=-180+10, in=180+10] (P2) to[out=10, in=10] (S2);
+                \draw[-to] ([shift={(3,1.5)}]SS1) to[out=90,in=0] ([shift={(-0.5,0.7)}]barycentric cs:SS1=1,SS2=1) node[left, gray] {Insulator};
+                \node at (barycentric cs:P1=1,SS2=1) {Plasma};
+            \end{tikzpicture}
+        }
+    \end{minipage}
+    \hspace{1cm}
+    \includegraphics[scale=0.2]{paper_version/primal_mesh_bend.png}
+    \hspace{1cm}
+    \includegraphics[scale=0.2]{paper_version/dual_mesh_bend.png}
+    \caption{\review{Case IV: domain sketch (left); primal mesh (middle); dual mesh (right).}}
+    \label{fig:bend_domain_sketch}
+\end{figure}
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[scale=0.3]{paper_version/E-field_lamnbda-1_bend.png}\hspace{1cm}
+        \includegraphics[scale=0.3]{paper_version/B-field_lamnbda-1_bend.png}
+        \caption{\colorbox{yellow!30}{$\lambda = 1$}}
+    \end{subfigure}
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[scale=0.3]{paper_version/E-field_lamnbda-0_bend.png}\hspace{1cm}
+        \includegraphics[scale=0.3]{paper_version/B-field_lamnbda-0_bend.png}
+        \caption{\colorbox{yellow!30}{$\lambda = 0$}}
+    \end{subfigure}
+    \caption{Case IV: Snapshots of the $\mathbf{E}$-field and $\mathbf{B}$-field for different $\lambda$ at $t = 0.05$.}
+    \label{fig:3d_vec_field_E_B_bend}
+\end{figure}
 
 \section{Conclusion}
 
